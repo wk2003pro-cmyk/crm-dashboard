@@ -1667,114 +1667,28 @@ const DEFAULT_STAGE_DAYS = [0, 2, 4, 6, 8];
 // --- Demo archive
 const DEMO_ARCHIVE = [
   {
-    id: 'w1', date: '2024-08-01', period: '1–7 августа',
+    id: 'w1', date: '2026-05-12', period: '12–18 мая',
     sources: [
-      { name: 'Сайт', leads: 18, quality: 80 },
-      { name: 'Рефералы', leads: 14, quality: 70 },
-      { name: 'Контекст', leads: 8, quality: 75 },
-      { name: 'Соцсети', leads: 5, quality: 65 },
+      { name: 'Сайт', leads: 0, quality: 0 },
+      { name: 'Рефералы', leads: 0, quality: 0 },
+      { name: 'Контекст', leads: 0, quality: 0 },
+      { name: 'Соцсети', leads: 0, quality: 0 },
     ],
-    campaigns: [{ name: 'Лето в посёлке', spent: 38000, leads: 18, roi: 2.5 }],
+    campaigns: [
+      { name: 'Основная кампания', spent: 0, leads: 0, roi: 0 },
+    ],
     funnel: [
-      { stage: 'Новые лиды', count: 45, days: 0 },
-      { stage: 'Квалифицированы', count: 38, days: 2 },
-      { stage: 'Встречи', count: 22, days: 5 },
-      { stage: 'Предложения', count: 14, days: 7 },
-      { stage: 'Контракты', count: 12, days: 9 },
+      { stage: 'Новые лиды', count: 0, days: 0 },
+      { stage: 'Квалифицированы', count: 0, days: 2 },
+      { stage: 'Встречи', count: 0, days: 5 },
+      { stage: 'Предложения', count: 0, days: 7 },
+      { stage: 'Контракты', count: 0, days: 9 },
     ],
-    avgDeal: 7.5,
+    avgDeal: 8,
     problems: [],
-    priorities: [{ task: 'Подготовить контент на следующую неделю', owner: 'Елизавета', due: 'Пт' }],
-    insights: ['Хороший старт месяца', 'Соцсети дают мало лидов — нужно усилить'],
+    priorities: [],
+    insights: [],
   },
-  {
-    id: 'w2', date: '2024-08-08', period: '8–14 августа',
-    sources: [
-      { name: 'Сайт', leads: 22, quality: 82 },
-      { name: 'Рефералы', leads: 16, quality: 71 },
-      { name: 'Контекст', leads: 10, quality: 76 },
-      { name: 'Соцсети', leads: 8, quality: 67 },
-    ],
-    campaigns: [
-      { name: 'Лето в посёлке', spent: 42000, leads: 22, roi: 2.6 },
-      { name: 'Выходные в коттедже', spent: 25000, leads: 14, roi: 2.3 },
-    ],
-    funnel: [
-      { stage: 'Новые лиды', count: 56, days: 0 },
-      { stage: 'Квалифицированы', count: 48, days: 2 },
-      { stage: 'Встречи', count: 26, days: 5 },
-      { stage: 'Предложения', count: 16, days: 7 },
-      { stage: 'Контракты', count: 14, days: 9 },
-    ],
-    avgDeal: 7.8,
-    problems: [{ client: 'ООО Альпина', deal: 'Участок 2.5 га', issue: 'Согласование', days: 7 }],
-    priorities: [{ task: 'Запустить вторую кампанию', owner: 'Елизавета', due: 'Ср' }],
-    insights: ['Запуск второй кампании усилил поток лидов', 'Альпина требует внимания'],
-  },
-  {
-    id: 'w3', date: '2024-08-15', period: '15–21 августа',
-    sources: [
-      { name: 'Сайт', leads: 20, quality: 83 },
-      { name: 'Рефералы', leads: 15, quality: 70 },
-      { name: 'Контекст', leads: 12, quality: 77 },
-      { name: 'Соцсети', leads: 10, quality: 68 },
-    ],
-    campaigns: [
-      { name: 'Лето в посёлке', spent: 40000, leads: 20, roi: 2.7 },
-      { name: 'Выходные в коттедже', spent: 28000, leads: 16, roi: 2.4 },
-    ],
-    funnel: [
-      { stage: 'Новые лиды', count: 57, days: 0 },
-      { stage: 'Квалифицированы', count: 49, days: 2 },
-      { stage: 'Встречи', count: 25, days: 5 },
-      { stage: 'Предложения', count: 15, days: 7 },
-      { stage: 'Контракты', count: 13, days: 9 },
-    ],
-    avgDeal: 8.0,
-    problems: [{ client: 'ООО Альпина', deal: 'Участок 2.5 га', issue: 'Задержка согласования', days: 14 }],
-    priorities: [{ task: 'Закрыть Альпину', owner: 'Виталий', due: 'Пт' }],
-    insights: ['Качество лидов растёт', 'Альпина застряла — подключить юриста'],
-  },
-  {
-    id: 'w4', date: '2024-08-22', period: '22–28 августа',
-    sources: [
-      { name: 'Сайт', leads: 24, quality: 85 },
-      { name: 'Рефералы', leads: 18, quality: 72 },
-      { name: 'Контекст (Яндекс)', leads: 15, quality: 78 },
-      { name: 'Соцсети', leads: 12, quality: 68 },
-      { name: 'Прямые', leads: 8, quality: 90 },
-    ],
-    campaigns: [
-      { name: 'Лето в посёлке', spent: 45000, leads: 24, roi: 2.8 },
-      { name: 'Выходные в коттедже', spent: 32000, leads: 18, roi: 2.4 },
-      { name: 'Осень. Новые объекты', spent: 28000, leads: 15, roi: 2.1 },
-    ],
-    funnel: [
-      { stage: 'Новые лиды', count: 77, days: 0 },
-      { stage: 'Квалифицированы', count: 52, days: 2 },
-      { stage: 'Встречи', count: 28, days: 5 },
-      { stage: 'Предложения', count: 18, days: 7 },
-      { stage: 'Контракты', count: 16, days: 9 },
-    ],
-    avgDeal: 8.2,
-    problems: [
-      { client: 'ООО Альпина', deal: 'Участок 2.5 га', issue: 'Задержка согласования юристами', days: 34 },
-      { client: 'Семёнов А.В.', deal: 'Коттедж 450м²', issue: 'Ожидание одобрения ипотеки', days: 28 },
-      { client: 'АО Строймастер', deal: 'Коммерческий участок', issue: 'Разногласия по цене', days: 19 },
-    ],
-    priorities: [
-      { task: 'Закрытие сделки Альпина — встреча с юристом', owner: 'Виталий', due: 'Пт' },
-      { task: 'Запуск кампании «Осень в посёлке»', owner: 'Елизавета', due: 'Ср' },
-      { task: 'Квалификация 16 холодных лидов', owner: 'Анастасия', due: 'Чт' },
-      { task: 'Презентация объектов для группы из 8 клиентов', owner: 'Елена', due: 'Чт' },
-    ],
-    insights: [
-      'Сильная неделя: 77 лидов (+35%), конверсия в контракты 21% — выше плана',
-      'Требует внимания: 3 застрявшие сделки на 19–34 дня. Альпина имеет наибольший потенциал',
-      'Слабое звено воронки — переход «лиды → квалификация» (68%). Усилить квалификацию',
-      'Качество рефералов ниже среднего (72%). Пересмотреть программу',
-    ]
-  }
 ];
 
 // --- State
@@ -3236,7 +3150,7 @@ function deleteCurrentWeek() {
 }
 
 function saveArchive() {
-  try { localStorage.setItem('poselok_archive_v2', JSON.stringify(archive)); }
+  try { localStorage.setItem('poselok_archive_v3', JSON.stringify(archive)); }
   catch (e) { alert('Не удалось сохранить (переполнено хранилище). Сделайте экспорт.'); }
 }
 
@@ -3279,7 +3193,7 @@ function importBackup(event) {
   const savedTheme = localStorage.getItem('theme') || 'dark';
   applyTheme(savedTheme);
 
-  const saved = localStorage.getItem('poselok_archive_v2');
+  const saved = localStorage.getItem('poselok_archive_v3');
   if (saved) {
     try {
       archive = JSON.parse(saved);
