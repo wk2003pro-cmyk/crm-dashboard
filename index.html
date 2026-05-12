@@ -145,6 +145,9 @@
     setTimeout(() => { const i = document.getElementById('gate-input'); if(i) i.focus(); }, 150);
   });
 })();
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/crm-dashboard/sw.js').catch(() => {});
+}
 </script>
 <style>
   /* ========== TOKENS ========== */
@@ -3423,6 +3426,29 @@ function _normaliseArchive() {
     }
     // Equal timestamps — already in sync, no action needed
   }).catch(() => _updateSyncBtn('err'));
+
+  // Периодическая синхронизация — тянет обновления из облака каждые 3 минуты
+  setInterval(() => {
+    if (_sync.busy) return;
+    _syncLoad().then(cloud => {
+      if (!cloud) return;
+      const cloudTs = cloud.ts || 0;
+      const localTs = parseInt(localStorage.getItem('poselok_save_ts') || '0');
+      if (cloudTs > localTs) {
+        const cloudStr = JSON.stringify(cloud.data);
+        if (cloudStr !== JSON.stringify(archive)) {
+          archive = cloud.data;
+          localStorage.setItem('poselok_archive_v3', cloudStr);
+          localStorage.setItem('poselok_save_ts', cloudTs.toString());
+          _normaliseArchive();
+          currentIdx = Math.min(currentIdx, archive.length - 1);
+          data = archive[currentIdx];
+          renderWeekPills();
+          render();
+        }
+      }
+    }).catch(() => {});
+  }, 3 * 60 * 1000);
 })();
 
 </script>
