@@ -1,5 +1,5 @@
 {
-  "_ts": 1778600954686,
+  "_ts": 1778603053500,
   "data": [
     {
       "id": "w1",
@@ -8,9 +8,9 @@
       "sources": [
         {
           "name": "Сайт",
-          "leads": 2,
-          "quality": 0,
-          "qualified": 0
+          "leads": 5,
+          "quality": 300,
+          "qualified": 15
         },
         {
           "name": "Рефералы",
@@ -34,9 +34,14 @@
       "campaigns": [
         {
           "name": "Основная кампания",
-          "spent": 0,
-          "leads": 0,
-          "roi": 0
+          "leads": 5,
+          "roi": 0,
+          "monthlyBudget": 44444444
+        },
+        {
+          "name": "Новая кампания",
+          "monthlyBudget": 44,
+          "leads": 3
         }
       ],
       "funnel": [
