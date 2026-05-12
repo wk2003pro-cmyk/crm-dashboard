@@ -604,6 +604,7 @@
   }
 
   .funnel-row.with-cmp .funnel-bar-wrap { height: 44px; }
+  .funnel-row.with-cmp .funnel-stage { align-self: start; padding-top: 14px; }
   .funnel-bar-cmp {
     height: 18px; margin-top: 4px;
     border-radius: 4px;
@@ -707,9 +708,15 @@
   /* ========== FUNNEL ========== */
   .funnel { display: flex; flex-direction: column; gap: 6px; }
   .funnel-row {
-    display: grid; grid-template-columns: 1fr; align-items: center;
-    position: relative;
+    display: grid; grid-template-columns: 130px 1fr; align-items: center;
+    gap: 12px; position: relative;
   }
+  .funnel-stage {
+    font-weight: 500; color: var(--ink); font-size: 12px;
+    text-align: right; line-height: 1.25;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .funnel-bars-col { display: flex; flex-direction: column; gap: 4px; }
   .funnel-bar-wrap {
     height: 56px; background: var(--surface-2); border-radius: var(--r-sm);
     overflow: hidden; position: relative;
@@ -718,9 +725,8 @@
     height: 100%;
     background: linear-gradient(90deg, var(--ink), var(--ink) 60%, var(--accent) 100%);
     transition: width .8s cubic-bezier(.4,0,.2,1);
-    display: flex; align-items: center; padding-left: 20px;
-    color: var(--bg); font-family: var(--mono); font-weight: 600; font-size: 13px;
     border-radius: var(--r-sm);
+    min-width: 0;
   }
   [data-theme="light"] .funnel-bar { background: linear-gradient(90deg, var(--ink), var(--accent-deep)); }
   .funnel-meta {
@@ -728,7 +734,6 @@
     display: flex; align-items: center; gap: 14px;
     font-size: 12px;
   }
-  .funnel-stage { font-weight: 500; color: var(--ink); font-size: 13px; }
   .funnel-conv { font-family: var(--mono); font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
   .funnel-conv.hi { background: var(--pos-soft); color: var(--pos); }
   .funnel-conv.mid { background: var(--accent-soft); color: var(--accent); }
@@ -2198,17 +2203,18 @@ function renderFunnel() {
     const cmpBar = cf ? `<div class="funnel-bar-cmp" style="width:${cf.count / maxFunnel * 100}%; background:${scColor};"><span class="funnel-cmp-count num">${cf.count}</span></div>` : '';
     return `
       <div class="funnel-row ${isComparing() ? 'with-cmp' : ''}">
-        <div class="funnel-bar-wrap">
-          <div class="funnel-bar" style="width:${pct}%">
-            <span class="funnel-stage" style="color: inherit;">${f.stage}</span>
+        <span class="funnel-stage">${f.stage}</span>
+        <div class="funnel-bars-col">
+          <div class="funnel-bar-wrap">
+            <div class="funnel-bar" style="width:${pct}%"></div>
+            <div class="funnel-meta">
+              ${i > 0 ? `<span class="funnel-conv ${convCls}">${stageConv.toFixed(0)}%</span>` : ''}
+              ${days > 0 ? `<span class="funnel-days">⏱ ${days}д</span>` : ''}
+              <span class="num" style="font-family: var(--serif); font-size: 24px; color: var(--ink);">${f.count}</span>
+            </div>
           </div>
-          <div class="funnel-meta">
-            ${i > 0 ? `<span class="funnel-conv ${convCls}">${stageConv.toFixed(0)}%</span>` : ''}
-            ${days > 0 ? `<span class="funnel-days">⏱ ${days}д</span>` : ''}
-            <span class="num" style="font-family: var(--serif); font-size: 24px; color: var(--ink);">${f.count}</span>
-          </div>
+          ${cmpBar}
         </div>
-        ${cmpBar}
       </div>
     `;
   }).join('');
