@@ -1,1 +1,71 @@
-[{"id": "w1", "date": "2026-05-04", "period": "test"}]
+{
+  "_ts": 0,
+  "data": [
+    {
+      "id": "w1",
+      "date": "2026-05-04",
+      "period": "4–10 мая",
+      "sources": [
+        {
+          "name": "Сайт",
+          "leads": 0,
+          "quality": 0
+        },
+        {
+          "name": "Рефералы",
+          "leads": 0,
+          "quality": 0
+        },
+        {
+          "name": "Контекст",
+          "leads": 0,
+          "quality": 0
+        },
+        {
+          "name": "Соцсети",
+          "leads": 0,
+          "quality": 0
+        }
+      ],
+      "campaigns": [
+        {
+          "name": "Основная кампания",
+          "spent": 0,
+          "leads": 0,
+          "roi": 0
+        }
+      ],
+      "funnel": [
+        {
+          "stage": "Новые лиды",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Квалифицированы",
+          "count": 0,
+          "days": 2
+        },
+        {
+          "stage": "Встречи",
+          "count": 0,
+          "days": 5
+        },
+        {
+          "stage": "Предложения",
+          "count": 0,
+          "days": 7
+        },
+        {
+          "stage": "Контракты",
+          "count": 0,
+          "days": 9
+        }
+      ],
+      "avgDeal": 8,
+      "problems": [],
+      "priorities": [],
+      "insights": []
+    }
+  ]
+}
