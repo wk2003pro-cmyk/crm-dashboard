@@ -1,5 +1,5 @@
 {
-  "_ts": 1778603324921,
+  "_ts": 1778603484620,
   "data": [
     {
       "id": "w1",
@@ -33,15 +33,9 @@
       ],
       "campaigns": [
         {
-          "name": "Основная кампания",
-          "leads": 50,
-          "roi": 0,
-          "monthlyBudget": 455
-        },
-        {
           "name": "Новая кампания",
-          "monthlyBudget": 44,
-          "leads": 3
+          "monthlyBudget": 1000000,
+          "leads": 10
         }
       ],
       "funnel": [
@@ -72,9 +66,24 @@
         }
       ],
       "avgDeal": 29,
-      "problems": [],
-      "priorities": [],
-      "insights": [],
+      "problems": [
+        {
+          "client": "",
+          "deal": "",
+          "issue": "",
+          "days": 0
+        }
+      ],
+      "priorities": [
+        {
+          "task": "",
+          "owner": "",
+          "due": ""
+        }
+      ],
+      "insights": [
+        ""
+      ],
       "forecast": {
         "value": 0,
         "deals": 0,
