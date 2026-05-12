@@ -248,9 +248,30 @@
     background: color-mix(in srgb, var(--bg) 88%, transparent);
     backdrop-filter: blur(14px) saturate(140%);
     border-bottom: 1px solid var(--line);
-    padding: 14px 32px;
+    display: flex; flex-direction: column; align-items: stretch; gap: 0;
+  }
+  .topbar-main {
     display: flex; align-items: center; justify-content: space-between;
-    gap: 24px;
+    gap: 24px; padding: 10px 32px;
+  }
+  .topbar-archive {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 32px 9px;
+    border-top: 1px solid var(--line);
+    overflow-x: auto; overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .topbar-archive::-webkit-scrollbar { display: none; }
+  .topbar-archive .pf-row { flex-wrap: nowrap; }
+  .topbar-archive .pill-row { flex: none; flex-wrap: nowrap; }
+  .topbar-archive-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-mute);
+    white-space: nowrap; flex-shrink: 0; padding-right: 4px;
+  }
+  .topbar-archive-sep {
+    width: 1px; height: 16px; background: var(--line); flex-shrink: 0; margin: 0 2px;
   }
   .brand { display: flex; align-items: center; gap: 12px; }
   .brand-mark {
@@ -1146,10 +1167,13 @@
     .section-head { flex-direction: column; align-items: flex-start; gap: 8px; }
     .section-title { font-size: 26px; }
     .metric-tabs { width: 100%; overflow-x: auto; }
+    .topbar-main { padding: 8px 16px; }
+    .topbar-archive { padding: 5px 16px 8px; }
   }
   @media (max-width: 640px) {
     .page { padding: 0 12px 60px; }
-    .topbar { padding: 10px 12px; gap: 6px; }
+    .topbar-main { padding: 8px 12px; gap: 6px; }
+    .topbar-archive { padding: 5px 12px 8px; }
     .topbar-secondary { display: none; }
     .topbar-scenarios { display: none; }
     .topbar-actions { gap: 4px; }
@@ -1222,29 +1246,40 @@
 
 <!-- =================== TOPBAR =================== -->
 <header class="topbar no-print">
-  <div class="brand">
-    <div class="brand-mark">С</div>
-    <div>
-      <div class="brand-name">СИЛВА · Поселок</div>
-      <div class="brand-sub">CRM · Еженедельный отчёт</div>
+  <div class="topbar-main">
+    <div class="brand">
+      <div class="brand-mark">С</div>
+      <div>
+        <div class="brand-name">СИЛВА · Поселок</div>
+        <div class="brand-sub">CRM · Еженедельный отчёт</div>
+      </div>
+    </div>
+
+    <div class="topbar-scenarios" id="topbar-scenarios"></div>
+
+    <div class="topbar-actions">
+      <div class="topbar-secondary">
+        <button class="btn btn-ghost btn-sm admin-only" onclick="exportBackup()">Экспорт</button>
+        <button class="btn btn-ghost btn-sm admin-only" onclick="document.getElementById('importFile').click()">Импорт</button>
+        <input type="file" id="importFile" accept=".json" onchange="importBackup(event)" style="display:none">
+        <button class="btn btn-ghost btn-sm" onclick="togglePrintMode()">Версия для совещания</button>
+        <button class="btn btn-ghost btn-sm" onclick="window.print()">Печать</button>
+      </div>
+      <button class="btn btn-outline btn-sm admin-only" onclick="newWeek()">＋ Неделя</button>
+      <button class="btn btn-primary btn-sm admin-only" onclick="toggleEdit()">Редактировать</button>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Тема">
+        <svg id="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
     </div>
   </div>
 
-  <div class="topbar-scenarios" id="topbar-scenarios"></div>
-
-  <div class="topbar-actions">
-    <div class="topbar-secondary">
-      <button class="btn btn-ghost btn-sm admin-only" onclick="exportBackup()">Экспорт</button>
-      <button class="btn btn-ghost btn-sm admin-only" onclick="document.getElementById('importFile').click()">Импорт</button>
-      <input type="file" id="importFile" accept=".json" onchange="importBackup(event)" style="display:none">
-      <button class="btn btn-ghost btn-sm" onclick="togglePrintMode()">Версия для совещания</button>
-      <button class="btn btn-ghost btn-sm" onclick="window.print()">Печать</button>
-    </div>
-    <button class="btn btn-outline btn-sm admin-only" onclick="newWeek()">＋ Неделя</button>
-    <button class="btn btn-primary btn-sm admin-only" onclick="toggleEdit()">Редактировать</button>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Тема">
-      <svg id="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-    </button>
+  <div class="topbar-archive" id="topbar-archive">
+    <span class="topbar-archive-label">Архив</span>
+    <div id="period-filter" class="pf-row"></div>
+    <div id="pf-year-sep" class="topbar-archive-sep" style="display:none"></div>
+    <div id="period-months" class="pf-row" style="display:none"></div>
+    <div id="pf-month-sep" class="topbar-archive-sep"></div>
+    <div class="pill-row" id="week-pills"></div>
   </div>
 </header>
 
@@ -1268,15 +1303,6 @@
   </section>
 
   <!-- =================== WEEK / SCENARIO STRIPS =================== -->
-  <div class="strip strip-col no-print">
-    <div class="strip-top">
-      <div class="strip-label">Архив</div>
-      <div id="period-filter" class="pf-row"></div>
-    </div>
-    <div id="period-months" class="pf-row" style="display:none; padding-left: 104px;"></div>
-    <div class="pill-row" id="week-pills"></div>
-  </div>
-
   <div class="strip no-print" id="scenario-block" style="display:none;">
     <div class="strip-label">Сценарий</div>
     <div class="pill-row" id="scenario-pills"></div>
@@ -2452,30 +2478,36 @@ function renderWeekPills() {
 
   // ── Фильтр годов ──
   const pfEl = document.getElementById('period-filter');
+  const yrSep = document.getElementById('pf-year-sep');
   if (pfEl) {
     if (multiYear) {
       pfEl.style.display = '';
+      if (yrSep) yrSep.style.display = '';
       pfEl.innerHTML =
         `<button class="pf-pill ${periodYear === null ? 'active' : ''}" onclick="setPeriodYear(null)">Все</button>` +
         years.map(y => `<button class="pf-pill ${periodYear === y ? 'active' : ''}" onclick="setPeriodYear(${y})">${y}</button>`).join('');
     } else {
       pfEl.style.display = 'none';
+      if (yrSep) yrSep.style.display = 'none';
     }
   }
 
   // ── Фильтр месяцев (если выбран год и в нём >1 месяца) ──
   const pmEl = document.getElementById('period-months');
+  const moSep = document.getElementById('pf-month-sep');
   if (pmEl) {
     const monthsInYear = periodYear !== null
       ? [...new Set(archive.filter(w => new Date(w.date).getFullYear() === periodYear).map(w => new Date(w.date).getMonth()))].sort((a,b)=>a-b)
       : [];
     if (periodYear !== null && monthsInYear.length > 1) {
       pmEl.style.display = '';
+      if (moSep) moSep.style.display = '';
       pmEl.innerHTML =
         `<button class="pf-pill ${periodMonth === null ? 'active' : ''}" onclick="setPeriodMonth(null)">Все</button>` +
         monthsInYear.map(m => `<button class="pf-pill ${periodMonth === m ? 'active' : ''}" onclick="setPeriodMonth(${m})">${MONTHS_SHORT_RU[m]}</button>`).join('');
     } else {
       pmEl.style.display = 'none';
+      if (moSep) moSep.style.display = 'none';
     }
   }
 
@@ -2491,10 +2523,10 @@ function renderWeekPills() {
     visible.map(({ w, i }) => `
       <span class="pill-wrap ${!aggregateMode && i === currentIdx ? 'active' : ''}">
         <button class="pill ${!aggregateMode && i === currentIdx ? 'active' : ''}" onclick="selectWeek(${i})">${w.period}</button>
-        <button class="pill-x" onclick="deleteWeek(${i}, event)" title="Удалить неделю">×</button>
+        <button class="pill-x admin-only" onclick="deleteWeek(${i}, event)" title="Удалить неделю">×</button>
       </span>
     `).join('') +
-    `<button class="pill pill-add" onclick="openWeekPicker()" title="Добавить период из календаря">+ из календаря</button>`;
+    `<button class="pill pill-add admin-only" onclick="openWeekPicker()" title="Добавить период из календаря">+ из календаря</button>`;
 }
 
 function setPeriodYear(year) {
