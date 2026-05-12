@@ -61,38 +61,51 @@
     40%, 60% { transform: translateX(6px); }
   }
   body.auth-locked { overflow: hidden; }
+
+  /* ── Режим чтения: скрываем элементы редактирования ── */
+  body.role-reader .admin-only { display: none !important; }
+  body.role-reader #themeToggle { display: flex !important; }
 </style>
 <script>
 (function() {
-  const HASH = 'a64332fe1df1790cb79d428bf5b5767ddd589b1cca825cb1b9eb30f7e9aaee03';
+  const ROLES = {
+    'a64332fe1df1790cb79d428bf5b5767ddd589b1cca825cb1b9eb30f7e9aaee03': 'reader',
+    '61ab550f4c85a975cd46f8606ede483d8ee720a76f627773de1bc1dd8ce5fb35': 'admin',
+  };
 
-  // SHA-256 via Web Crypto (HTTPS) with plaintext fallback for old/corporate browsers
-  async function checkPwd(input) {
+  async function getRole(input) {
     const val = input.trim();
     try {
       if (window.crypto && crypto.subtle) {
         const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(val));
         const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-        return hex === HASH;
+        return ROLES[hex] || null;
       }
     } catch(e) {}
-    // Fallback: simple obfuscated check (for non-secure or old Edge contexts)
-    return btoa(val) === btoa('1910');
+    // Fallback для старых/корпоративных браузеров
+    if (val === '1910') return 'reader';
+    if (val === '1019') return 'admin';
+    return null;
   }
 
-  function unlock() {
+  function applyRole(role) {
+    document.body.classList.remove('auth-locked', 'role-reader', 'role-admin');
+    document.body.classList.add('role-' + role);
+  }
+
+  function unlock(role) {
     const gate = document.getElementById('auth-gate');
     if (gate) { gate.style.opacity = '0'; gate.style.transition = 'opacity .3s'; setTimeout(() => gate.remove(), 300); }
-    document.body.classList.remove('auth-locked');
+    applyRole(role);
   }
 
   window.__gateCheck = async function() {
     const inp = document.getElementById('gate-input');
     const err = document.getElementById('gate-error');
-    const ok = await checkPwd(inp.value);
-    if (ok) {
-      try { sessionStorage.setItem('crm_auth', '1'); } catch(e) {}
-      unlock();
+    const role = await getRole(inp.value);
+    if (role) {
+      try { sessionStorage.setItem('crm_auth_role', role); } catch(e) {}
+      unlock(role);
     } else {
       inp.classList.remove('shake');
       void inp.offsetWidth;
@@ -104,9 +117,10 @@
   };
 
   document.addEventListener('DOMContentLoaded', function() {
-    let authed = false;
-    try { authed = sessionStorage.getItem('crm_auth') === '1'; } catch(e) {}
-    if (authed) return;
+    let savedRole = null;
+    try { savedRole = sessionStorage.getItem('crm_auth_role'); } catch(e) {}
+    if (savedRole === 'reader' || savedRole === 'admin') { applyRole(savedRole); return; }
+
     document.body.classList.add('auth-locked');
     const gate = document.createElement('div');
     gate.id = 'auth-gate';
@@ -1226,14 +1240,14 @@
 
   <div class="topbar-actions">
     <div class="topbar-secondary">
-      <button class="btn btn-ghost btn-sm" onclick="exportBackup()">Экспорт</button>
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFile').click()">Импорт</button>
-      <input type="file" id="importFile" accept=".json" onchange="importBackup(event)" style="display:none">
+      <button class="btn btn-ghost btn-sm admin-only" onclick="exportBackup()">Экспорт</button>
+      <button class="btn btn-ghost btn-sm admin-only" onclick="document.getElementById('importFile').click()">Импорт</button>
+      <input type="file" id="importFile" accept=".json" onchange="importBackup(event)" style="display:none" class="admin-only">
       <button class="btn btn-ghost btn-sm" onclick="togglePrintMode()">Версия для совещания</button>
       <button class="btn btn-ghost btn-sm" onclick="window.print()">Печать</button>
     </div>
-    <button class="btn btn-outline btn-sm" onclick="newWeek()">＋ Неделя</button>
-    <button class="btn btn-primary btn-sm" onclick="toggleEdit()">Редактировать</button>
+    <button class="btn btn-outline btn-sm admin-only" onclick="newWeek()">＋ Неделя</button>
+    <button class="btn btn-primary btn-sm admin-only" onclick="toggleEdit()">Редактировать</button>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Тема">
       <svg id="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
@@ -1269,8 +1283,8 @@
     <div class="strip-label">Сценарий</div>
     <div class="pill-row" id="scenario-pills"></div>
     <div class="strip-end">
-      <button class="btn btn-ghost btn-sm" id="create-scenarios-btn" onclick="createScenarios()">Создать сценарии</button>
-      <button class="btn btn-ghost btn-sm" id="delete-scenarios-btn" onclick="deleteScenarios()" style="display:none; color: var(--neg);">Удалить</button>
+      <button class="btn btn-ghost btn-sm admin-only" id="create-scenarios-btn" onclick="createScenarios()">Создать сценарии</button>
+      <button class="btn btn-ghost btn-sm admin-only" id="delete-scenarios-btn" onclick="deleteScenarios()" style="display:none; color: var(--neg);">Удалить</button>
     </div>
   </div>
 
@@ -1500,7 +1514,7 @@
     <div class="modal-foot">
       <button class="btn btn-primary" style="flex:1; padding: 12px;" onclick="applyData(); toggleEdit();">Применить и обновить</button>
       <button class="btn btn-outline" onclick="toggleEdit()">Отмена</button>
-      <button class="btn btn-outline" onclick="deleteCurrentWeek(); toggleEdit();" style="color: var(--neg); border-color: var(--neg);" title="Удалить неделю">🗑</button>
+      <button class="btn btn-outline admin-only" onclick="deleteCurrentWeek(); toggleEdit();" style="color: var(--neg); border-color: var(--neg);" title="Удалить неделю">🗑</button>
     </div>
   </div>
 </div>
