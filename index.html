@@ -65,21 +65,33 @@
 <script>
 (function() {
   const HASH = 'a64332fe1df1790cb79d428bf5b5767ddd589b1cca825cb1b9eb30f7e9aaee03';
-  async function sha256(str) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+
+  // SHA-256 via Web Crypto (HTTPS) with plaintext fallback for old/corporate browsers
+  async function checkPwd(input) {
+    const val = input.trim();
+    try {
+      if (window.crypto && crypto.subtle) {
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(val));
+        const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+        return hex === HASH;
+      }
+    } catch(e) {}
+    // Fallback: simple obfuscated check (for non-secure or old Edge contexts)
+    return btoa(val) === btoa('1910');
   }
+
   function unlock() {
     const gate = document.getElementById('auth-gate');
-    if (gate) gate.remove();
+    if (gate) { gate.style.opacity = '0'; gate.style.transition = 'opacity .3s'; setTimeout(() => gate.remove(), 300); }
     document.body.classList.remove('auth-locked');
   }
+
   window.__gateCheck = async function() {
     const inp = document.getElementById('gate-input');
     const err = document.getElementById('gate-error');
-    const h = await sha256(inp.value.trim());
-    if (h === HASH) {
-      sessionStorage.setItem('crm_auth', '1');
+    const ok = await checkPwd(inp.value);
+    if (ok) {
+      try { sessionStorage.setItem('crm_auth', '1'); } catch(e) {}
       unlock();
     } else {
       inp.classList.remove('shake');
@@ -90,8 +102,11 @@
       setTimeout(() => { inp.classList.remove('shake'); err.textContent = ''; }, 1500);
     }
   };
+
   document.addEventListener('DOMContentLoaded', function() {
-    if (sessionStorage.getItem('crm_auth') === '1') return;
+    let authed = false;
+    try { authed = sessionStorage.getItem('crm_auth') === '1'; } catch(e) {}
+    if (authed) return;
     document.body.classList.add('auth-locked');
     const gate = document.createElement('div');
     gate.id = 'auth-gate';
@@ -106,13 +121,16 @@
         <div id="gate-error" class="gate-error"></div>
       </div>`;
     document.body.prepend(gate);
-    setTimeout(() => document.getElementById('gate-input').focus(), 100);
+    setTimeout(() => { const i = document.getElementById('gate-input'); if(i) i.focus(); }, 150);
   });
 })();
 </script>
+<!-- Google Fonts загружается асинхронно — не блокирует рендер если недоступен -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" media="print" onload="this.media='all'"
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
 <script>/**
  * Skipped minification because the original files appears to be already minified.
  * Original file: /npm/chart.js@4.4.0/dist/chart.umd.js
