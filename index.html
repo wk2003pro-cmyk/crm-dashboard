@@ -1505,13 +1505,12 @@ if ('serviceWorker' in navigator) {
       <section class="modal-section">
         <div class="modal-section-title">② Кампании (Excel маркетинга)</div>
         <table class="data-table">
-          <thead><tr><th style="width:40%">Кампания</th><th>Бюджет/мес</th><th>Лиды</th><th>ROI</th></tr></thead>
+          <thead><tr><th style="width:40%">Кампания</th><th>Бюджет/мес</th><th>Лиды</th><th>ROI (авто)</th></tr></thead>
           <tbody id="edit-campaigns"></tbody>
         </table>
         <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
           <button class="add-btn" onclick="addCampaign()">+ Добавить кампанию</button>
-          <button class="add-btn" onclick="autoROIAll()">↻ Пересчитать ROI всех</button>
-          <span class="small" style="opacity:0.55; margin-left:auto;">ROI = лиды × общая конверсия × средний чек ÷ расход</span>
+          <span class="small" style="opacity:0.55; margin-left:auto;">ROI = лиды × конверсия воронки × средний чек ÷ расход</span>
         </div>
       </section>
 
@@ -1650,6 +1649,10 @@ if ('serviceWorker' in navigator) {
 // Поселок CRM Dashboard — application logic
 // ============================================================
 
+// ============================================================
+// Поселок CRM Dashboard — application logic
+// ============================================================
+
 // --- Scenarios meta
 const SCENARIOS = [
   { key: 'fact', label: 'Факт', color: '#c79a52', hint: 'Реальные данные за неделю' },
@@ -1723,7 +1726,7 @@ const DEMO_ARCHIVE = [
       { name: 'Соцсети', leads: 0, quality: 0 },
     ],
     campaigns: [
-      { name: 'Основная кампания', monthlyBudget: 0, leads: 0, roi: 0 },
+      { name: 'Основная кампания', monthlyBudget: 0, leads: 0 },
     ],
     funnel: [
       { stage: 'Новые лиды', count: 0, days: 0 },
@@ -1798,9 +1801,10 @@ function weekMonthSplit(dateStr) {
   };
 }
 
-function campaignWeeklySpent(c, dateStr) {
-  // Computes the weekly portion of a monthly budget
-  if (!dateStr) return +(c.spent || 0); // fallback for aggregate mode / old data without date
+function campaignWeeklySpent(c, dateStr, aggMode) {
+  // In aggregate mode, monthlyBudget already holds total spent across weeks
+  if (aggMode) return +(c.monthlyBudget != null ? c.monthlyBudget : (c.spent || 0));
+  if (!dateStr) return +(c.spent || 0);
   const split = weekMonthSplit(dateStr);
   const b1 = +(c.monthlyBudget != null ? c.monthlyBudget : (c.spent || 0));
   const b2 = c.monthlyBudget2 != null ? +c.monthlyBudget2 : b1;
@@ -1814,8 +1818,8 @@ function getKPIs(w) {
   const spent = (w.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, w.date), 0);
   const conv = (w.funnel && w.funnel.length && w.funnel[0].count > 0)
     ? (w.funnel[w.funnel.length - 1].count / w.funnel[0].count * 100) : 0;
-  const roi = w.campaigns && w.campaigns.length
-    ? w.campaigns.reduce((s, c) => s + (+c.roi || 0), 0) / w.campaigns.length : 0;
+  const rois = w.campaigns ? w.campaigns.map(c => computeCampaignROI(c, w)).filter(r => r != null) : [];
+  const roi = rois.length ? rois.reduce((s, r) => s + r, 0) / rois.length : 0;
   return { leads, conv, spent, roi };
 }
 
@@ -1847,7 +1851,7 @@ function pipelineValue(w) {
 
 function computeCampaignROI(c, w) {
   const f = w.funnel;
-  const weekly = campaignWeeklySpent(c, w.date);
+  const weekly = campaignWeeklySpent(c, w.date, w._isAggregate);
   if (!c || !weekly || !c.leads || !f || !f.length) return null;
   const conv = f[0].count > 0 ? f[f.length - 1].count / f[0].count : 0;
   const avgRub = (w.avgDeal || 8) * 1_000_000;
@@ -1959,7 +1963,8 @@ function renderPrintSummary() {
     document.getElementById('ps-campaigns').innerHTML = (w.campaigns || []).map(c => {
       const weekly = campaignWeeklySpent(c, w.date);
       const cpl = c.leads > 0 ? Math.round(weekly / c.leads) : 0;
-      return `<tr><td class="ps-name">${c.name}</td><td class="ps-num">${(weekly/1000).toFixed(0)}K</td><td class="ps-num">${c.leads}</td><td class="ps-num">${(cpl/1000).toFixed(1)}K</td><td class="ps-num">${(+c.roi).toFixed(1)}x</td></tr>`;
+      const roi = computeCampaignROI(c, w);
+      return `<tr><td class="ps-name">${c.name}</td><td class="ps-num">${(weekly/1000).toFixed(0)}K</td><td class="ps-num">${c.leads}</td><td class="ps-num">${(cpl/1000).toFixed(1)}K</td><td class="ps-num">${roi != null ? roi.toFixed(1) + 'x' : '—'}</td></tr>`;
     }).join('');
 
     const pv = pipelineValue(w);
@@ -2213,10 +2218,13 @@ function renderCampaigns() {
   document.getElementById('campaigns-list').innerHTML = data.campaigns.map((c, i) => {
     const weekly = campaignWeeklySpent(c, data.date);
     const cpl = c.leads > 0 ? Math.round(weekly / c.leads) : 0;
-    const roiCls = c.roi >= 2.5 ? '' : 'lo';
+    const roi = computeCampaignROI(c, data);
+    const roiStr = roi != null ? roi.toFixed(1) + 'x' : '—';
+    const roiCls = roi != null && roi >= 2.5 ? '' : 'lo';
     const cc = isComparing() ? compareData.campaigns[i] : null;
     const ccWeekly = cc ? campaignWeeklySpent(cc, compareData.date) : 0;
     const ccCpl = cc && cc.leads > 0 ? Math.round(ccWeekly / cc.leads) : 0;
+    const ccRoi = cc ? computeCampaignROI(cc, compareData) : null;
     const cmp = cc ? `
       <div class="camp-compare" style="--sc:${scColor}">
         <span class="camp-cmp-tag">${compareMeta.label}</span>
@@ -2224,14 +2232,14 @@ function renderCampaigns() {
           <div><div class="camp-stat-label">Расход</div><div class="camp-stat-val" style="color:${scColor}">${ccWeekly.toLocaleString('ru-RU')} ₽</div></div>
           <div><div class="camp-stat-label">Лиды</div><div class="camp-stat-val" style="color:${scColor}">${cc.leads}</div></div>
           <div><div class="camp-stat-label">CPL</div><div class="camp-stat-val" style="color:${scColor}">${ccCpl.toLocaleString('ru-RU')} ₽</div></div>
-          <div><div class="camp-stat-label">ROI</div><div class="camp-stat-val" style="color:${scColor}">${(+cc.roi).toFixed(1)}x</div></div>
+          <div><div class="camp-stat-label">ROI</div><div class="camp-stat-val" style="color:${scColor}">${ccRoi != null ? ccRoi.toFixed(1) + 'x' : '—'}</div></div>
         </div>
       </div>` : '';
     return `
       <div class="camp-row">
         <div class="camp-head">
           <div class="camp-name">${c.name}</div>
-          <div class="camp-roi ${roiCls} num">${(+c.roi).toFixed(1)}x</div>
+          <div class="camp-roi ${roiCls} num">${roiStr}</div>
         </div>
         <div class="camp-stats">
           <div><div class="camp-stat-label">Расход</div><div class="camp-stat-val">${weekly.toLocaleString('ru-RU')} ₽</div></div>
@@ -2634,15 +2642,13 @@ function buildAggregate(weeks, label) {
   const campMap = {};
   weeks.forEach(w => {
     (w.campaigns || []).forEach(c => {
-      if (!campMap[c.name]) campMap[c.name] = { name: c.name, monthlyBudget: 0, leads: 0, roiSum: 0, roiN: 0 };
+      if (!campMap[c.name]) campMap[c.name] = { name: c.name, monthlyBudget: 0, leads: 0 };
       campMap[c.name].monthlyBudget += campaignWeeklySpent(c, w.date);
       campMap[c.name].leads += +c.leads;
-      if (+c.roi > 0) { campMap[c.name].roiSum += +c.roi; campMap[c.name].roiN++; }
     });
   });
   const campaigns = Object.values(campMap).map(c => ({
     name: c.name, monthlyBudget: c.monthlyBudget, leads: c.leads,
-    roi: c.roiN > 0 ? +(c.roiSum / c.roiN).toFixed(2) : 0,
   }));
 
   const stageRef = weeks[0].funnel || [];
@@ -3009,7 +3015,6 @@ function applyMult(sc, m) {
     c.leads = Math.round(c.leads * m);
     if (c.monthlyBudget != null) c.monthlyBudget = Math.round(c.monthlyBudget * (2 - m));
     if (c.spent != null) c.spent = Math.round(c.spent * (2 - m));
-    c.roi = +(c.roi * m).toFixed(2);
   });
   sc.funnel.forEach(f => f.count = Math.round(f.count * m));
 }
@@ -3087,11 +3092,8 @@ function populateEdit() {
       <td><input class="cell-input" value="${c.name}" oninput="_editTarget.campaigns[${i}].name=this.value"></td>
       ${budgetCell}
       <td><input type="number" class="cell-input num" value="${c.leads}" oninput="_editTarget.campaigns[${i}].leads=+this.value"></td>
-      <td>
-        <div style="display:flex; gap:4px; align-items:center;">
-          <input type="number" step="0.1" class="cell-input num" value="${c.roi}" oninput="_editTarget.campaigns[${i}].roi=+this.value" style="flex:1;">
-          <button class="x" type="button" title="Пересчитать ROI автоматически${autoROI != null ? ' (≈ ' + autoROI.toFixed(1) + 'x)' : ''}" onclick="autoROI(${i})" style="${autoROI == null ? 'opacity:0.4; cursor:not-allowed;' : ''}">↻</button>
-        </div>
+      <td style="text-align:center;">
+        <span class="num" style="opacity:${autoROI != null ? '1' : '0.4'}">${autoROI != null ? autoROI.toFixed(1) + 'x' : '—'}</span>
       </td>
       <td style="width:32px;"><button class="x" onclick="_editTarget.campaigns.splice(${i},1); populateEdit();" title="Удалить">×</button></td>
     </tr>
@@ -3182,7 +3184,7 @@ function addProblem() { const T = window._editTarget; (T.problems = T.problems |
 function addPriority() { const T = window._editTarget; (T.priorities = T.priorities || []).push({ task: '', owner: '', due: '' }); populateEdit(); }
 function addInsight() { const T = window._editTarget; (T.insights = T.insights || []).push(''); populateEdit(); }
 function addSource() { const T = window._editTarget; T.sources.push({ name: 'Новый источник', leads: 0, qualified: 0, quality: 0 }); populateEdit(); }
-function addCampaign() { const T = window._editTarget; T.campaigns.push({ name: 'Новая кампания', monthlyBudget: 0, leads: 0, roi: 0 }); populateEdit(); }
+function addCampaign() { const T = window._editTarget; T.campaigns.push({ name: 'Новая кампания', monthlyBudget: 0, leads: 0 }); populateEdit(); }
 function addFunnelStage() { const T = window._editTarget; T.funnel.push({ stage: 'Новый этап', count: 0, days: 0 }); populateEdit(); }
 function resetForecast() { const T = window._editTarget; delete T.forecast; populateEdit(); }
 function togglePrintMode() {
@@ -3191,19 +3193,6 @@ function togglePrintMode() {
     renderPrintSummary();
     window.scrollTo(0, 0);
   }
-}
-function autoROI(i) {
-  const T = window._editTarget;
-  const r = computeCampaignROI(T.campaigns[i], T);
-  if (r != null) { T.campaigns[i].roi = +r.toFixed(2); populateEdit(); }
-}
-function autoROIAll() {
-  const T = window._editTarget;
-  T.campaigns.forEach((c, i) => {
-    const r = computeCampaignROI(c, T);
-    if (r != null) c.roi = +r.toFixed(2);
-  });
-  populateEdit();
 }
 
 function applyData() {
@@ -3463,7 +3452,7 @@ function _applyCloudData(cloud) {
 
 (function init() {
   // Force fresh page load when app version changes (clears browser cache on all devices)
-  const _VER = 'v9';
+  const _VER = 'v10';
   if (localStorage.getItem('crm_ver') !== _VER) {
     localStorage.setItem('crm_ver', _VER);
     localStorage.removeItem('crm_gh_token'); // clean up stale token from old version
