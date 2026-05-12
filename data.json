@@ -4,22 +4,96 @@
     "date": "2026-05-04",
     "period": "4–10 мая",
     "sources": [
-      { "name": "Сайт", "leads": 0, "quality": 0 },
-      { "name": "Рефералы", "leads": 0, "quality": 0 },
-      { "name": "Контекст", "leads": 0, "quality": 0 },
-      { "name": "Соцсети", "leads": 0, "quality": 0 }
+      {
+        "name": "Сайт",
+        "leads": 12,
+        "quality": 67,
+        "qualified": 8
+      },
+      {
+        "name": "Наружная реклама ",
+        "leads": 0,
+        "quality": 0,
+        "qualified": 0
+      },
+      {
+        "name": "Контекст (Яндекс)",
+        "leads": 12,
+        "quality": 67,
+        "qualified": 8
+      },
+      {
+        "name": "Джейкет",
+        "leads": 3,
+        "quality": 0,
+        "qualified": 0
+      },
+      {
+        "name": "Програматик",
+        "leads": 0,
+        "qualified": 0,
+        "quality": 0
+      }
     ],
     "campaigns": [
-      { "name": "Основная кампания", "spent": 0, "leads": 0, "roi": 0 }
+      {
+        "name": "Джейкет (размещение объявлений)",
+        "spent": 36718,
+        "leads": 3,
+        "roi": 695.65
+      },
+      {
+        "name": "Яндекс",
+        "spent": 147900,
+        "leads": 35,
+        "roi": 2014.87
+      },
+      {
+        "name": "Програматик",
+        "spent": 219975,
+        "leads": 40,
+        "roi": 1548.23
+      },
+      {
+        "name": "Билборд на Ярославском ш.",
+        "spent": 577280,
+        "leads": 0,
+        "roi": 0
+      }
     ],
     "funnel": [
-      { "stage": "Новые лиды", "count": 0, "days": 0 },
-      { "stage": "Квалифицированы", "count": 0, "days": 2 },
-      { "stage": "Встречи", "count": 0, "days": 5 },
-      { "stage": "Предложения", "count": 0, "days": 7 },
-      { "stage": "Контракты", "count": 0, "days": 9 }
+      {
+        "stage": "Заявка",
+        "count": 14,
+        "days": 0
+      },
+      {
+        "stage": "Квалификация",
+        "count": 9,
+        "days": 0
+      },
+      {
+        "stage": "Показ проведен",
+        "count": 1,
+        "days": 0
+      },
+      {
+        "stage": "Бронь",
+        "count": 0,
+        "days": 0
+      },
+      {
+        "stage": "Успешно реализованы",
+        "count": 0,
+        "days": 0
+      },
+      {
+        "stage": "Закрыто и не реализовано",
+        "count": 4,
+        "days": 0
+      }
     ],
-    "avgDeal": 8,
+    "avgDeal": 29.8,
     "problems": [],
     "priorities": [],
     "insights": []
