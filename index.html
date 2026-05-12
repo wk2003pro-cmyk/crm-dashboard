@@ -321,6 +321,19 @@
     transition: all .2s;
   }
   .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  .sync-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid var(--line);
+    display: grid; place-items: center;
+    font-size: 14px; color: var(--ink-mute);
+    background: transparent; cursor: pointer;
+    transition: all .2s;
+  }
+  .sync-btn:hover, .sync-btn.sync-idle { color: var(--ink); border-color: var(--ink-faint); }
+  .sync-btn.sync-ok   { color: var(--pos); border-color: var(--pos); }
+  .sync-btn.sync-err  { color: var(--neg); border-color: var(--neg); }
+  .sync-btn.sync-saving { color: var(--accent); border-color: var(--accent); animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ========== HERO ========== */
   .hero {
@@ -1272,6 +1285,7 @@
       </div>
       <button class="btn btn-outline btn-sm admin-only" onclick="newWeek()">＋ Неделя</button>
       <button class="btn btn-primary btn-sm admin-only" onclick="toggleEdit()">Редактировать</button>
+      <button class="sync-btn admin-only" id="sync-btn" onclick="openSyncModal()" title="Настроить синхронизацию">☁</button>
       <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Тема">
         <svg id="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
@@ -3190,6 +3204,7 @@ function deleteCurrentWeek() {
 function saveArchive() {
   try { localStorage.setItem('poselok_archive_v3', JSON.stringify(archive)); }
   catch (e) { alert('Не удалось сохранить (переполнено хранилище). Сделайте экспорт.'); }
+  _syncSave();
 }
 
 function exportBackup() {
@@ -3225,8 +3240,184 @@ function importBackup(event) {
 }
 
 // =========================================================
+// CLOUD SYNC (JSONBin)
+// =========================================================
+const _sync = {
+  key:   localStorage.getItem('crm_sync_key')  || '',
+  binId: localStorage.getItem('crm_sync_bin')  || '',
+  last:  localStorage.getItem('crm_sync_last') || '',
+  busy:  false,
+};
+
+function _syncSave() {
+  if (!_sync.key || _sync.busy) return;
+  _sync.busy = true;
+  _updateSyncBtn('saving');
+  const isNew = !_sync.binId;
+  const url = isNew ? 'https://api.jsonbin.io/v3/b' : `https://api.jsonbin.io/v3/b/${_sync.binId}`;
+  const headers = { 'Content-Type': 'application/json', 'X-Master-Key': _sync.key };
+  if (isNew) { headers['X-Bin-Name'] = 'silva-crm'; headers['X-Bin-Private'] = 'true'; }
+  fetch(url, { method: isNew ? 'POST' : 'PUT', headers, body: JSON.stringify(archive) })
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(j => {
+      if (isNew && j.metadata?.id) {
+        _sync.binId = j.metadata.id;
+        localStorage.setItem('crm_sync_bin', _sync.binId);
+      }
+      _sync.last = new Date().toISOString();
+      localStorage.setItem('crm_sync_last', _sync.last);
+      _updateSyncBtn('ok');
+    })
+    .catch(() => _updateSyncBtn('err'))
+    .finally(() => { _sync.busy = false; });
+}
+
+async function _syncLoad() {
+  if (!_sync.key || !_sync.binId) return null;
+  try {
+    const r = await fetch(`https://api.jsonbin.io/v3/b/${_sync.binId}/latest`, {
+      headers: { 'X-Master-Key': _sync.key },
+    });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return Array.isArray(j.record) ? j.record : null;
+  } catch { return null; }
+}
+
+function _syncCode() {
+  if (!_sync.key || !_sync.binId) return '';
+  return btoa(_sync.binId + ':' + _sync.key);
+}
+
+function _applySyncCode(code) {
+  try {
+    const dec = atob(code.trim());
+    const sep = dec.indexOf(':');
+    if (sep < 1) return false;
+    _sync.binId = dec.slice(0, sep);
+    _sync.key   = dec.slice(sep + 1);
+    localStorage.setItem('crm_sync_bin', _sync.binId);
+    localStorage.setItem('crm_sync_key', _sync.key);
+    return true;
+  } catch { return false; }
+}
+
+function _updateSyncBtn(state) {
+  const btn = document.getElementById('sync-btn');
+  if (!btn) return;
+  const icons = { idle: '☁', saving: '↑', ok: '✓', err: '✕', none: '☁' };
+  const titles = { idle: 'Облачная синхронизация', saving: 'Сохраняю…', ok: 'Синхронизировано', err: 'Ошибка синхронизации', none: 'Настроить синхронизацию' };
+  btn.textContent = icons[state] || '☁';
+  btn.title = titles[state] || '';
+  btn.className = btn.className.replace(/ sync-\w+/g, '') + ` sync-${state}`;
+  if (state === 'ok') setTimeout(() => _updateSyncBtn(_sync.key ? 'idle' : 'none'), 2500);
+}
+
+function openSyncModal() {
+  const existing = document.getElementById('syncModal');
+  if (existing) existing.remove();
+  const hasSync = !!(_sync.key && _sync.binId);
+  const lastFmt = _sync.last ? new Date(_sync.last).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'никогда';
+
+  const m = document.createElement('div');
+  m.id = 'syncModal';
+  m.className = 'modal-overlay';
+  m.innerHTML = `
+    <div class="modal" style="max-width:440px;">
+      <div class="modal-head">
+        <div class="modal-title">☁ Облачная синхронизация</div>
+        <button class="modal-close" onclick="document.getElementById('syncModal').remove()">×</button>
+      </div>
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
+        <p style="font-size:13px; color:var(--ink-mid); margin:0; line-height:1.5;">
+          Данные хранятся на <strong>jsonbin.io</strong> (бесплатно). Один API-ключ — один набор данных для всей команды.
+        </p>
+
+        <div id="sync-setup-section" style="${hasSync ? 'display:none' : ''}">
+          <label style="font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-mute); display:block; margin-bottom:6px;">Шаг 1 — API-ключ JSONBin</label>
+          <input id="sync-key-input" class="cell-input" placeholder="$2a$10$..." value="${_sync.key}"
+            style="font-family:var(--mono); font-size:12px; letter-spacing:.04em; width:100%;">
+          <p style="font-size:11px; color:var(--ink-mute); margin:6px 0 0;">
+            Получите бесплатно на <strong>jsonbin.io</strong> → Account → Master Key
+          </p>
+        </div>
+
+        <div id="sync-code-section">
+          <label style="font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-mute); display:block; margin-bottom:6px;">
+            ${hasSync ? 'Код синхронизации' : 'Шаг 2 — Вставить код (если уже настроено на другом устройстве)'}
+          </label>
+          <div style="display:flex; gap:8px;">
+            <input id="sync-code-input" class="cell-input" placeholder="Вставьте код синхронизации…" value="${hasSync ? _syncCode() : ''}"
+              style="font-family:var(--mono); font-size:12px; flex:1; min-width:0;">
+            ${hasSync ? `<button class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('sync-code-input').value).then(()=>{this.textContent='✓ скопировано'; setTimeout(()=>this.textContent='Скопировать',1500)})">Скопировать</button>` : ''}
+          </div>
+          ${hasSync ? `<p style="font-size:11px; color:var(--ink-mute); margin:6px 0 0;">Вставьте этот код на другом устройстве. Последняя синхр.: <strong>${lastFmt}</strong></p>` : '<p style="font-size:11px; color:var(--ink-mute); margin:6px 0 0;">Или введите код, который был сгенерирован на другом устройстве.</p>'}
+        </div>
+
+        <div id="sync-status" style="font-size:12px; color:var(--ink-mute); min-height:18px;"></div>
+      </div>
+      <div class="modal-foot">
+        ${hasSync ? `
+          <button class="btn btn-ghost btn-sm" onclick="_sync.key='';_sync.binId='';localStorage.removeItem('crm_sync_key');localStorage.removeItem('crm_sync_bin');document.getElementById('syncModal').remove();_updateSyncBtn('none');" style="color:var(--neg);">Отключить</button>
+          <div style="flex:1"></div>
+          <button class="btn btn-primary btn-sm" onclick="_syncNow()">Синхронизировать сейчас</button>
+        ` : `
+          <div style="flex:1"></div>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('syncModal').remove()">Отмена</button>
+          <button class="btn btn-primary btn-sm" onclick="_syncConnect()">Подключить</button>
+        `}
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  m.onclick = e => { if (e.target === m) m.remove(); };
+}
+
+function _syncConnect() {
+  const status = document.getElementById('sync-status');
+  const code = (document.getElementById('sync-code-input')?.value || '').trim();
+  const key  = (document.getElementById('sync-key-input')?.value  || '').trim();
+
+  if (code) {
+    if (!_applySyncCode(code)) { status.textContent = '✕ Неверный формат кода'; status.style.color = 'var(--neg)'; return; }
+    status.textContent = 'Проверяю соединение…'; status.style.color = 'var(--ink-mute)';
+    _syncLoad().then(d => {
+      if (d) {
+        archive = d;
+        localStorage.setItem('poselok_archive_v3', JSON.stringify(archive));
+        _normaliseArchive();
+        currentIdx = archive.length - 1; data = archive[currentIdx];
+        renderWeekPills(); render();
+        document.getElementById('syncModal')?.remove();
+        _updateSyncBtn('ok');
+      } else { status.textContent = '✕ Не удалось загрузить данные — проверьте код'; status.style.color = 'var(--neg)'; }
+    });
+  } else if (key) {
+    _sync.key = key; _sync.binId = '';
+    localStorage.setItem('crm_sync_key', key);
+    localStorage.removeItem('crm_sync_bin');
+    status.textContent = 'Создаю хранилище…'; status.style.color = 'var(--ink-mute)';
+    _syncSave();
+    setTimeout(() => { document.getElementById('syncModal')?.remove(); _updateSyncBtn('idle'); }, 2000);
+  } else {
+    status.textContent = 'Введите API-ключ или код синхронизации'; status.style.color = 'var(--neg)';
+  }
+}
+
+function _syncNow() {
+  document.getElementById('syncModal')?.remove();
+  _syncSave();
+}
+
+// =========================================================
 // INIT
 // =========================================================
+function _normaliseArchive() {
+  archive.forEach(w => {
+    if (w.funnel) w.funnel.forEach((f, i) => { if (f.days == null) f.days = DEFAULT_STAGE_DAYS[i] || 0; });
+    if (w.avgDeal == null) w.avgDeal = 8;
+  });
+}
+
 (function init() {
   const savedTheme = localStorage.getItem('theme') || 'dark';
   applyTheme(savedTheme);
@@ -3240,17 +3431,36 @@ function importBackup(event) {
   } else {
     archive = DEMO_ARCHIVE;
   }
-  // Ensure funnel stages have days field
-  archive.forEach(w => {
-    if (w.funnel) w.funnel.forEach((f, i) => { if (f.days == null) f.days = DEFAULT_STAGE_DAYS[i] || 0; });
-    if (w.avgDeal == null) w.avgDeal = 8;
-  });
+  _normaliseArchive();
 
   currentIdx = archive.length - 1;
   data = archive[currentIdx];
 
   renderWeekPills();
   render();
+
+  // Cloud sync: load fresher data if available
+  if (_sync.key && _sync.binId) {
+    _updateSyncBtn('idle');
+    _syncLoad().then(cloudData => {
+      if (!cloudData) return;
+      const localStr = JSON.stringify(archive);
+      const cloudStr = JSON.stringify(cloudData);
+      if (cloudStr !== localStr) {
+        archive = cloudData;
+        localStorage.setItem('poselok_archive_v3', cloudStr);
+        _normaliseArchive();
+        currentIdx = Math.min(currentIdx, archive.length - 1);
+        data = archive[currentIdx];
+        renderWeekPills();
+        render();
+      }
+      _sync.last = localStorage.getItem('crm_sync_last') || '';
+      _updateSyncBtn('ok');
+    });
+  } else {
+    _updateSyncBtn('none');
+  }
 })();
 
 </script>
