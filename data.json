@@ -1,5 +1,5 @@
 {
-  "_ts": 1778603053500,
+  "_ts": 1778603140834,
   "data": [
     {
       "id": "w1",
@@ -14,21 +14,21 @@
         },
         {
           "name": "Рефералы",
-          "leads": 0,
-          "quality": 0,
-          "qualified": 0
+          "leads": 2,
+          "quality": 50,
+          "qualified": 1
         },
         {
           "name": "Контекст",
           "leads": 2,
-          "quality": 0,
-          "qualified": 0
+          "quality": 50,
+          "qualified": 1
         },
         {
           "name": "Соцсети",
-          "leads": 0,
-          "quality": 0,
-          "qualified": 0
+          "leads": 1,
+          "quality": 100,
+          "qualified": 1
         }
       ],
       "campaigns": [
