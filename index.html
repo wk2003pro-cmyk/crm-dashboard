@@ -3041,6 +3041,24 @@ function toggleEdit() {
   else { m.classList.add('open'); populateEdit(); }
 }
 
+function _updSrcQ(i) {
+  const s = window._editTarget.sources[i];
+  s.quality = s.leads > 0 ? Math.round((s.qualified || 0) / s.leads * 100) : 0;
+  const el = document.getElementById('src-q-' + i);
+  if (el) el.textContent = s.quality + '%';
+}
+
+function _updCamp(i) {
+  const T = window._editTarget;
+  const c = T.campaigns[i];
+  const weekly = campaignWeeklySpent(c, T.date);
+  const roi = computeCampaignROI(c, T);
+  const wEl = document.getElementById('camp-weekly-' + i);
+  if (wEl) wEl.textContent = '≈ ' + weekly.toLocaleString('ru-RU') + ' ₽/нед';
+  const rEl = document.getElementById('camp-roi-' + i);
+  if (rEl) { rEl.textContent = roi != null ? roi.toFixed(1) + 'x' : '—'; rEl.style.opacity = roi != null ? '1' : '0.4'; }
+}
+
 function populateEdit() {
   // edit target: fact if no compare, scenario data when comparing
   window._editTarget = isComparing() ? compareData : data;
@@ -3059,9 +3077,9 @@ function populateEdit() {
     return `
     <tr>
       <td><input class="cell-input" value="${s.name}" oninput="_editTarget.sources[${i}].name=this.value"></td>
-      <td><input type="number" class="cell-input num" value="${s.leads}" oninput="_editTarget.sources[${i}].leads=+this.value; _editTarget.sources[${i}].quality = _editTarget.sources[${i}].leads>0 ? Math.round((_editTarget.sources[${i}].qualified||0)/_editTarget.sources[${i}].leads*100) : 0; populateEdit();"></td>
-      <td><input type="number" class="cell-input num" value="${s.qualified}" oninput="_editTarget.sources[${i}].qualified=+this.value; _editTarget.sources[${i}].quality = _editTarget.sources[${i}].leads>0 ? Math.round(_editTarget.sources[${i}].qualified/_editTarget.sources[${i}].leads*100) : 0; populateEdit();"></td>
-      <td style="text-align:center; font-variant-numeric: tabular-nums; opacity:0.75;">${q}%</td>
+      <td><input type="number" class="cell-input num" value="${s.leads}" oninput="_editTarget.sources[${i}].leads=+this.value; _updSrcQ(${i});"></td>
+      <td><input type="number" class="cell-input num" value="${s.qualified}" oninput="_editTarget.sources[${i}].qualified=+this.value; _updSrcQ(${i});"></td>
+      <td id="src-q-${i}" style="text-align:center; font-variant-numeric: tabular-nums; opacity:0.75;">${q}%</td>
       <td style="width:32px;"><button class="x" onclick="_editTarget.sources.splice(${i},1); populateEdit();" title="Удалить">×</button></td>
     </tr>
   `;}).join('');
@@ -3076,24 +3094,27 @@ function populateEdit() {
       ? `<td style="display:flex;flex-direction:column;gap:3px;">
            <div style="display:flex;gap:4px;align-items:center;">
              <span style="font-size:10px;color:var(--ink-mute);min-width:28px;">${_split.month1.name}</span>
-             <input type="number" class="cell-input num" style="flex:1;" value="${mb1}" oninput="_editTarget.campaigns[${i}].monthlyBudget=+this.value; delete _editTarget.campaigns[${i}].spent; populateEdit();">
+             <input type="number" class="cell-input num" style="flex:1;" value="${mb1}" oninput="_editTarget.campaigns[${i}].monthlyBudget=+this.value; delete _editTarget.campaigns[${i}].spent; _updCamp(${i});">
            </div>
            <div style="display:flex;gap:4px;align-items:center;">
              <span style="font-size:10px;color:var(--ink-mute);min-width:28px;">${_split.month2.name}</span>
-             <input type="number" class="cell-input num" style="flex:1;" value="${mb2}" oninput="_editTarget.campaigns[${i}].monthlyBudget2=+this.value; populateEdit();">
+             <input type="number" class="cell-input num" style="flex:1;" value="${mb2}" oninput="_editTarget.campaigns[${i}].monthlyBudget2=+this.value; _updCamp(${i});">
            </div>
-           <div style="font-size:10px;color:var(--ink-mute);">≈ ${weeklyPreview.toLocaleString('ru-RU')} ₽/нед</div>
+           <div id="camp-weekly-${i}" style="font-size:10px;color:var(--ink-mute);">≈ ${weeklyPreview.toLocaleString('ru-RU')} ₽/нед</div>
          </td>`
-      : `<td><input type="number" class="cell-input num" value="${mb1}"
-             oninput="_editTarget.campaigns[${i}].monthlyBudget=+this.value; delete _editTarget.campaigns[${i}].spent; populateEdit();"
-             title="Месячный бюджет · Недельный расход ≈ ${weeklyPreview.toLocaleString('ru-RU')} ₽"></td>`;
+      : `<td>
+           <input type="number" class="cell-input num" value="${mb1}"
+             oninput="_editTarget.campaigns[${i}].monthlyBudget=+this.value; delete _editTarget.campaigns[${i}].spent; _updCamp(${i});"
+             title="Месячный бюджет">
+           <div id="camp-weekly-${i}" style="font-size:10px;color:var(--ink-mute);margin-top:2px;">≈ ${weeklyPreview.toLocaleString('ru-RU')} ₽/нед</div>
+         </td>`;
     return `
     <tr>
       <td><input class="cell-input" value="${c.name}" oninput="_editTarget.campaigns[${i}].name=this.value"></td>
       ${budgetCell}
-      <td><input type="number" class="cell-input num" value="${c.leads}" oninput="_editTarget.campaigns[${i}].leads=+this.value"></td>
+      <td><input type="number" class="cell-input num" value="${c.leads}" oninput="_editTarget.campaigns[${i}].leads=+this.value; _updCamp(${i});"></td>
       <td style="text-align:center;">
-        <span class="num" style="opacity:${autoROI != null ? '1' : '0.4'}">${autoROI != null ? autoROI.toFixed(1) + 'x' : '—'}</span>
+        <span id="camp-roi-${i}" class="num" style="opacity:${autoROI != null ? '1' : '0.4'}">${autoROI != null ? autoROI.toFixed(1) + 'x' : '—'}</span>
       </td>
       <td style="width:32px;"><button class="x" onclick="_editTarget.campaigns.splice(${i},1); populateEdit();" title="Удалить">×</button></td>
     </tr>
