@@ -1,10 +1,99 @@
 {
-  "_ts": 1778604571787,
+  "_ts": 1778605371676,
   "data": [
     {
       "id": "w1",
       "date": "2026-05-04",
       "period": "4–10 мая",
+      "sources": [
+        {
+          "name": "Сайт",
+          "leads": 5,
+          "quality": 100,
+          "qualified": 5
+        },
+        {
+          "name": "Рефералы",
+          "leads": 2,
+          "quality": 50,
+          "qualified": 1
+        },
+        {
+          "name": "Контекст",
+          "leads": 2,
+          "quality": 50,
+          "qualified": 1
+        },
+        {
+          "name": "Соцсети",
+          "leads": 1,
+          "quality": 100,
+          "qualified": 1
+        }
+      ],
+      "campaigns": [
+        {
+          "name": "Новая кампания",
+          "monthlyBudget": 1000000,
+          "leads": 10
+        }
+      ],
+      "funnel": [
+        {
+          "stage": "Новые лиды",
+          "count": 4,
+          "days": 0
+        },
+        {
+          "stage": "Квалифицированы",
+          "count": 3,
+          "days": 2
+        },
+        {
+          "stage": "Встречи",
+          "count": 1,
+          "days": 5
+        },
+        {
+          "stage": "Предложения",
+          "count": 0,
+          "days": 7
+        },
+        {
+          "stage": "Контракты",
+          "count": 0,
+          "days": 9
+        }
+      ],
+      "avgDeal": 29,
+      "problems": [
+        {
+          "client": "",
+          "deal": "",
+          "issue": "",
+          "days": 0
+        }
+      ],
+      "priorities": [
+        {
+          "task": "",
+          "owner": "",
+          "due": ""
+        }
+      ],
+      "insights": [
+        ""
+      ],
+      "forecast": {
+        "value": 0,
+        "deals": 0,
+        "note": ""
+      }
+    },
+    {
+      "id": "w1778605371676",
+      "date": "2026-05-05",
+      "period": "5–7 мая",
       "sources": [
         {
           "name": "Сайт",
