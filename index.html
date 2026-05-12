@@ -1327,7 +1327,7 @@
   <!-- =================== HERO =================== -->
   <section class="hero">
     <div>
-      <div class="hero-eyebrow">Неделя <span id="hero-week-no" class="num">4</span> · <span id="hero-month">август</span> <span id="hero-year" class="num">2024</span></div>
+      <div class="hero-eyebrow"><span id="hero-week-label">Неделя</span> <span id="hero-week-no" class="num">4</span> · <span id="hero-month">август</span> <span id="hero-year" class="num">2024</span></div>
       <h1>Поток лидов<br><em>усилился</em> на 35%.</h1>
     </div>
     <div class="hero-meta">
@@ -1858,6 +1858,7 @@ let dynMetric = 'leads';
 let activeScenario = 'fact';
 let periodYear = null;   // null = все годы
 let periodMonth = null;  // null = все месяцы
+let aggregateMode = false;
 let data = null;        // ALWAYS the fact data for current week
 let compareData = null; // scenario data when comparing, else null
 let compareMeta = null; // SCENARIOS entry for active comparison
@@ -2101,22 +2102,31 @@ function renderPrintSummary() {
 
 function render() {
   renderPrintSummary();
-  document.getElementById('period').value = archive[currentIdx].period;
+  const periodEl = document.getElementById('period');
+  if (periodEl) { periodEl.value = data.period; periodEl.disabled = aggregateMode; }
   document.getElementById('gen-date').textContent = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
-  const _d = new Date(archive[currentIdx].date);
+  const _d = new Date(data.date);
   if (!isNaN(_d)) {
     const months = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
-    document.getElementById('hero-month').textContent = months[_d.getMonth()];
-    document.getElementById('hero-year').textContent = _d.getFullYear();
-    // week number within the same month/year, by chronological order in archive
-    const sameMonth = archive
-      .map((w, i) => ({ i, d: new Date(w.date) }))
-      .filter(x => !isNaN(x.d) && x.d.getMonth() === _d.getMonth() && x.d.getFullYear() === _d.getFullYear())
-      .sort((a, b) => a.d - b.d);
-    const weekN = sameMonth.findIndex(x => x.i === currentIdx) + 1;
-    document.getElementById('hero-week-no').textContent = weekN > 0 ? weekN : currentIdx + 1;
+    const wLabel = document.getElementById('hero-week-label');
+    if (aggregateMode) {
+      if (wLabel) wLabel.textContent = 'Недель';
+      document.getElementById('hero-week-no').textContent = data._weekCount;
+      document.getElementById('hero-month').textContent = data.period;
+      document.getElementById('hero-year').textContent = '';
+    } else {
+      if (wLabel) wLabel.textContent = 'Неделя';
+      document.getElementById('hero-month').textContent = months[_d.getMonth()];
+      document.getElementById('hero-year').textContent = _d.getFullYear();
+      const sameMonth = archive
+        .map((w, i) => ({ i, d: new Date(w.date) }))
+        .filter(x => !isNaN(x.d) && x.d.getMonth() === _d.getMonth() && x.d.getFullYear() === _d.getFullYear())
+        .sort((a, b) => a.d - b.d);
+      const weekN = sameMonth.findIndex(x => x.i === currentIdx) + 1;
+      document.getElementById('hero-week-no').textContent = weekN > 0 ? weekN : currentIdx + 1;
+    }
   } else {
-    document.getElementById('hero-week-no').textContent = currentIdx + 1;
+    document.getElementById('hero-week-no').textContent = aggregateMode ? data._weekCount : currentIdx + 1;
   }
 
   renderScenarioPills();
@@ -2135,9 +2145,11 @@ function render() {
 
 function renderHero() {
   const kpi = getKPIs(data);
-  const prev = currentIdx > 0 ? getKPIs(archive[currentIdx - 1]) : null;
+  const prev = (!aggregateMode && currentIdx > 0) ? getKPIs(archive[currentIdx - 1]) : null;
   const h1 = document.querySelector('.hero h1');
-  if (prev && prev.leads > 0) {
+  if (aggregateMode) {
+    h1.innerHTML = `${kpi.leads} лидов<br><em>за ${data.period}.</em>`;
+  } else if (prev && prev.leads > 0) {
     const diff = ((kpi.leads - prev.leads) / prev.leads) * 100;
     const verb = diff > 5 ? 'усилился' : diff < -5 ? 'ослаб' : 'удержался';
     const sign = diff > 0 ? '+' : '';
@@ -2150,8 +2162,10 @@ function renderHero() {
 function renderKPI() {
   const kpi = getKPIs(data);
   const cKpi = isComparing() ? getKPIs(compareData) : null;
-  const prevK = currentIdx > 0 ? getKPIs(archive[currentIdx - 1]) : null;
-  const sparkRange = archive.slice(Math.max(0, currentIdx - 5), currentIdx + 1).map(getKPIs);
+  const prevK = (!aggregateMode && currentIdx > 0) ? getKPIs(archive[currentIdx - 1]) : null;
+  const sparkRange = aggregateMode
+    ? [getKPIs(data)]
+    : archive.slice(Math.max(0, currentIdx - 5), currentIdx + 1).map(getKPIs);
   const scColor = compareMeta?.color || css('--accent');
 
   const cards = [
@@ -2196,7 +2210,7 @@ function renderKPI() {
 
 function renderNarrative() {
   const kpi = getKPIs(data);
-  const prev = currentIdx > 0 ? getKPIs(archive[currentIdx - 1]) : null;
+  const prev = (!aggregateMode && currentIdx > 0) ? getKPIs(archive[currentIdx - 1]) : null;
 
   const parts = [];
   if (prev && prev.leads > 0) {
@@ -2635,8 +2649,8 @@ function renderWeekPills() {
 
   document.getElementById('week-pills').innerHTML =
     visible.map(({ w, i }) => `
-      <span class="pill-wrap ${i === currentIdx ? 'active' : ''}">
-        <button class="pill ${i === currentIdx ? 'active' : ''}" onclick="selectWeek(${i})">${w.period}</button>
+      <span class="pill-wrap ${!aggregateMode && i === currentIdx ? 'active' : ''}">
+        <button class="pill ${!aggregateMode && i === currentIdx ? 'active' : ''}" onclick="selectWeek(${i})">${w.period}</button>
         <button class="pill-x" onclick="deleteWeek(${i}, event)" title="Удалить неделю">×</button>
       </span>
     `).join('') +
@@ -2646,12 +2660,93 @@ function renderWeekPills() {
 function setPeriodYear(year) {
   periodYear = year;
   periodMonth = null;
+  if (year !== null) {
+    const weeks = archive.filter(w => new Date(w.date).getFullYear() === year);
+    activateAggregate(weeks, String(year));
+  } else {
+    deactivateAggregate();
+  }
   renderWeekPills();
 }
 
 function setPeriodMonth(month) {
   periodMonth = month;
+  if (periodYear !== null) {
+    const weeks = archive.filter(w => {
+      const d = new Date(w.date);
+      return d.getFullYear() === periodYear && (month === null || d.getMonth() === month);
+    });
+    const label = month !== null
+      ? MONTHS_SHORT_RU[month] + ' ' + periodYear
+      : String(periodYear);
+    activateAggregate(weeks, label);
+  }
   renderWeekPills();
+}
+
+function buildAggregate(weeks, label) {
+  if (!weeks.length) return null;
+  const srcMap = {};
+  weeks.forEach(w => {
+    (w.sources || []).forEach(s => {
+      if (!srcMap[s.name]) srcMap[s.name] = { name: s.name, leads: 0, qualWsum: 0 };
+      srcMap[s.name].leads += +s.leads;
+      srcMap[s.name].qualWsum += (s.quality || 0) * s.leads;
+    });
+  });
+  const sources = Object.values(srcMap).map(s => ({
+    name: s.name, leads: s.leads,
+    quality: s.leads > 0 ? Math.round(s.qualWsum / s.leads) : 0,
+  }));
+
+  const campMap = {};
+  weeks.forEach(w => {
+    (w.campaigns || []).forEach(c => {
+      if (!campMap[c.name]) campMap[c.name] = { name: c.name, spent: 0, leads: 0, roiSum: 0, roiN: 0 };
+      campMap[c.name].spent += +c.spent;
+      campMap[c.name].leads += +c.leads;
+      if (+c.roi > 0) { campMap[c.name].roiSum += +c.roi; campMap[c.name].roiN++; }
+    });
+  });
+  const campaigns = Object.values(campMap).map(c => ({
+    name: c.name, spent: c.spent, leads: c.leads,
+    roi: c.roiN > 0 ? +(c.roiSum / c.roiN).toFixed(2) : 0,
+  }));
+
+  const stageRef = weeks[0].funnel || [];
+  const funnel = stageRef.map((f, i) => ({
+    stage: f.stage,
+    count: weeks.reduce((s, w) => s + ((w.funnel && w.funnel[i]) ? +w.funnel[i].count : 0), 0),
+    days: f.days || 0,
+  }));
+
+  const sortedDates = weeks.map(w => w.date).filter(Boolean).sort();
+  const avgDeal = weeks.reduce((s, w) => s + (w.avgDeal || 8), 0) / weeks.length;
+
+  return {
+    id: 'aggregate', date: sortedDates[0] || weeks[0].date, period: label,
+    sources, campaigns, funnel, avgDeal,
+    problems: weeks.flatMap(w => w.problems || []),
+    priorities: weeks.flatMap(w => w.priorities || []),
+    insights: weeks.flatMap(w => w.insights || []),
+    _isAggregate: true, _weekCount: weeks.length,
+  };
+}
+
+function activateAggregate(weeks, label) {
+  const agg = buildAggregate(weeks, label);
+  if (!agg) return;
+  aggregateMode = true;
+  data = agg;
+  compareData = null;
+  compareMeta = null;
+  render();
+}
+
+function deactivateAggregate() {
+  aggregateMode = false;
+  data = archive[currentIdx];
+  render();
 }
 
 function fmtPeriodRu(fromStr, toStr) {
@@ -2737,6 +2832,7 @@ function deleteWeek(i, e) {
   archive.splice(i, 1);
   if (currentIdx >= archive.length) currentIdx = archive.length - 1;
   if (currentIdx < 0) currentIdx = 0;
+  aggregateMode = false;
   data = archive[currentIdx];
   compareData = null; compareMeta = null; activeScenario = 'fact';
   saveArchive();
@@ -2748,6 +2844,7 @@ function selectWeek(i) {
   if (i < 0 || i >= archive.length) return;
   currentIdx = i;
   activeScenario = 'fact';
+  aggregateMode = false;
   data = archive[currentIdx];
   compareData = null;
   compareMeta = null;
@@ -2756,6 +2853,7 @@ function selectWeek(i) {
 }
 
 function renderScenarioPills() {
+  if (aggregateMode) return;
   const week = archive[currentIdx];
   const hasS = !!week.scenarios;
   renderTopbarScenarios();
@@ -2764,6 +2862,7 @@ function renderScenarioPills() {
 }
 
 function renderTopbarScenarios() {
+  if (aggregateMode) { const w = document.getElementById('topbar-scenarios'); if (w) w.innerHTML = ''; return; }
   const week = archive[currentIdx];
   const hasS = !!week.scenarios;
   const wrap = document.getElementById('topbar-scenarios');
@@ -3010,8 +3109,8 @@ function populateEdit() {
   const info = SCENARIOS.find(s => s.key === activeScenario);
   const hint = document.getElementById('edit-mode-hint');
   hint.innerHTML = activeScenario === 'fact'
-    ? `<span>Редактируется: <strong style="color:var(--ink);">Факт · ${archive[currentIdx].period}</strong></span>`
-    : `<span>Редактируется сценарий: <strong style="color:${info.color};">${info.label}</strong> · ${archive[currentIdx].period}</span>`;
+    ? `<span>Редактируется: <strong style="color:var(--ink);">Факт · ${data.period}</strong></span>`
+    : `<span>Редактируется сценарий: <strong style="color:${info.color};">${info.label}</strong> · ${data.period}</span>`;
   const T = window._editTarget;
 
   // Sources
@@ -3275,6 +3374,7 @@ function importBackup(event) {
   renderWeekPills();
   render();
 })();
+
 </script>
 <script>
 // Патч для роли читателя: скрываем кнопки создания/удаления сценариев
