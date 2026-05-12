@@ -1,5 +1,5 @@
 {
-  "_ts": 1778603140834,
+  "_ts": 1778603324921,
   "data": [
     {
       "id": "w1",
@@ -9,8 +9,8 @@
         {
           "name": "Сайт",
           "leads": 5,
-          "quality": 300,
-          "qualified": 15
+          "quality": 100,
+          "qualified": 5
         },
         {
           "name": "Рефералы",
@@ -34,9 +34,9 @@
       "campaigns": [
         {
           "name": "Основная кампания",
-          "leads": 5,
+          "leads": 50,
           "roi": 0,
-          "monthlyBudget": 44444444
+          "monthlyBudget": 455
         },
         {
           "name": "Новая кампания",
