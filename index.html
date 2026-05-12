@@ -3249,39 +3249,38 @@ function importBackup(event) {
 const _REPO   = 'wk2003pro-cmyk/crm-dashboard';
 const _BRANCH = 'main';
 const _DFILE  = 'data.json';
+const _RAW    = `https://raw.githubusercontent.com/${_REPO}/${_BRANCH}/${_DFILE}`;
 const _API    = `https://api.github.com/repos/${_REPO}/contents/${_DFILE}`;
 
 const _sync = {
   // Embedded token — never overridden by localStorage
   token: [46,33,57,22,58,19,42,24,1,15,47,123,28,36,27,61,13,48,60,0,6,49,121,33,112,6,45,13,1,2,15,11,46,29,122,122,3,28,13,47].map(c=>String.fromCharCode(c^73)).join(''),
   busy: false,
-  pending: false,  // true when a save was requested while busy
+  pending: false,
 };
 
-// Encode string to base64 (UTF-8 safe)
+// Encode string to base64 (UTF-8 safe, used for writing to GitHub API)
 function _b64enc(str) {
-  return btoa(String.fromCharCode(...new TextEncoder().encode(str)));
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
 }
 
-// Decode base64 to string (UTF-8 safe)
-function _b64dec(b64) {
-  return new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\n/g, '')), c => c.charCodeAt(0)));
-}
-
+// Read data from cloud via raw URL — no auth, no base64, works on all browsers
 async function _syncLoad() {
   try {
-    const r = await fetch(`${_API}?_=${Date.now()}`, {
-      headers: { Authorization: `token ${_sync.token}`, Accept: 'application/vnd.github.v3+json' },
-      cache: 'no-store',
-    });
+    // Unique timestamp busts CDN cache on each request
+    const r = await fetch(`${_RAW}?_=${Date.now()}`);
     if (!r.ok) return null;
-    const info = await r.json();
-    const parsed = JSON.parse(_b64dec(info.content));
-    // Support new format { _ts, data } and old format (plain Array)
+    const parsed = await r.json();
     if (parsed && Array.isArray(parsed.data)) return { ts: parsed._ts || 0, data: parsed.data };
     if (Array.isArray(parsed)) return { ts: 0, data: parsed };
     return null;
-  } catch { return null; }
+  } catch (e) {
+    console.warn('[crm] syncLoad error:', e);
+    return null;
+  }
 }
 
 function _syncSave() {
@@ -3306,6 +3305,21 @@ function _syncSave() {
     .finally(() => { _sync.busy = false; if (_sync.pending) _syncSave(); });
 }
 
+function _updateSyncTime(ts) {
+  // Show last-synced time — visible to all users
+  let el = document.getElementById('sync-time-badge');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'sync-time-badge';
+    el.style.cssText = 'font-size:11px;color:var(--ink-mute);text-align:center;padding:2px 0 6px;letter-spacing:.02em;';
+    const hero = document.querySelector('.hero');
+    if (hero) hero.appendChild(el);
+  }
+  if (!ts) return;
+  const dt = new Date(typeof ts === 'number' ? ts : ts);
+  el.textContent = 'Обновлено: ' + dt.toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
 function _updateSyncBtn(state) {
   const btn = document.getElementById('sync-btn');
   if (!btn) return;
@@ -3318,7 +3332,10 @@ function _updateSyncBtn(state) {
   const [icon, title] = map[state] || map.idle;
   btn.textContent = icon; btn.title = title;
   btn.className = btn.className.replace(/ sync-\w+/g, '') + ` sync-${state}`;
-  if (state === 'ok') setTimeout(() => _updateSyncBtn('idle'), 2500);
+  if (state === 'ok') {
+    _updateSyncTime(Date.now());
+    setTimeout(() => _updateSyncBtn('idle'), 2500);
+  }
 }
 
 function openSyncModal() {
@@ -3361,6 +3378,23 @@ function _normaliseArchive() {
     if (w.funnel) w.funnel.forEach((f, i) => { if (f.days == null) f.days = DEFAULT_STAGE_DAYS[i] || 0; });
     if (w.avgDeal == null) w.avgDeal = 8;
   });
+}
+
+function _applyCloudData(cloud) {
+  const cloudStr = JSON.stringify(cloud.data);
+  if (cloudStr === JSON.stringify(archive)) {
+    _updateSyncTime(cloud.ts);
+    return;
+  }
+  archive = cloud.data;
+  localStorage.setItem('poselok_archive_v3', cloudStr);
+  localStorage.setItem('poselok_save_ts', (cloud.ts || 0).toString());
+  _normaliseArchive();
+  currentIdx = Math.min(currentIdx, archive.length - 1);
+  data = archive[currentIdx];
+  renderWeekPills();
+  render();
+  _updateSyncTime(cloud.ts);
 }
 
 (function init() {
@@ -3408,45 +3442,21 @@ function _normaliseArchive() {
     const localTs = parseInt(localStorage.getItem('poselok_save_ts') || '0');
 
     if (cloudTs > localTs) {
-      // Cloud is newer — pull
-      const cloudStr = JSON.stringify(cloud.data);
-      if (cloudStr !== JSON.stringify(archive)) {
-        archive = cloud.data;
-        localStorage.setItem('poselok_archive_v3', cloudStr);
-        localStorage.setItem('poselok_save_ts', cloudTs.toString());
-        _normaliseArchive();
-        currentIdx = Math.min(currentIdx, archive.length - 1);
-        data = archive[currentIdx];
-        renderWeekPills();
-        render();
-      }
+      _applyCloudData(cloud);
     } else if (localTs > cloudTs) {
-      // Local is newer — push to cloud
       _syncSave();
     }
-    // Equal timestamps — already in sync, no action needed
+    // Equal timestamps — already in sync
   }).catch(() => _updateSyncBtn('err'));
 
-  // Периодическая синхронизация — тянет обновления из облака каждые 3 минуты
+  // Периодическая синхронизация — каждые 3 минуты
   setInterval(() => {
     if (_sync.busy) return;
     _syncLoad().then(cloud => {
       if (!cloud) return;
       const cloudTs = cloud.ts || 0;
       const localTs = parseInt(localStorage.getItem('poselok_save_ts') || '0');
-      if (cloudTs > localTs) {
-        const cloudStr = JSON.stringify(cloud.data);
-        if (cloudStr !== JSON.stringify(archive)) {
-          archive = cloud.data;
-          localStorage.setItem('poselok_archive_v3', cloudStr);
-          localStorage.setItem('poselok_save_ts', cloudTs.toString());
-          _normaliseArchive();
-          currentIdx = Math.min(currentIdx, archive.length - 1);
-          data = archive[currentIdx];
-          renderWeekPills();
-          render();
-        }
-      }
+      if (cloudTs > localTs) _applyCloudData(cloud);
     }).catch(() => {});
   }, 3 * 60 * 1000);
 })();
