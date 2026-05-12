@@ -1,5 +1,5 @@
 {
-  "_ts": 1778604437605,
+  "_ts": 1778604571787,
   "data": [
     {
       "id": "w1",
@@ -62,100 +62,6 @@
         {
           "stage": "Контракты",
           "count": 0,
-          "days": 9
-        }
-      ],
-      "avgDeal": 29,
-      "problems": [
-        {
-          "client": "",
-          "deal": "",
-          "issue": "",
-          "days": 0
-        }
-      ],
-      "priorities": [
-        {
-          "task": "",
-          "owner": "",
-          "due": ""
-        }
-      ],
-      "insights": [
-        ""
-      ],
-      "forecast": {
-        "value": 0,
-        "deals": 0,
-        "note": ""
-      }
-    },
-    {
-      "id": "w1778603522187",
-      "date": "2026-05-11",
-      "period": "11–17 мая",
-      "sources": [
-        {
-          "name": "Сайт",
-          "leads": 5,
-          "quality": 100,
-          "qualified": 5
-        },
-        {
-          "name": "Рефералы",
-          "leads": 5,
-          "quality": 20,
-          "qualified": 1
-        },
-        {
-          "name": "Контекст",
-          "leads": 2,
-          "quality": 50,
-          "qualified": 1
-        },
-        {
-          "name": "Соцсети",
-          "leads": 1,
-          "quality": 100,
-          "qualified": 1
-        }
-      ],
-      "campaigns": [
-        {
-          "name": "Новая кампания",
-          "monthlyBudget": 1000000,
-          "leads": 10
-        },
-        {
-          "name": "Новая кампания",
-          "monthlyBudget": 500000,
-          "leads": 3
-        }
-      ],
-      "funnel": [
-        {
-          "stage": "Новые лиды",
-          "count": 9,
-          "days": 0
-        },
-        {
-          "stage": "Квалифицированы",
-          "count": 3,
-          "days": 2
-        },
-        {
-          "stage": "Встречи",
-          "count": 4,
-          "days": 5
-        },
-        {
-          "stage": "Предложения",
-          "count": 0,
-          "days": 7
-        },
-        {
-          "stage": "Контракты",
-          "count": 3,
           "days": 9
         }
       ],
