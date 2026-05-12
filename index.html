@@ -89,6 +89,7 @@
   }
 
   function applyRole(role) {
+    window.__crmRole = role;
     document.body.classList.remove('auth-locked', 'role-reader', 'role-admin');
     document.body.classList.add('role-' + role);
   }
@@ -3144,6 +3145,26 @@ function importBackup(event) {
 
   renderWeekPills();
   render();
+})();
+</script>
+
+<script>
+// Патч для роли читателя: скрываем кнопки создания/удаления сценариев
+// которые рендерятся динамически через JS (CSS .admin-only их не ловит)
+(function() {
+  const _orig = window.renderTopbarScenarios;
+  if (typeof _orig !== 'function') return;
+  window.renderTopbarScenarios = function() {
+    _orig.apply(this, arguments);
+    if (window.__crmRole !== 'reader') return;
+    const wrap = document.getElementById('topbar-scenarios');
+    if (!wrap) return;
+    // Убираем «＋ создать» и «×» кнопки — оставляем только пилюли выбора
+    wrap.querySelectorAll('button').forEach(btn => {
+      const txt = btn.textContent.trim();
+      if (txt === '＋ создать' || txt === '×') btn.remove();
+    });
+  };
 })();
 </script>
 </body>
