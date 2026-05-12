@@ -3267,8 +3267,9 @@ function _b64dec(b64) {
 
 async function _syncLoad() {
   try {
-    const r = await fetch(_API, {
+    const r = await fetch(`${_API}?_=${Date.now()}`, {
       headers: { Authorization: `token ${_sync.token}`, Accept: 'application/vnd.github.v3+json' },
+      cache: 'no-store',
     });
     if (!r.ok) return null;
     const info = await r.json();
@@ -3360,8 +3361,16 @@ function _normaliseArchive() {
 }
 
 (function init() {
-  // Clean up stale token from old version — it overrode the embedded one
-  localStorage.removeItem('crm_gh_token');
+  // Force fresh page load when app version changes (clears browser cache on all devices)
+  const _VER = 'v8';
+  if (localStorage.getItem('crm_ver') !== _VER) {
+    localStorage.setItem('crm_ver', _VER);
+    localStorage.removeItem('crm_gh_token'); // clean up stale token from old version
+    const u = new URL(location.href);
+    u.searchParams.set('_r', _VER);
+    location.replace(u.toString());
+    return;
+  }
 
   const savedTheme = localStorage.getItem('theme') || 'dark';
   applyTheme(savedTheme);
@@ -3387,7 +3396,9 @@ function _normaliseArchive() {
   // Sync on startup: timestamp-based — newest version wins
   _syncLoad().then(cloud => {
     if (!cloud) {
-      _syncSave();
+      // Only push if this device has locally saved data (admin device)
+      // Phones/readers with no local data must never overwrite cloud
+      if (parseInt(localStorage.getItem('poselok_save_ts') || '0') > 0) _syncSave();
       return;
     }
     const cloudTs = cloud.ts || 0;
