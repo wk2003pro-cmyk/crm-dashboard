@@ -2235,7 +2235,7 @@ function renderCampaigns() {
         </div>
         <div class="camp-stats">
           <div><div class="camp-stat-label">Расход</div><div class="camp-stat-val">${weekly.toLocaleString('ru-RU')} ₽</div></div>
-          <div><div class="camp-stat-label">Бюджет/мес</div><div class="camp-stat-val" style="opacity:.7">${(+(c.monthlyBudget ?? c.spent || 0)).toLocaleString('ru-RU')} ₽</div></div>
+          <div><div class="camp-stat-label">Бюджет/мес</div><div class="camp-stat-val" style="opacity:.7">${(+(c.monthlyBudget != null ? c.monthlyBudget : (c.spent || 0))).toLocaleString('ru-RU')} ₽</div></div>
           <div><div class="camp-stat-label">Лиды</div><div class="camp-stat-val">${c.leads}</div></div>
           <div><div class="camp-stat-label">CPL</div><div class="camp-stat-val">${cpl.toLocaleString('ru-RU')} ₽</div></div>
         </div>
@@ -3007,7 +3007,8 @@ function applyMult(sc, m) {
   sc.sources.forEach(s => s.leads = Math.round(s.leads * m));
   sc.campaigns.forEach(c => {
     c.leads = Math.round(c.leads * m);
-    c.spent = Math.round(c.spent * (2 - m));
+    if (c.monthlyBudget != null) c.monthlyBudget = Math.round(c.monthlyBudget * (2 - m));
+    if (c.spent != null) c.spent = Math.round(c.spent * (2 - m));
     c.roi = +(c.roi * m).toFixed(2);
   });
   sc.funnel.forEach(f => f.count = Math.round(f.count * m));
@@ -3462,7 +3463,7 @@ function _applyCloudData(cloud) {
 
 (function init() {
   // Force fresh page load when app version changes (clears browser cache on all devices)
-  const _VER = 'v8';
+  const _VER = 'v9';
   if (localStorage.getItem('crm_ver') !== _VER) {
     localStorage.setItem('crm_ver', _VER);
     localStorage.removeItem('crm_gh_token'); // clean up stale token from old version
