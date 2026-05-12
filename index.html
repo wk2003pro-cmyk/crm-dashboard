@@ -4,6 +4,112 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Поселок · Еженедельный отчёт</title>
+<style>
+  #auth-gate {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #1a2e26;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Instrument Serif', Georgia, serif;
+  }
+  #auth-gate .gate-card {
+    width: 320px; padding: 48px 40px 40px;
+    background: #244035;
+    border: .5px solid #3a5b4d;
+    border-radius: 20px;
+    box-shadow: 0 32px 80px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+  }
+  #auth-gate .gate-brand {
+    font-size: 13px; letter-spacing: .18em; text-transform: uppercase;
+    color: #6fa089; margin-bottom: 8px; font-family: 'Inter', sans-serif; font-weight: 500;
+  }
+  #auth-gate .gate-title {
+    font-size: 32px; color: #f0ebde; font-style: italic; margin-bottom: 32px;
+    line-height: 1.1; text-align: center;
+  }
+  #auth-gate .gate-input {
+    width: 100%; height: 48px; padding: 0 18px;
+    background: #1a2e26; border: 1px solid #3a5b4d; border-radius: 10px;
+    color: #f0ebde; font-size: 22px; letter-spacing: .3em; text-align: center;
+    outline: none; font-family: 'JetBrains Mono', monospace;
+    transition: border-color .15s;
+    -webkit-text-security: disc; text-security: disc;
+    margin-bottom: 14px;
+  }
+  #auth-gate .gate-input:focus { border-color: #c79a52; }
+  #auth-gate .gate-input.shake {
+    animation: gate-shake .35s cubic-bezier(.36,.07,.19,.97);
+    border-color: #f87171;
+  }
+  #auth-gate .gate-btn {
+    width: 100%; height: 48px; border: 0; border-radius: 10px;
+    background: #c79a52; color: #1a2e26;
+    font-size: 14px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    font-family: 'Inter', sans-serif; cursor: pointer;
+    transition: background .15s, transform .1s;
+  }
+  #auth-gate .gate-btn:hover { background: #d4aa63; }
+  #auth-gate .gate-btn:active { transform: scale(.97); }
+  #auth-gate .gate-error {
+    margin-top: 12px; font-size: 12px; color: #f87171;
+    font-family: 'Inter', sans-serif; height: 16px; text-align: center;
+  }
+  @keyframes gate-shake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(4px); }
+    30%, 50%, 70% { transform: translateX(-6px); }
+    40%, 60% { transform: translateX(6px); }
+  }
+  body.auth-locked { overflow: hidden; }
+</style>
+<script>
+(function() {
+  const HASH = 'a64332fe1df1790cb79d428bf5b5767ddd589b1cca825cb1b9eb30f7e9aaee03';
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+  function unlock() {
+    const gate = document.getElementById('auth-gate');
+    if (gate) gate.remove();
+    document.body.classList.remove('auth-locked');
+  }
+  window.__gateCheck = async function() {
+    const inp = document.getElementById('gate-input');
+    const err = document.getElementById('gate-error');
+    const h = await sha256(inp.value.trim());
+    if (h === HASH) {
+      sessionStorage.setItem('crm_auth', '1');
+      unlock();
+    } else {
+      inp.classList.remove('shake');
+      void inp.offsetWidth;
+      inp.classList.add('shake');
+      err.textContent = 'Неверный код';
+      inp.value = '';
+      setTimeout(() => { inp.classList.remove('shake'); err.textContent = ''; }, 1500);
+    }
+  };
+  document.addEventListener('DOMContentLoaded', function() {
+    if (sessionStorage.getItem('crm_auth') === '1') return;
+    document.body.classList.add('auth-locked');
+    const gate = document.createElement('div');
+    gate.id = 'auth-gate';
+    gate.innerHTML = `
+      <div class="gate-card">
+        <div class="gate-brand">Поселок · СИЛВА</div>
+        <div class="gate-title">Еженедельный<br>отчёт</div>
+        <input id="gate-input" class="gate-input" type="password" inputmode="numeric"
+               placeholder="····" maxlength="20" autocomplete="off"
+               onkeydown="if(event.key==='Enter') window.__gateCheck()" autofocus>
+        <button class="gate-btn" onclick="window.__gateCheck()">Войти</button>
+        <div id="gate-error" class="gate-error"></div>
+      </div>`;
+    document.body.prepend(gate);
+    setTimeout(() => document.getElementById('gate-input').focus(), 100);
+  });
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
