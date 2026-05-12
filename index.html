@@ -3254,11 +3254,15 @@ const _sync = {
 };
 
 async function _syncLoad() {
+  // Use API (not raw URL) — no CDN cache, always fresh
   try {
-    const r = await fetch(_RAW + '?t=' + Date.now());
+    const r = await fetch(_API, {
+      headers: { Authorization: `token ${_sync.token}`, Accept: 'application/vnd.github.v3+json' },
+    });
     if (!r.ok) return null;
-    const d = await r.json();
-    return Array.isArray(d) ? d : null;
+    const info = await r.json();
+    const decoded = JSON.parse(decodeURIComponent(escape(atob(info.content.replace(/\n/g, '')))));
+    return Array.isArray(decoded) ? decoded : null;
   } catch { return null; }
 }
 
@@ -3266,16 +3270,18 @@ function _syncSave() {
   if (!_sync.token || _sync.busy) return;
   _sync.busy = true;
   _updateSyncBtn('saving');
-  const content = btoa(unescape(encodeURIComponent(JSON.stringify(archive, null, 2))));
+  const body = JSON.stringify(archive, null, 2);
+  const content = btoa(unescape(encodeURIComponent(body)));
   fetch(_API, { headers: { Authorization: `token ${_sync.token}`, Accept: 'application/vnd.github.v3+json' } })
-    .then(r => r.ok ? r.json() : Promise.reject('read failed'))
+    .then(r => r.ok ? r.json() : Promise.reject('read ' + r.status))
     .then(info => fetch(_API, {
       method: 'PUT',
       headers: { Authorization: `token ${_sync.token}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: 'sync: crm data update', content, sha: info.sha, branch: _BRANCH }),
+      body: JSON.stringify({ message: 'crm: sync data', content, sha: info.sha, branch: _BRANCH }),
     }))
-    .then(r => r.ok ? (_updateSyncBtn('ok'), localStorage.setItem('crm_sync_last', new Date().toISOString())) : Promise.reject('write failed'))
-    .catch(() => _updateSyncBtn('err'))
+    .then(r => r.ok ? r.json() : Promise.reject('write ' + r.status))
+    .then(() => { localStorage.setItem('crm_sync_last', new Date().toISOString()); _updateSyncBtn('ok'); })
+    .catch(e => { console.warn('sync error', e); _updateSyncBtn('err'); })
     .finally(() => { _sync.busy = false; });
 }
 
@@ -3373,22 +3379,35 @@ function _normaliseArchive() {
 
   renderWeekPills();
   render();
-  _updateSyncBtn(_sync.token ? 'idle' : 'none');
+  _updateSyncBtn('idle');
 
-  // Always try to load fresh data from GitHub
+  // Sync on startup: compare local vs cloud, keep the richer version
   _syncLoad().then(cloudData => {
-    if (!cloudData) return;
-    const cloudStr = JSON.stringify(cloudData);
-    if (cloudStr !== JSON.stringify(archive)) {
-      archive = cloudData;
-      localStorage.setItem('poselok_archive_v3', cloudStr);
-      _normaliseArchive();
-      currentIdx = Math.min(currentIdx, archive.length - 1);
-      data = archive[currentIdx];
-      renderWeekPills();
-      render();
+    if (!cloudData) {
+      // Cloud empty or unreachable — push local data up
+      _syncSave();
+      return;
     }
-  });
+    const cloudLeads = cloudData.reduce((s, w) => s + (w.sources || []).reduce((a, src) => a + (+src.leads || 0), 0), 0);
+    const localLeads = archive.reduce((s, w) => s + (w.sources || []).reduce((a, src) => a + (+src.leads || 0), 0), 0);
+
+    if (cloudData.length > archive.length || (cloudData.length === archive.length && cloudLeads >= localLeads)) {
+      // Cloud is richer — pull
+      const cloudStr = JSON.stringify(cloudData);
+      if (cloudStr !== JSON.stringify(archive)) {
+        archive = cloudData;
+        localStorage.setItem('poselok_archive_v3', cloudStr);
+        _normaliseArchive();
+        currentIdx = Math.min(currentIdx, archive.length - 1);
+        data = archive[currentIdx];
+        renderWeekPills();
+        render();
+      }
+    } else {
+      // Local is richer — push to cloud
+      _syncSave();
+    }
+  }).catch(() => _updateSyncBtn('err'));
 })();
 
 </script>
