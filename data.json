@@ -1,5 +1,5 @@
 {
-  "_ts": 1778605386673,
+  "_ts": 1778606133166,
   "data": [
     {
       "id": "w1",
@@ -34,8 +34,8 @@
       "campaigns": [
         {
           "name": "Новая кампания",
-          "monthlyBudget": 1000000,
-          "leads": 10
+          "monthlyBudget": 100000,
+          "leads": 11
         }
       ],
       "funnel": [
