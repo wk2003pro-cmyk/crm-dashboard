@@ -3240,132 +3240,93 @@ function importBackup(event) {
 }
 
 // =========================================================
-// CLOUD SYNC (JSONBin)
+// CLOUD SYNC (GitHub data.json)
 // =========================================================
+const _REPO   = 'wk2003pro-cmyk/crm-dashboard';
+const _BRANCH = 'main';
+const _DFILE  = 'data.json';
+const _RAW    = `https://raw.githubusercontent.com/${_REPO}/${_BRANCH}/${_DFILE}`;
+const _API    = `https://api.github.com/repos/${_REPO}/contents/${_DFILE}`;
+
 const _sync = {
-  key:   localStorage.getItem('crm_sync_key')  || '',
-  binId: localStorage.getItem('crm_sync_bin')  || '',
-  last:  localStorage.getItem('crm_sync_last') || '',
-  busy:  false,
+  token: localStorage.getItem('crm_gh_token') || '',
+  busy: false,
 };
 
-function _syncSave() {
-  if (!_sync.key || _sync.busy) return;
-  _sync.busy = true;
-  _updateSyncBtn('saving');
-  const isNew = !_sync.binId;
-  const url = isNew ? 'https://api.jsonbin.io/v3/b' : `https://api.jsonbin.io/v3/b/${_sync.binId}`;
-  const headers = { 'Content-Type': 'application/json', 'X-Master-Key': _sync.key };
-  if (isNew) { headers['X-Bin-Name'] = 'silva-crm'; headers['X-Bin-Private'] = 'true'; }
-  fetch(url, { method: isNew ? 'POST' : 'PUT', headers, body: JSON.stringify(archive) })
-    .then(r => r.ok ? r.json() : Promise.reject(r.status))
-    .then(j => {
-      if (isNew && j.metadata?.id) {
-        _sync.binId = j.metadata.id;
-        localStorage.setItem('crm_sync_bin', _sync.binId);
-      }
-      _sync.last = new Date().toISOString();
-      localStorage.setItem('crm_sync_last', _sync.last);
-      _updateSyncBtn('ok');
-    })
-    .catch(() => _updateSyncBtn('err'))
-    .finally(() => { _sync.busy = false; });
-}
-
 async function _syncLoad() {
-  if (!_sync.key || !_sync.binId) return null;
   try {
-    const r = await fetch(`https://api.jsonbin.io/v3/b/${_sync.binId}/latest`, {
-      headers: { 'X-Master-Key': _sync.key },
-    });
+    const r = await fetch(_RAW + '?t=' + Date.now());
     if (!r.ok) return null;
-    const j = await r.json();
-    return Array.isArray(j.record) ? j.record : null;
+    const d = await r.json();
+    return Array.isArray(d) ? d : null;
   } catch { return null; }
 }
 
-function _syncCode() {
-  if (!_sync.key || !_sync.binId) return '';
-  return btoa(_sync.binId + ':' + _sync.key);
-}
-
-function _applySyncCode(code) {
-  try {
-    const dec = atob(code.trim());
-    const sep = dec.indexOf(':');
-    if (sep < 1) return false;
-    _sync.binId = dec.slice(0, sep);
-    _sync.key   = dec.slice(sep + 1);
-    localStorage.setItem('crm_sync_bin', _sync.binId);
-    localStorage.setItem('crm_sync_key', _sync.key);
-    return true;
-  } catch { return false; }
+function _syncSave() {
+  if (!_sync.token || _sync.busy) return;
+  _sync.busy = true;
+  _updateSyncBtn('saving');
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(archive, null, 2))));
+  fetch(_API, { headers: { Authorization: `token ${_sync.token}`, Accept: 'application/vnd.github.v3+json' } })
+    .then(r => r.ok ? r.json() : Promise.reject('read failed'))
+    .then(info => fetch(_API, {
+      method: 'PUT',
+      headers: { Authorization: `token ${_sync.token}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'sync: crm data update', content, sha: info.sha, branch: _BRANCH }),
+    }))
+    .then(r => r.ok ? (_updateSyncBtn('ok'), localStorage.setItem('crm_sync_last', new Date().toISOString())) : Promise.reject('write failed'))
+    .catch(() => _updateSyncBtn('err'))
+    .finally(() => { _sync.busy = false; });
 }
 
 function _updateSyncBtn(state) {
   const btn = document.getElementById('sync-btn');
   if (!btn) return;
-  const icons = { idle: '☁', saving: '↑', ok: '✓', err: '✕', none: '☁' };
-  const titles = { idle: 'Облачная синхронизация', saving: 'Сохраняю…', ok: 'Синхронизировано', err: 'Ошибка синхронизации', none: 'Настроить синхронизацию' };
-  btn.textContent = icons[state] || '☁';
-  btn.title = titles[state] || '';
+  const map = { idle: ['☁','Синхр. настроена'], saving: ['↑','Сохраняю…'], ok: ['✓','Сохранено'], err: ['✕','Ошибка записи'], none: ['☁','Настроить запись (для админа)'] };
+  const [icon, title] = map[state] || map.none;
+  btn.textContent = icon; btn.title = title;
   btn.className = btn.className.replace(/ sync-\w+/g, '') + ` sync-${state}`;
-  if (state === 'ok') setTimeout(() => _updateSyncBtn(_sync.key ? 'idle' : 'none'), 2500);
+  if (state === 'ok') setTimeout(() => _updateSyncBtn(_sync.token ? 'idle' : 'none'), 2500);
 }
 
 function openSyncModal() {
-  const existing = document.getElementById('syncModal');
-  if (existing) existing.remove();
-  const hasSync = !!(_sync.key && _sync.binId);
-  const lastFmt = _sync.last ? new Date(_sync.last).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'никогда';
-
+  document.getElementById('syncModal')?.remove();
+  const hasToken = !!_sync.token;
+  const last = localStorage.getItem('crm_sync_last');
+  const lastFmt = last ? new Date(last).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'никогда';
   const m = document.createElement('div');
-  m.id = 'syncModal';
-  m.className = 'modal-overlay';
+  m.id = 'syncModal'; m.className = 'modal-overlay';
   m.innerHTML = `
     <div class="modal" style="max-width:440px;">
       <div class="modal-head">
-        <div class="modal-title">☁ Облачная синхронизация</div>
+        <div class="modal-title">☁ Синхронизация</div>
         <button class="modal-close" onclick="document.getElementById('syncModal').remove()">×</button>
       </div>
-      <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
-        <p style="font-size:13px; color:var(--ink-mid); margin:0; line-height:1.5;">
-          Данные хранятся на <strong>jsonbin.io</strong> (бесплатно). Один API-ключ — один набор данных для всей команды.
-        </p>
-
-        <div id="sync-setup-section" style="${hasSync ? 'display:none' : ''}">
-          <label style="font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-mute); display:block; margin-bottom:6px;">Шаг 1 — API-ключ JSONBin</label>
-          <input id="sync-key-input" class="cell-input" placeholder="$2a$10$..." value="${_sync.key}"
-            style="font-family:var(--mono); font-size:12px; letter-spacing:.04em; width:100%;">
-          <p style="font-size:11px; color:var(--ink-mute); margin:6px 0 0;">
-            Получите бесплатно на <strong>jsonbin.io</strong> → Account → Master Key
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:16px;">
+        <div style="font-size:13px;color:var(--ink-mid);line-height:1.55;">
+          Данные хранятся в репозитории и загружаются автоматически у всех кто открывает дашборд.
+          Для <strong>записи</strong> нужен GitHub-токен — только на вашем устройстве.
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mute);display:block;margin-bottom:6px;">
+            GitHub Personal Access Token
+          </label>
+          <input id="sync-token-input" class="cell-input" type="password"
+            placeholder="ghp_…" value="${hasToken ? _sync.token : ''}"
+            style="font-family:var(--mono);font-size:12px;letter-spacing:.04em;width:100%;">
+          <p style="font-size:11px;color:var(--ink-mute);margin:6px 0 0;">
+            github.com → Settings → Developer settings → Personal access tokens →<br>
+            Права: <strong>repo → Contents → Read & Write</strong>
           </p>
         </div>
-
-        <div id="sync-code-section">
-          <label style="font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-mute); display:block; margin-bottom:6px;">
-            ${hasSync ? 'Код синхронизации' : 'Шаг 2 — Вставить код (если уже настроено на другом устройстве)'}
-          </label>
-          <div style="display:flex; gap:8px;">
-            <input id="sync-code-input" class="cell-input" placeholder="Вставьте код синхронизации…" value="${hasSync ? _syncCode() : ''}"
-              style="font-family:var(--mono); font-size:12px; flex:1; min-width:0;">
-            ${hasSync ? `<button class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('sync-code-input').value).then(()=>{this.textContent='✓ скопировано'; setTimeout(()=>this.textContent='Скопировать',1500)})">Скопировать</button>` : ''}
-          </div>
-          ${hasSync ? `<p style="font-size:11px; color:var(--ink-mute); margin:6px 0 0;">Вставьте этот код на другом устройстве. Последняя синхр.: <strong>${lastFmt}</strong></p>` : '<p style="font-size:11px; color:var(--ink-mute); margin:6px 0 0;">Или введите код, который был сгенерирован на другом устройстве.</p>'}
-        </div>
-
-        <div id="sync-status" style="font-size:12px; color:var(--ink-mute); min-height:18px;"></div>
+        ${hasToken ? `<div style="font-size:12px;color:var(--ink-mute);">Последняя запись: <strong>${lastFmt}</strong></div>` : ''}
+        <div id="sync-status" style="font-size:12px;color:var(--neg);min-height:16px;"></div>
       </div>
       <div class="modal-foot">
-        ${hasSync ? `
-          <button class="btn btn-ghost btn-sm" onclick="_sync.key='';_sync.binId='';localStorage.removeItem('crm_sync_key');localStorage.removeItem('crm_sync_bin');document.getElementById('syncModal').remove();_updateSyncBtn('none');" style="color:var(--neg);">Отключить</button>
-          <div style="flex:1"></div>
-          <button class="btn btn-primary btn-sm" onclick="_syncNow()">Синхронизировать сейчас</button>
-        ` : `
-          <div style="flex:1"></div>
-          <button class="btn btn-outline btn-sm" onclick="document.getElementById('syncModal').remove()">Отмена</button>
-          <button class="btn btn-primary btn-sm" onclick="_syncConnect()">Подключить</button>
-        `}
+        ${hasToken ? `<button class="btn btn-ghost btn-sm" style="color:var(--neg);" onclick="_sync.token='';localStorage.removeItem('crm_gh_token');document.getElementById('syncModal').remove();_updateSyncBtn('none');">Отключить</button>` : ''}
+        <div style="flex:1"></div>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('syncModal').remove()">Отмена</button>
+        <button class="btn btn-primary btn-sm" onclick="_syncConnect()">Сохранить</button>
       </div>
     </div>`;
   document.body.appendChild(m);
@@ -3373,37 +3334,11 @@ function openSyncModal() {
 }
 
 function _syncConnect() {
+  const token = (document.getElementById('sync-token-input')?.value || '').trim();
   const status = document.getElementById('sync-status');
-  const code = (document.getElementById('sync-code-input')?.value || '').trim();
-  const key  = (document.getElementById('sync-key-input')?.value  || '').trim();
-
-  if (code) {
-    if (!_applySyncCode(code)) { status.textContent = '✕ Неверный формат кода'; status.style.color = 'var(--neg)'; return; }
-    status.textContent = 'Проверяю соединение…'; status.style.color = 'var(--ink-mute)';
-    _syncLoad().then(d => {
-      if (d) {
-        archive = d;
-        localStorage.setItem('poselok_archive_v3', JSON.stringify(archive));
-        _normaliseArchive();
-        currentIdx = archive.length - 1; data = archive[currentIdx];
-        renderWeekPills(); render();
-        document.getElementById('syncModal')?.remove();
-        _updateSyncBtn('ok');
-      } else { status.textContent = '✕ Не удалось загрузить данные — проверьте код'; status.style.color = 'var(--neg)'; }
-    });
-  } else if (key) {
-    _sync.key = key; _sync.binId = '';
-    localStorage.setItem('crm_sync_key', key);
-    localStorage.removeItem('crm_sync_bin');
-    status.textContent = 'Создаю хранилище…'; status.style.color = 'var(--ink-mute)';
-    _syncSave();
-    setTimeout(() => { document.getElementById('syncModal')?.remove(); _updateSyncBtn('idle'); }, 2000);
-  } else {
-    status.textContent = 'Введите API-ключ или код синхронизации'; status.style.color = 'var(--neg)';
-  }
-}
-
-function _syncNow() {
+  if (!token) { status.textContent = 'Введите токен'; return; }
+  _sync.token = token;
+  localStorage.setItem('crm_gh_token', token);
   document.getElementById('syncModal')?.remove();
   _syncSave();
 }
@@ -3438,29 +3373,22 @@ function _normaliseArchive() {
 
   renderWeekPills();
   render();
+  _updateSyncBtn(_sync.token ? 'idle' : 'none');
 
-  // Cloud sync: load fresher data if available
-  if (_sync.key && _sync.binId) {
-    _updateSyncBtn('idle');
-    _syncLoad().then(cloudData => {
-      if (!cloudData) return;
-      const localStr = JSON.stringify(archive);
-      const cloudStr = JSON.stringify(cloudData);
-      if (cloudStr !== localStr) {
-        archive = cloudData;
-        localStorage.setItem('poselok_archive_v3', cloudStr);
-        _normaliseArchive();
-        currentIdx = Math.min(currentIdx, archive.length - 1);
-        data = archive[currentIdx];
-        renderWeekPills();
-        render();
-      }
-      _sync.last = localStorage.getItem('crm_sync_last') || '';
-      _updateSyncBtn('ok');
-    });
-  } else {
-    _updateSyncBtn('none');
-  }
+  // Always try to load fresh data from GitHub
+  _syncLoad().then(cloudData => {
+    if (!cloudData) return;
+    const cloudStr = JSON.stringify(cloudData);
+    if (cloudStr !== JSON.stringify(archive)) {
+      archive = cloudData;
+      localStorage.setItem('poselok_archive_v3', cloudStr);
+      _normaliseArchive();
+      currentIdx = Math.min(currentIdx, archive.length - 1);
+      data = archive[currentIdx];
+      renderWeekPills();
+      render();
+    }
+  });
 })();
 
 </script>
