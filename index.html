@@ -1512,7 +1512,6 @@ if ('serviceWorker' in navigator) {
           <thead><tr><th style="width:60%">Этап</th><th>Кол-во</th><th>Среднее время (дн)</th></tr></thead>
           <tbody id="edit-funnel"></tbody>
         </table>
-        <button class="add-btn" onclick="addFunnelStage()">+ Добавить этап</button>
       </section>
 
       <section class="modal-section">
@@ -3115,10 +3114,9 @@ function populateEdit() {
 
   document.getElementById('edit-funnel').innerHTML = T.funnel.map((f, i) => `
     <tr>
-      <td><input class="cell-input" value="${f.stage}" oninput="_editTarget.funnel[${i}].stage=this.value"></td>
+      <td style="padding:4px 6px; font-size:13px;">${f.stage}</td>
       <td><input type="number" class="cell-input num" value="${f.count}" oninput="_editTarget.funnel[${i}].count=+this.value"></td>
       <td><input type="number" class="cell-input num" value="${f.days || 0}" oninput="_editTarget.funnel[${i}].days=+this.value"></td>
-      <td style="width:32px;"><button class="x" onclick="_editTarget.funnel.splice(${i},1); populateEdit();" title="Удалить">×</button></td>
     </tr>
   `).join('');
 
