@@ -1,5 +1,5 @@
 {
-  "_ts": 1778606133166,
+  "_ts": 1778654513674,
   "data": [
     {
       "id": "w1",
@@ -8,61 +8,93 @@
       "sources": [
         {
           "name": "Сайт",
-          "leads": 5,
-          "quality": 100,
-          "qualified": 5
-        },
-        {
-          "name": "Рефералы",
-          "leads": 2,
-          "quality": 50,
-          "qualified": 1
-        },
-        {
-          "name": "Контекст",
-          "leads": 2,
-          "quality": 50,
-          "qualified": 1
-        },
-        {
-          "name": "Соцсети",
           "leads": 1,
-          "quality": 100,
-          "qualified": 1
+          "quality": 0,
+          "qualified": 0
+        },
+        {
+          "name": "Наружная реклама ",
+          "leads": 0,
+          "quality": 0,
+          "qualified": 0
+        },
+        {
+          "name": "Яндекс ",
+          "leads": 8,
+          "quality": 75,
+          "qualified": 6
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "leads": 0,
+          "quality": 0,
+          "qualified": 0
+        },
+        {
+          "name": "Проезжали мимо ",
+          "leads": 2,
+          "qualified": 2,
+          "quality": 100
+        },
+        {
+          "name": "Джейкет (Авито, ЦИАН, ДОМ.КЛИК и пр.)",
+          "leads": 3,
+          "qualified": 0,
+          "quality": 0
         }
       ],
       "campaigns": [
         {
-          "name": "Новая кампания",
-          "monthlyBudget": 100000,
-          "leads": 11
+          "name": "Джейкет (Авито, ЦИАН, ДОМ.КЛИК и пр.)",
+          "monthlyBudget": 162608,
+          "leads": 20
+        },
+        {
+          "name": "Яндекс",
+          "monthlyBudget": 147900,
+          "leads": 35
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "monthlyBudget": 219975,
+          "leads": 40
+        },
+        {
+          "name": "Наружная реклама ",
+          "monthlyBudget": 192427,
+          "leads": 20
         }
       ],
       "funnel": [
         {
-          "stage": "Новые лиды",
-          "count": 4,
+          "stage": "Заявка ",
+          "count": 14,
           "days": 0
         },
         {
-          "stage": "Квалифицированы",
-          "count": 3,
-          "days": 2
+          "stage": "Квалификация",
+          "count": 8,
+          "days": 0
         },
         {
-          "stage": "Встречи",
+          "stage": "Показ проведен",
           "count": 1,
-          "days": 5
+          "days": 0
         },
         {
-          "stage": "Предложения",
+          "stage": "Бронь/Резерв",
           "count": 0,
-          "days": 7
+          "days": 0
         },
         {
-          "stage": "Контракты",
+          "stage": "Успешно реализованы ",
           "count": 0,
-          "days": 9
+          "days": 0
+        },
+        {
+          "stage": "Закрыто и не реализовано ",
+          "count": 3,
+          "days": 0
         }
       ],
       "avgDeal": 29,
