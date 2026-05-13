@@ -1809,8 +1809,8 @@ function campaignWeeklySpent(c, dateStr, aggMode) {
 function getKPIs(w) {
   const leads = w.sources.reduce((s, x) => s + (+x.leads || 0), 0);
   const spent = (w.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, w.date), 0);
-  const conv = (w.funnel && w.funnel.length && w.funnel[0].count > 0)
-    ? (w.funnel[w.funnel.length - 1].count / w.funnel[0].count * 100) : 0;
+  const conv = (w.funnel && w.funnel.length >= 2 && w.funnel[0].count > 0)
+    ? (w.funnel[w.funnel.length - 2].count / w.funnel[0].count * 100) : 0;
   const rois = w.campaigns ? w.campaigns.map(c => computeCampaignROI(c, w)).filter(r => r != null) : [];
   const roi = rois.length ? rois.reduce((s, r) => s + r, 0) / rois.length : 0;
   return { leads, conv, spent, roi };
@@ -1828,7 +1828,7 @@ function pipelineValue(w) {
     const sitting = (i < f.length - 1) ? Math.max(0, f[i].count - f[i + 1].count) : f[i].count;
     v += sitting * probs * avg;
   }
-  const auto = { value: v, deals: f[f.length - 1].count };
+  const auto = { value: v, deals: f[f.length - 2].count };
   // Manual override by РП
   if (w.forecast && (w.forecast.value != null || w.forecast.deals != null)) {
     return {
@@ -1846,7 +1846,7 @@ function computeCampaignROI(c, w) {
   const f = w.funnel;
   const weekly = campaignWeeklySpent(c, w.date, w._isAggregate);
   if (!c || !weekly || !c.leads || !f || !f.length) return null;
-  const conv = f[0].count > 0 ? f[f.length - 1].count / f[0].count : 0;
+  const conv = f[0].count > 0 ? f[f.length - 2].count / f[0].count : 0;
   const avgRub = (w.avgDeal || 8) * 1_000_000;
   const revenue = c.leads * conv * avgRub;
   return weekly > 0 ? revenue / weekly : null;
@@ -2276,7 +2276,7 @@ function renderFunnel() {
 
   // Summary
   const cycle = data.funnel.reduce((s, f) => s + (+f.days || 0), 0);
-  const totalConv = data.funnel[0].count > 0 ? (data.funnel[data.funnel.length - 1].count / data.funnel[0].count * 100) : 0;
+  const totalConv = data.funnel[0].count > 0 ? (data.funnel[data.funnel.length - 2].count / data.funnel[0].count * 100) : 0;
   const dropoff = data.funnel[0].count - data.funnel[data.funnel.length - 1].count;
   document.getElementById('funnel-summary').innerHTML = `
     <div><div class="fs-label">Полный цикл</div><div class="fs-val num">${cycle}<span class="small"> дн</span></div></div>
