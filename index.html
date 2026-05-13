@@ -1059,6 +1059,27 @@ if ('serviceWorker' in navigator) {
       color: #111 !important;
     }
 
+    /* ── Компактные размеры для одностраничной печати ── */
+    body.print-mode #print-summary .ps-header { padding-bottom: 5px !important; margin-bottom: 6px !important; }
+    body.print-mode #print-summary .ps-brand { font-size: 8px !important; }
+    body.print-mode #print-summary .ps-title { font-size: 14px !important; }
+    body.print-mode #print-summary .ps-period { font-size: 10px !important; }
+    body.print-mode #print-summary .ps-kpis { margin-bottom: 6px !important; }
+    body.print-mode #print-summary .ps-kpis > div { padding: 4px 8px !important; }
+    body.print-mode #print-summary .ps-kpi-val { font-size: 16px !important; }
+    body.print-mode #print-summary .ps-grid { gap: 8px !important; }
+    body.print-mode #print-summary .ps-left,
+    body.print-mode #print-summary .ps-right { gap: 5px !important; }
+    body.print-mode #print-summary .ps-row2 { gap: 5px !important; }
+    body.print-mode #print-summary .ps-narrative { padding: 5px 8px !important; font-size: 9px !important; }
+    body.print-mode #print-summary .ps-sec { padding: 4px 7px !important; }
+    body.print-mode #print-summary .ps-sec-title { padding-bottom: 3px !important; margin-bottom: 3px !important; }
+    body.print-mode #print-summary .ps-forecast { padding: 5px 9px !important; }
+    body.print-mode #print-summary .ps-fc-val { font-size: 24px !important; }
+    body.print-mode #print-summary .ps-fc-unit { font-size: 12px !important; }
+    body.print-mode #print-summary .ps-fc-sub { margin-top: 3px !important; }
+    body.print-mode #print-summary .ps-fc-note { margin-top: 3px !important; font-size: 9px !important; }
+
     /* ── Обычная печать дашборда ── */
     body:not(.print-mode) { background: white !important; color: #000 !important; font-size: 9px; }
     body:not(.print-mode) .no-print, body:not(.print-mode) .topbar, body:not(.print-mode) .archive-strip, body:not(.print-mode) .scenario-strip, body:not(.print-mode) .modal-overlay,
