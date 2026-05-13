@@ -1041,7 +1041,8 @@ if ('serviceWorker' in navigator) {
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
     /* ── Версия для совещания ── */
-    body.print-mode { background: transparent !important; padding: 0 !important; margin: 0 !important; }
+    html { background: #fff !important; }
+    body.print-mode { background: #fff !important; padding: 0 !important; margin: 0 !important; }
     body.print-mode > *:not(#print-summary) { display: none !important; }
     #print-mode-bar { display: none !important; }
     body:not(.print-mode) #print-summary { display: none !important; }
