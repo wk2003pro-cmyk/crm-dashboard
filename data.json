@@ -1,5 +1,5 @@
 {
-  "_ts": 1779085433576,
+  "_ts": 1779085877676,
   "data": [
     {
       "id": "w1",
@@ -465,9 +465,9 @@
       "sources": [
         {
           "name": "Сайт",
-          "leads": 1,
-          "quality": 0,
-          "qualified": 0
+          "leads": 2,
+          "quality": 100,
+          "qualified": 2
         },
         {
           "name": "Наружная реклама ",
