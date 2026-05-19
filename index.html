@@ -1632,7 +1632,7 @@ if ('serviceWorker' in navigator) {
       <div class="ps-sec">
         <div class="ps-sec-title">Кампании</div>
         <table class="ps-table">
-          <thead><tr><th class="ps-name">Кампания</th><th class="ps-num">Расход</th><th class="ps-num">Лиды</th><th class="ps-num">CPL</th><th class="ps-num">ROI</th></tr></thead>
+          <thead><tr><th class="ps-name">Кампания</th><th class="ps-num">Расход</th><th class="ps-num">Лиды</th><th class="ps-num">Показы</th><th class="ps-num">CTR</th><th class="ps-num">CPL</th><th class="ps-num">ROI</th></tr></thead>
           <tbody id="ps-campaigns"></tbody>
         </table>
       </div>
@@ -2030,7 +2030,10 @@ function renderPrintSummary() {
       const weekly = campaignWeeklySpent(c, w.date);
       const cpl = c.leads > 0 ? Math.round(weekly / c.leads) : 0;
       const roi = computeCampaignROI(c, w);
-      return `<tr><td class="ps-name">${c.name}</td><td class="ps-num">${(weekly/1000).toFixed(0)}K</td><td class="ps-num">${c.leads}</td><td class="ps-num">${(cpl/1000).toFixed(1)}K</td><td class="ps-num">${roi != null ? roi.toFixed(1) + 'x' : '—'}</td></tr>`;
+      const imp = +(c.impressions || 0);
+      const ctr = imp > 0 && c.leads > 0 ? (c.leads / imp * 100).toFixed(2) + '%' : '—';
+      const impFmt = imp > 0 ? imp.toLocaleString('ru-RU') : '—';
+      return `<tr><td class="ps-name">${c.name}</td><td class="ps-num">${(weekly/1000).toFixed(0)}K</td><td class="ps-num">${c.leads}</td><td class="ps-num">${impFmt}</td><td class="ps-num">${ctr}</td><td class="ps-num">${(cpl/1000).toFixed(1)}K</td><td class="ps-num">${roi != null ? roi.toFixed(1) + 'x' : '—'}</td></tr>`;
     }).join('');
 
     const pv = pipelineValue(w);
