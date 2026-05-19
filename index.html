@@ -3215,7 +3215,7 @@ function _updCamp(i) {
   if (rEl) { rEl.textContent = roi != null ? roi.toFixed(1) + 'x' : '—'; rEl.style.opacity = roi != null ? '1' : '0.4'; }
   const imp = +(c.impressions || 0);
   const ctrEl = document.getElementById('camp-ctr-' + i);
-  if (ctrEl) ctrEl.textContent = 'CTR ' + (imp > 0 && c.leads > 0 ? (c.leads / imp * 100).toFixed(2) + '%' : '—');
+  if (ctrEl) ctrEl.textContent = 'Конв.% ' + (imp > 0 && c.leads > 0 ? (c.leads / imp * 100).toFixed(2) + '%' : '—');
 }
 
 function populateEdit() {
