@@ -1578,13 +1578,15 @@ if ('serviceWorker' in navigator) {
       </section>
 
       <section class="modal-section" style="background:var(--surface-2,#f5f1e8); border-radius:10px; padding:14px 16px;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-          <div>
-            <div style="font-size:13px; font-weight:600; color:var(--ink);">✦ Аналитика от AI</div>
-            <div class="small" style="opacity:0.6; margin-top:2px;">Заполняет Выводы и Анализ периода автоматически</div>
-          </div>
-          <button id="ai-key-reset" onclick="_aiResetKey()" style="font-size:10px; color:var(--ink-mute); background:none; border:none; cursor:pointer; text-decoration:underline; opacity:0.5;">Сменить ключ</button>
+        <div style="font-size:13px; font-weight:600; color:var(--ink); margin-bottom:8px;">✦ Аналитика от AI</div>
+        <div style="display:flex; gap:8px; margin-bottom:10px;">
+          <input id="ai-key-input" type="password" placeholder="sk-ant-api03-..." autocomplete="off"
+            style="flex:1; height:38px; padding:0 12px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font-size:13px; font-family:var(--mono);"
+            oninput="localStorage.setItem('crm_ai_key', this.value.trim())">
+          <button onclick="document.getElementById('ai-key-input').type = document.getElementById('ai-key-input').type==='password'?'text':'password'"
+            style="padding:0 10px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; font-size:12px;">👁</button>
         </div>
+        <div class="small" style="opacity:0.55; margin-bottom:10px;">Ключ: console.anthropic.com → API Keys → формат sk-ant-api03-…</div>
         <button id="ai-analytics-btn" class="btn btn-primary" style="width:100%; padding:11px;" onclick="generateAIAnalytics()">✦ Сгенерировать аналитику</button>
       </section>
 
@@ -3247,6 +3249,7 @@ function _updCamp(i) {
 
 function populateEdit() {
   // _editTarget is a deep copy created once in toggleEdit() — do not reset here
+  _aiInitKeyField();
   const info = SCENARIOS.find(s => s.key === activeScenario);
   const hint = document.getElementById('edit-mode-hint');
   hint.innerHTML = activeScenario === 'fact'
@@ -3761,17 +3764,25 @@ function _applyCloudData(cloud) {
 // AI ANALYTICS
 // =========================================================
 function _aiResetKey() {
-  if (confirm('Удалить сохранённый API ключ?')) localStorage.removeItem('crm_ai_key');
+  localStorage.removeItem('crm_ai_key');
+  const inp = document.getElementById('ai-key-input');
+  if (inp) inp.value = '';
+}
+
+function _aiInitKeyField() {
+  const inp = document.getElementById('ai-key-input');
+  if (inp) inp.value = localStorage.getItem('crm_ai_key') || '';
 }
 
 async function generateAIAnalytics() {
-  let apiKey = localStorage.getItem('crm_ai_key') || '';
+  const inp = document.getElementById('ai-key-input');
+  const apiKey = (inp ? inp.value.trim() : '') || localStorage.getItem('crm_ai_key') || '';
   if (!apiKey) {
-    apiKey = prompt('API ключ Anthropic\n(claude.ai → Settings → API Keys):');
-    if (!apiKey) return;
-    localStorage.setItem('crm_ai_key', apiKey.trim());
+    inp && inp.focus();
+    alert('Введите API ключ Anthropic (формат: sk-ant-api03-…)');
+    return;
   }
-  apiKey = apiKey.trim();
+  localStorage.setItem('crm_ai_key', apiKey);
 
   const T = window._editTarget;
   const totalLeads = (T.sources || []).reduce((s, x) => s + (+x.leads || 0), 0);
