@@ -1738,6 +1738,7 @@ let activeScenario = 'fact';
 let periodYear = null;   // null = все годы
 let periodMonth = null;  // null = все месяцы
 let aggregateMode = false;
+let selectedWeeks = new Set([0]); // indices of selected weeks in archive
 let data = null;        // ALWAYS the fact data for current week
 let compareData = null; // scenario data when comparing, else null
 let compareMeta = null; // SCENARIOS entry for active comparison
@@ -2565,19 +2566,22 @@ function renderWeekPills() {
     }
   }
 
-  // ── Фильтр месяцев (если выбран год и в нём >1 месяца) ──
+  // ── Месячные пилюли (всегда, когда в архиве >1 месяца) ──
   const pmEl = document.getElementById('period-months');
   const moSep = document.getElementById('pf-month-sep');
   if (pmEl) {
-    const monthsInYear = periodYear !== null
-      ? [...new Set(archive.filter(w => new Date(w.date).getFullYear() === periodYear).map(w => new Date(w.date).getMonth()))].sort((a,b)=>a-b)
-      : [];
-    if (periodYear !== null && monthsInYear.length > 1) {
+    // Collect unique year+month combos from all visible weeks
+    const monthKeys = [...new Set(
+      archive.map(w => { const d = new Date(w.date); return d.getFullYear() + '-' + d.getMonth(); })
+    )].sort().map(k => { const [y, m] = k.split('-'); return { year: +y, month: +m }; });
+
+    if (monthKeys.length > 1) {
       pmEl.style.display = '';
       if (moSep) moSep.style.display = '';
-      pmEl.innerHTML =
-        `<button class="pf-pill ${periodMonth === null ? 'active' : ''}" onclick="setPeriodMonth(null)">Все</button>` +
-        monthsInYear.map(m => `<button class="pf-pill ${periodMonth === m ? 'active' : ''}" onclick="setPeriodMonth(${m})">${MONTHS_SHORT_RU[m]}</button>`).join('');
+      pmEl.innerHTML = monthKeys.map(({ year, month }) => {
+        const isActive = periodMonth === month && periodYear === year;
+        return `<button class="pf-pill ${isActive ? 'active' : ''}" onclick="selectMonth(${month}, ${year})">${MONTHS_SHORT_RU[month]} ${year}</button>`;
+      }).join('');
     } else {
       pmEl.style.display = 'none';
       if (moSep) moSep.style.display = 'none';
@@ -2593,12 +2597,14 @@ function renderWeekPills() {
   });
 
   document.getElementById('week-pills').innerHTML =
-    visible.map(({ w, i }) => `
-      <span class="pill-wrap ${!aggregateMode && i === currentIdx ? 'active' : ''}">
-        <button class="pill ${!aggregateMode && i === currentIdx ? 'active' : ''}" onclick="selectWeek(${i})">${w.period}</button>
+    visible.map(({ w, i }) => {
+      const sel = selectedWeeks.has(i);
+      return `
+      <span class="pill-wrap ${sel ? 'active' : ''}">
+        <button class="pill ${sel ? 'active' : ''}" onclick="selectWeek(${i}, event)" title="⌘/Ctrl+клик — добавить к выборке">${w.period}</button>
         <button class="pill-x admin-only" onclick="deleteWeek(${i}, event)" title="Удалить неделю">×</button>
       </span>
-    `).join('') +
+    `;}).join('') +
     `<button class="pill pill-add admin-only" onclick="openWeekPicker()" title="Добавить период из календаря">+ из календаря</button>`;
 }
 
@@ -2606,9 +2612,13 @@ function setPeriodYear(year) {
   periodYear = year;
   periodMonth = null;
   if (year !== null) {
-    const weeks = archive.filter(w => new Date(w.date).getFullYear() === year);
+    const idxs = archive.map((w, i) => ({ w, i })).filter(({ w }) => new Date(w.date).getFullYear() === year).map(({ i }) => i);
+    selectedWeeks = new Set(idxs);
+    currentIdx = idxs[idxs.length - 1] ?? currentIdx;
+    const weeks = idxs.map(i => archive[i]);
     activateAggregate(weeks, String(year));
   } else {
+    selectedWeeks = new Set([currentIdx]);
     deactivateAggregate();
   }
   renderWeekPills();
@@ -2688,6 +2698,7 @@ function activateAggregate(weeks, label) {
 
 function deactivateAggregate() {
   aggregateMode = false;
+  selectedWeeks = new Set([currentIdx]);
   data = archive[currentIdx];
   render();
 }
@@ -2783,16 +2794,50 @@ function deleteWeek(i, e) {
   render();
 }
 
-function selectWeek(i) {
+function selectWeek(i, evt) {
   if (i < 0 || i >= archive.length) return;
-  currentIdx = i;
   activeScenario = 'fact';
-  aggregateMode = false;
-  data = archive[currentIdx];
   compareData = null;
   compareMeta = null;
+
+  if (evt && (evt.ctrlKey || evt.metaKey)) {
+    if (selectedWeeks.has(i)) {
+      selectedWeeks.delete(i);
+      if (selectedWeeks.size === 0) selectedWeeks.add(i);
+    } else {
+      selectedWeeks.add(i);
+    }
+  } else {
+    selectedWeeks = new Set([i]);
+  }
+
+  const selArr = [...selectedWeeks].sort((a, b) => a - b);
+  currentIdx = selArr[selArr.length - 1];
+
+  if (selectedWeeks.size > 1) {
+    const weeks = selArr.map(idx => archive[idx]);
+    const first = weeks[0].period.split('–')[0].trim();
+    const last = (weeks[weeks.length - 1].period.split('–')[1] || '').trim();
+    activateAggregate(weeks, first + '–' + last);
+  } else {
+    aggregateMode = false;
+    data = archive[currentIdx];
+    render();
+  }
   renderWeekPills();
-  render();
+}
+
+function selectMonth(month, year) {
+  const indices = archive
+    .map((w, i) => ({ w, i }))
+    .filter(({ w }) => { const d = new Date(w.date); return d.getFullYear() === year && d.getMonth() === month; })
+    .map(({ i }) => i);
+  if (!indices.length) return;
+  selectedWeeks = new Set(indices);
+  currentIdx = indices[indices.length - 1];
+  const weeks = indices.map(i => archive[i]);
+  activateAggregate(weeks, MONTHS_SHORT_RU[month] + ' ' + year);
+  renderWeekPills();
 }
 
 function renderScenarioPills() {
@@ -3511,6 +3556,7 @@ function _applyCloudData(cloud) {
   _normaliseArchive();
 
   currentIdx = archive.length - 1;
+  selectedWeeks = new Set([currentIdx]);
   data = archive[currentIdx];
 
   renderWeekPills();
