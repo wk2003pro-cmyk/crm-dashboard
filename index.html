@@ -3887,6 +3887,12 @@ async function generateAIMarketBrief() {
     if (_fresh.length > 0 && _fresh.join('').trim().length > 30) text = _fresh.join('').replace(/\s{2,}/g, ' ').trim();
     // strip any remaining ALL-CAPS header line at start (e.g. "РЫНОК ИЖС ПОДМОСКОВЬЯ, МАЙ 2026.")
     text = text.replace(/^[А-ЯЁA-Z\s,—\-\.]{15,80}\.\s*/g, '').trim();
+    // capitalize first letter of each sentence (after . ! ?)
+    text = text.replace(/(^|[.!?]\s+)([а-яёa-z])/g, (_, sep, ch) => sep + ch.toUpperCase());
+    // capitalize very first character
+    text = text.charAt(0).toUpperCase() + text.slice(1);
+    // ensure ends with a period
+    if (text && !/[.!?]$/.test(text)) text += '.';
     if (!text) throw new Error('Пустой ответ от API');
 
     if (window._editTarget) {
