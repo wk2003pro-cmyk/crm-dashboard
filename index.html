@@ -1527,7 +1527,7 @@ if ('serviceWorker' in navigator) {
       <section class="modal-section">
         <div class="modal-section-title">② Кампании (Excel маркетинга)</div>
         <table class="data-table">
-          <thead><tr><th style="width:40%">Кампания</th><th>Бюджет/мес</th><th>Лиды</th><th>ROI (авто)</th></tr></thead>
+          <thead><tr><th style="width:32%">Кампания</th><th>Бюджет/мес</th><th>Показы</th><th>Лиды</th><th>Окупаемость (авто)</th></tr></thead>
           <tbody id="edit-campaigns"></tbody>
         </table>
         <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
@@ -2305,8 +2305,8 @@ function renderCampaigns() {
         <div class="camp-stats">
           <div><div class="camp-stat-label">Расход</div><div class="camp-stat-val" style="color:${scColor}">${ccWeekly.toLocaleString('ru-RU')} ₽</div></div>
           <div><div class="camp-stat-label">Лиды</div><div class="camp-stat-val" style="color:${scColor}">${cc.leads}</div></div>
-          <div><div class="camp-stat-label">CPL</div><div class="camp-stat-val" style="color:${scColor}">${ccCpl.toLocaleString('ru-RU')} ₽</div></div>
-          <div><div class="camp-stat-label">ROI</div><div class="camp-stat-val" style="color:${scColor}">${ccRoi != null ? ccRoi.toFixed(1) + 'x' : '—'}</div></div>
+          <div><div class="camp-stat-label">₽/лид</div><div class="camp-stat-val" style="color:${scColor}">${ccCpl.toLocaleString('ru-RU')} ₽</div></div>
+          <div><div class="camp-stat-label">Окупаемость</div><div class="camp-stat-val" style="color:${scColor}">${ccRoi != null ? ccRoi.toFixed(1) + 'x' : '—'}</div></div>
         </div>
       </div>` : '';
     return `
@@ -2320,8 +2320,8 @@ function renderCampaigns() {
           <div><div class="camp-stat-label">Бюджет/мес</div><div class="camp-stat-val" style="opacity:.7">${(+(c.monthlyBudget != null ? c.monthlyBudget : (c.spent || 0))).toLocaleString('ru-RU')} ₽</div></div>
           <div><div class="camp-stat-label">Показы</div><div class="camp-stat-val">${impressions > 0 ? impressions.toLocaleString('ru-RU') : '—'}</div></div>
           <div><div class="camp-stat-label">Лиды</div><div class="camp-stat-val">${c.leads}</div></div>
-          <div><div class="camp-stat-label">Конверсия</div><div class="camp-stat-val">${ctr}</div></div>
-          <div><div class="camp-stat-label">CPL</div><div class="camp-stat-val">${cpl.toLocaleString('ru-RU')} ₽</div></div>
+          <div><div class="camp-stat-label">Конв.%</div><div class="camp-stat-val">${ctr}</div></div>
+          <div><div class="camp-stat-label">₽/лид</div><div class="camp-stat-val">${cpl.toLocaleString('ru-RU')} ₽</div></div>
         </div>
         ${cmp}
       </div>
@@ -3273,7 +3273,7 @@ function populateEdit() {
       ${budgetCell}
       <td>
         <input type="number" class="cell-input num" value="${imp}" oninput="_editTarget.campaigns[${i}].impressions=+this.value; _updCamp(${i});" placeholder="0" title="Количество показов рекламы">
-        <div id="camp-ctr-${i}" style="font-size:10px;color:var(--ink-mute);margin-top:2px;">CTR ${ctrPreview}</div>
+        <div id="camp-ctr-${i}" style="font-size:10px;color:var(--ink-mute);margin-top:2px;">Конв.% ${ctrPreview}</div>
       </td>
       <td><input type="number" class="cell-input num" value="${c.leads}" oninput="_editTarget.campaigns[${i}].leads=+this.value; _updCamp(${i});"></td>
       <td style="text-align:center;">
