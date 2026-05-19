@@ -3813,7 +3813,8 @@ ${(T.funnel || []).map(f => `• ${f.stage.trim()}: ${f.count}`).join('\n')}
 Верни ответ строго в JSON (без markdown, без пояснений):
 {
   "insights": ["вывод 1", "вывод 2", "вывод 3", "вывод 4"],
-  "managerNote": "2-3 предложения: главные тенденции недели, что сработало, что нет, одна конкретная рекомендация"
+  "managerNote": "2-3 предложения для руководителя: главные тенденции недели, что сработало, что нет, одна конкретная рекомендация по действиям",
+  "investorBrief": "2-3 предложения аналитической справки: динамика спроса, рыночный контекст, выводы для принятия инвестиционных решений"
 }`;
 
   const btn = document.getElementById('ai-analytics-btn');
@@ -3857,10 +3858,9 @@ ${(T.funnel || []).map(f => `• ${f.stage.trim()}: ${f.count}`).join('\n')}
     const parsed = JSON.parse(jsonMatch[0]);
 
     if (Array.isArray(parsed.insights)) T.insights = parsed.insights;
-    if (parsed.managerNote) {
-      T.commentary = T.commentary || {};
-      T.commentary.managerNote = parsed.managerNote;
-    }
+    T.commentary = T.commentary || {};
+    if (parsed.managerNote) T.commentary.managerNote = parsed.managerNote;
+    if (parsed.investorBrief) T.commentary.investorBrief = parsed.investorBrief;
 
     populateEdit();
     btn.textContent = '✓ Готово';
