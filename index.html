@@ -1847,8 +1847,8 @@ function weekMonthSplit(dateStr) {
 }
 
 function campaignWeeklySpent(c, dateStr, aggMode) {
-  // In aggregate mode, monthlyBudget already holds total spent across weeks
-  if (aggMode) return +(c.monthlyBudget != null ? c.monthlyBudget : (c.spent || 0));
+  // In aggregate mode, _spent holds sum of weekly spends across selected weeks
+  if (aggMode) return +(c._spent != null ? c._spent : (c.monthlyBudget != null ? c.monthlyBudget : (c.spent || 0)));
   if (!dateStr) return +(c.spent || 0);
   const split = weekMonthSplit(dateStr);
   const b1 = +(c.monthlyBudget != null ? c.monthlyBudget : (c.spent || 0));
@@ -1873,7 +1873,7 @@ function effectiveFunnel(w) {
 
 function getKPIs(w) {
   const leads = w.sources.reduce((s, x) => s + (+x.leads || 0), 0);
-  const spent = (w.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, w.date), 0);
+  const spent = (w.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, w.date, w._isAggregate), 0);
   const f = effectiveFunnel(w);
   const conv = (f && f.length >= 2 && f[0].count > 0)
     ? (f[f.length - 2].count / f[0].count * 100) : 0;
@@ -2278,7 +2278,7 @@ function renderSources() {
 function renderCampaigns() {
   const scColor = compareMeta?.color || css('--accent');
   document.getElementById('campaigns-list').innerHTML = data.campaigns.map((c, i) => {
-    const weekly = campaignWeeklySpent(c, data.date);
+    const weekly = campaignWeeklySpent(c, data.date, data._isAggregate);
     const cpl = c.leads > 0 ? Math.round(weekly / c.leads) : 0;
     const roi = computeCampaignROI(c, data);
     const roiStr = roi != null ? roi.toFixed(1) + 'x' : '—';
@@ -2739,13 +2739,15 @@ function buildAggregate(weeks, label) {
   const campMap = {};
   weeks.forEach(w => {
     (w.campaigns || []).forEach(c => {
-      if (!campMap[c.name]) campMap[c.name] = { name: c.name, monthlyBudget: 0, leads: 0 };
-      campMap[c.name].monthlyBudget += campaignWeeklySpent(c, w.date);
+      if (!campMap[c.name]) campMap[c.name] = { name: c.name, monthlyBudget: 0, _spent: 0, leads: 0 };
+      campMap[c.name]._spent += campaignWeeklySpent(c, w.date);
+      // Keep the monthly budget as-is (same value across weeks — not cumulative)
+      campMap[c.name].monthlyBudget = +(c.monthlyBudget != null ? c.monthlyBudget : (c.spent || 0));
       campMap[c.name].leads += +c.leads;
     });
   });
   const campaigns = Object.values(campMap).map(c => ({
-    name: c.name, monthlyBudget: c.monthlyBudget, leads: c.leads,
+    name: c.name, monthlyBudget: c.monthlyBudget, _spent: c._spent, leads: c.leads,
   }));
 
   const stageRef = weeks[0].funnel || [];
