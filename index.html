@@ -1335,6 +1335,8 @@ if ('serviceWorker' in navigator) {
     <div>
       <div class="hero-eyebrow"><span id="hero-week-label">Неделя</span> <span id="hero-week-no" class="num">4</span> · <span id="hero-month">август</span> <span id="hero-year" class="num">2024</span></div>
       <h1>Поток лидов<br><em>усилился</em> на 35%.</h1>
+      <button id="ai-hero-btn" class="admin-only" onclick="generateAIHero()" title="Сгенерировать заголовок через AI"
+        style="margin-top:8px; padding:5px 12px; font-size:11px; border-radius:20px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; letter-spacing:0.05em;">✦ AI заголовок</button>
     </div>
     <div class="hero-meta">
       <div class="hero-period-label">Период отчёта</div>
@@ -2171,7 +2173,9 @@ function renderHero() {
   const kpi = getKPIs(data);
   const prev = (!aggregateMode && currentIdx > 0) ? getKPIs(archive[currentIdx - 1]) : null;
   const h1 = document.querySelector('.hero h1');
-  if (aggregateMode) {
+  if (data.commentary?.heroText) {
+    h1.innerHTML = data.commentary.heroText;
+  } else if (aggregateMode) {
     h1.innerHTML = `${kpi.leads} лидов<br><em>за ${data.period}.</em>`;
   } else if (prev && prev.leads > 0) {
     const diff = ((kpi.leads - prev.leads) / prev.leads) * 100;
@@ -3764,6 +3768,51 @@ function _applyCloudData(cloud) {
 // =========================================================
 // AI ANALYTICS
 // =========================================================
+async function generateAIHero() {
+  const apiKey = localStorage.getItem('crm_ai_key') || '';
+  if (!apiKey) { alert('Сначала введите API ключ в форме редактирования → раздел "Аналитика от AI"'); return; }
+
+  const btn = document.getElementById('ai-hero-btn');
+  btn.textContent = '…';
+  btn.disabled = true;
+
+  const kpi = getKPIs(data);
+  const prev = (!aggregateMode && currentIdx > 0) ? getKPIs(archive[currentIdx - 1]) : null;
+  const topSrc = [...data.sources].sort((a, b) => b.leads - a.leads)[0];
+  const totalSpent = (data.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, data.date, false), 0);
+
+  const context = [
+    `Период: ${data.period}`,
+    `Лидов: ${kpi.leads}${prev ? `, прошлая неделя: ${prev.leads} (${((kpi.leads-prev.leads)/prev.leads*100).toFixed(0)}%)` : ''}`,
+    `Главный канал: ${topSrc?.name} (${topSrc?.leads} лидов)`,
+    `Расход: ${(totalSpent/1000).toFixed(0)}K ₽, ROI: ${kpi.roi.toFixed(1)}x`,
+    `Воронка: ${data.funnel.map(f=>f.stage.trim()+' '+f.count).join(' → ')}`,
+  ].join('\n');
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001', max_tokens: 120,
+        messages: [{ role: 'user', content: `Напиши заголовок для еженедельного отчёта отдела продаж посёлка ИЖС. Формат строго: две строки HTML — первая строка обычный текст (3-4 слова), вторая строка в тегах <em> (1-2 слова курсивом — ключевое слово) + краткое число/факт. Пример: "Поток лидов<br><em>ослаб</em> на -71%."\n\nДанные:\n${context}\n\nВерни только HTML без пояснений.` }],
+      }),
+    });
+    const body = await resp.json();
+    if (!resp.ok) throw new Error(body?.error?.message || `HTTP ${resp.status}`);
+    const heroText = body.content[0].text.trim();
+    data.commentary = data.commentary || {};
+    data.commentary.heroText = heroText;
+    saveArchive();
+    renderHero();
+    btn.textContent = '✓';
+    setTimeout(() => { btn.textContent = '✦ AI заголовок'; btn.disabled = false; }, 2000);
+  } catch(e) {
+    alert('Ошибка: ' + e.message);
+    btn.textContent = '✦ AI заголовок';
+    btn.disabled = false;
+  }
+}
 function _aiResetKey() {
   localStorage.removeItem('crm_ai_key');
   const inp = document.getElementById('ai-key-input');
