@@ -2762,10 +2762,10 @@ function buildAggregate(weeks, label) {
     sources, campaigns, funnel, avgDeal,
     problems: weeks.flatMap(w => w.problems || []),
     priorities: weeks.flatMap(w => w.priorities || []),
-    insights: weeks.flatMap(w => w.insights || []),
+    insights: [...new Map(weeks.flatMap(w => w.insights || []).map(s => [s.trim(), s])).values()],
     commentary: {
-      managerNote: weeks.map(w => w.commentary?.managerNote).filter(Boolean).join('\n\n'),
-      investorBrief: weeks.map(w => w.commentary?.investorBrief).filter(Boolean).join('\n\n'),
+      managerNote: [...new Set(weeks.map(w => w.commentary?.managerNote).filter(Boolean).map(s => s.trim()))].join('\n\n'),
+      investorBrief: [...new Set(weeks.map(w => w.commentary?.investorBrief).filter(Boolean).map(s => s.trim()))].join('\n\n'),
     },
     _isAggregate: true, _weekCount: weeks.length,
   };
