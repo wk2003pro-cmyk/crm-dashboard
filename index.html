@@ -2045,21 +2045,24 @@ function renderPrintSummary() {
     // Funnel SVG (horizontal bars)
     const psFunnel = effectiveFunnel(w);
     const fmax = Math.max(...psFunnel.map(f => f.count), 1);
-    const fH = 24, fGap = 4, padL = 70, padR = 30, padT = 6;
+    const fH = 16, fGap = 3, padL = 108, padR = 28, padT = 4;
     const fSvg = document.getElementById('ps-funnel-svg');
-    const fWidth = 240, fHeight = psFunnel.length * (fH + fGap) + padT + 4;
+    const fWidth = 290, fHeight = psFunnel.length * (fH + fGap) + padT + 4;
     fSvg.setAttribute('viewBox', `0 0 ${fWidth} ${fHeight}`);
+    const ff = "Inter,system-ui,sans-serif";
     fSvg.innerHTML = psFunnel.map((f, i) => {
       const y = padT + i * (fH + fGap);
       const barW = (f.count / fmax) * (fWidth - padL - padR);
       const prev = i > 0 ? psFunnel[i-1].count : f.count;
       const conv = i > 0 && prev > 0 ? Math.round(f.count/prev*100) : 100;
       const opacity = 0.4 + (1 - i / Math.max(psFunnel.length - 1, 1)) * 0.6;
+      const label = f.stage.trim();
       return `
-        <text x="${padL - 6}" y="${y + fH/2 + 3}" font-size="8" text-anchor="end" fill="#555">${f.stage}</text>
-        <rect x="${padL}" y="${y}" width="${barW}" height="${fH}" fill="#3d6b53" opacity="${opacity}"/>
-        <text x="${padL + barW + 4}" y="${y + fH/2 + 3}" font-size="9" font-weight="600" fill="#1a1a17">${f.count}</text>
-        ${i > 0 ? `<text x="${padL + barW + 4}" y="${y + fH/2 + 12}" font-size="6.5" fill="#888">${conv}%</text>` : ''}
+        <text x="${padL - 5}" y="${y + fH/2 + 3}" font-size="7.5" font-family="${ff}" text-anchor="end" fill="#555"
+          textLength="${padL - 10}" lengthAdjust="spacingAndGlyphs">${label}</text>
+        <rect x="${padL}" y="${y}" width="${Math.max(barW, 1)}" height="${fH}" fill="#3d6b53" opacity="${opacity}"/>
+        <text x="${padL + Math.max(barW, 1) + 4}" y="${y + fH/2 + 3}" font-size="8" font-weight="600" font-family="${ff}" fill="#1a1a17">${f.count}</text>
+        ${i > 0 ? `<text x="${padL + Math.max(barW, 1) + 4}" y="${y + fH/2 + 11}" font-size="6" font-family="${ff}" fill="#888">${conv}%</text>` : ''}
       `;
     }).join('');
 
