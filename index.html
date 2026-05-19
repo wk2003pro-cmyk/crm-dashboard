@@ -3834,7 +3834,7 @@ async function generateAIMarketBrief() {
   const cpl = kpi.leads > 0 ? Math.round(totalSpent / kpi.leads) : 0;
 
   const ourCtx = `Наш посёлок ИЖС Подмосковье, чек ${T.avgDeal || 8} млн ₽. Период ${T.period}: ${kpi.leads} лидов, расход ${(totalSpent/1000).toFixed(0)}K ₽, CPL ${(cpl/1000).toFixed(1)}K ₽.`;
-  const userMsg = `Найди актуальные данные о рынке ИЖС Подмосковья за ${T.period}. ${ourCtx} Напиши ровно 3 предложения: (1) текущая ситуация со спросом и ценами, (2) ипотека и макрофакторы, (3) вывод для нашего сегмента ${T.avgDeal || 8} млн ₽. Максимум 60 слов. Без вводных фраз — сразу факты.`;
+  const userMsg = `Рынок ИЖС Подмосковья, ${T.period}. Чек ${T.avgDeal || 8} млн ₽, CPL ${(cpl/1000).toFixed(1)}K ₽. Найди данные и напиши 3 предложения: спрос/цены, ипотека, вывод для нашего сегмента. Без вводных фраз, максимум 55 слов.`;
 
   const wsHeaders = { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-beta': 'web-search-2025-03-05', 'anthropic-dangerous-direct-browser-access': 'true' };
   const callAPI = (messages, useSearch) => fetch('https://api.anthropic.com/v1/messages', {
@@ -3842,8 +3842,8 @@ async function generateAIMarketBrief() {
     headers: wsHeaders,
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      ...(useSearch ? { tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }] } : {}),
+      max_tokens: 400,
+      ...(useSearch ? { tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 1 }] } : {}),
       messages,
     }),
   });
