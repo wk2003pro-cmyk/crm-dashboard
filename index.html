@@ -961,8 +961,7 @@ if ('serviceWorker' in navigator) {
   .commentary-textarea:focus { border-color: var(--accent); }
 
   /* Print commentary */
-  .ps-commentary { margin-top: 18px; padding-top: 14px; border-top: 1px solid #ddd; }
-  .ps-commentary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .ps-commentary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .ps-commentary-label { font-size: 7px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #888; margin-bottom: 5px; }
   .ps-commentary-text { font-size: 9px; line-height: 1.55; color: #333; white-space: pre-wrap; }
   .ps-commentary-empty { font-size: 9px; color: #aaa; font-style: italic; }
@@ -1641,6 +1640,19 @@ if ('serviceWorker' in navigator) {
       <div class="ps-sec">
         <div class="ps-sec-title">Выводы</div>
         <ul class="ps-list" id="ps-insights"></ul>
+      </div>
+
+      <div class="ps-sec ps-commentary" id="ps-commentary" style="display:none">
+        <div class="ps-commentary-grid">
+          <div>
+            <div class="ps-sec-title" style="margin-bottom:4px;">Анализ периода</div>
+            <div id="ps-commentary-manager" class="ps-commentary-text"></div>
+          </div>
+          <div>
+            <div class="ps-sec-title" style="margin-bottom:4px;">Справка</div>
+            <div id="ps-commentary-investor" class="ps-commentary-text"></div>
+          </div>
+        </div>
       </div>
     </div>
 
