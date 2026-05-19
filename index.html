@@ -3276,11 +3276,11 @@ function populateEdit() {
     <tr>
       <td><input class="cell-input" value="${c.name}" oninput="_editTarget.campaigns[${i}].name=this.value"></td>
       ${budgetCell}
-      <td><input type="number" class="cell-input num" value="${c.leads}" oninput="_editTarget.campaigns[${i}].leads=+this.value; _updCamp(${i});"></td>
       <td>
         <input type="number" class="cell-input num" value="${imp}" oninput="_editTarget.campaigns[${i}].impressions=+this.value; _updCamp(${i});" placeholder="0" title="Количество показов рекламы">
         <div id="camp-ctr-${i}" style="font-size:10px;color:var(--ink-mute);margin-top:2px;">CTR ${ctrPreview}</div>
       </td>
+      <td><input type="number" class="cell-input num" value="${c.leads}" oninput="_editTarget.campaigns[${i}].leads=+this.value; _updCamp(${i});"></td>
       <td style="text-align:center;">
         <span id="camp-roi-${i}" class="num" style="opacity:${autoROI != null ? '1' : '0.4'}">${autoROI != null ? autoROI.toFixed(1) + 'x' : '—'}</span>
       </td>
