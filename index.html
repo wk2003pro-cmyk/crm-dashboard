@@ -2056,7 +2056,7 @@ function renderPrintSummary() {
       const barW = (f.count / fmax) * (fWidth - padL - padR);
       const bW = Math.max(barW, 1);
       const prev = i > 0 ? psFunnel[i-1].count : f.count;
-      const conv = prev > 0 ? Math.round(f.count/prev*100) : null;
+      const conv = i > 0 ? (f.count === 0 ? 0 : prev > 0 ? Math.round(f.count/prev*100) : null) : null;
       const opacity = 0.4 + (1 - i / Math.max(psFunnel.length - 1, 1)) * 0.6;
       const label = f.stage.trim();
       // % inside bar if wide enough; color: white on dark bars, dark green on light bars
