@@ -1,5 +1,5 @@
 {
-  "_ts": 1779192180975,
+  "_ts": 1779192393728,
   "data": [
     {
       "id": "w1",
@@ -576,7 +576,7 @@
       },
       "commentary": {
         "managerNote": "1",
-        "investorBrief": "1"
+        "investorBrief": "1\n2"
       }
     }
   ]
