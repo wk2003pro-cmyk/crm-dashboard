@@ -1367,7 +1367,11 @@ if ('serviceWorker' in navigator) {
   <!-- =================== NARRATIVE =================== -->
   <section class="section">
     <div class="narrative">
-      <div class="narrative-head"><span>Сводка недели</span></div>
+      <div class="narrative-head">
+        <span>Сводка недели</span>
+        <button id="ai-narrative-btn" class="admin-only" onclick="generateAINarrative()" title="Сгенерировать сводку через AI"
+          style="padding:3px 10px; font-size:10px; border-radius:20px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; letter-spacing:0.05em; flex-shrink:0;">✦ AI</button>
+      </div>
       <div class="narrative-text" id="narrative"></div>
     </div>
   </section>
@@ -2237,6 +2241,10 @@ function renderKPI() {
 }
 
 function renderNarrative() {
+  if (data.commentary?.narrativeText) {
+    document.getElementById('narrative').innerHTML = data.commentary.narrativeText;
+    return;
+  }
   const kpi = getKPIs(data);
   const prev = (!aggregateMode && currentIdx > 0) ? getKPIs(archive[currentIdx - 1]) : null;
 
@@ -3768,6 +3776,54 @@ function _applyCloudData(cloud) {
 // =========================================================
 // AI ANALYTICS
 // =========================================================
+async function generateAINarrative() {
+  const apiKey = localStorage.getItem('crm_ai_key') || '';
+  if (!apiKey) { alert('Сначала введите API ключ в форме редактирования → раздел "Аналитика от AI"'); return; }
+
+  const btn = document.getElementById('ai-narrative-btn');
+  btn.textContent = '…';
+  btn.disabled = true;
+
+  const kpi = getKPIs(data);
+  const prev = (!aggregateMode && currentIdx > 0) ? getKPIs(archive[currentIdx - 1]) : null;
+  const topSrc = [...data.sources].sort((a, b) => b.leads - a.leads)[0];
+  const totalSpent = (data.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, data.date, false), 0);
+  const _ef = effectiveFunnel(data);
+
+  const context = [
+    `Период: ${data.period}`,
+    `Лидов: ${kpi.leads}${prev ? `, прошлая неделя: ${prev.leads} (${((kpi.leads-prev.leads)/prev.leads*100).toFixed(0)}%)` : ''}`,
+    `Главный канал: ${topSrc?.name} (${topSrc?.leads} лидов)`,
+    `Расход: ${(totalSpent/1000).toFixed(0)}K ₽, ROI: ${kpi.roi.toFixed(1)}x`,
+    `Воронка: ${_ef.map(f=>f.stage.trim()+' '+f.count).join(' → ')}`,
+    data.problems?.length ? `Застрявших сделок: ${data.problems.length}` : '',
+  ].filter(Boolean).join('\n');
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001', max_tokens: 220,
+        messages: [{ role: 'user', content: `Напиши одно предложение-сводку для еженедельного отчёта отдела продаж посёлка ИЖС (Подмосковье). Краткое резюме через точку с запятой. Только HTML без пояснений, используй: <strong>для названий</strong>, <span class="up">для позитивных чисел</span>, <span class="down">для негативных чисел</span>.\n\nДанные:\n${context}\n\nПример формата: "Поток лидов <span class=\\"down\\">-71%</span> к прошлой неделе; главный канал — <strong>Сайт</strong> (2 лидов); слабое звено воронки — <strong>Бронь/Резерв</strong> (0%)."\n\nВерни только HTML фрагмент.` }],
+      }),
+    });
+    const body = await resp.json();
+    if (!resp.ok) throw new Error(body?.error?.message || `HTTP ${resp.status}`);
+    const narrativeText = body.content[0].text.trim();
+    data.commentary = data.commentary || {};
+    data.commentary.narrativeText = narrativeText;
+    saveArchive();
+    renderNarrative();
+    btn.textContent = '✓';
+    setTimeout(() => { btn.textContent = '✦ AI'; btn.disabled = false; }, 2000);
+  } catch(e) {
+    alert('Ошибка: ' + e.message);
+    btn.textContent = '✦ AI';
+    btn.disabled = false;
+  }
+}
+
 async function generateAIHero() {
   const apiKey = localStorage.getItem('crm_ai_key') || '';
   if (!apiKey) { alert('Сначала введите API ключ в форме редактирования → раздел "Аналитика от AI"'); return; }
