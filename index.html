@@ -1548,7 +1548,7 @@ if ('serviceWorker' in navigator) {
         <div class="modal-section-title">④ Средний чек по сделкам</div>
         <table class="data-table">
           <thead><tr><th>Средняя сумма контракта (млн ₽)</th></tr></thead>
-          <tbody><tr><td><input type="number" step="0.1" class="cell-input num" id="edit-avg-deal" oninput="data.avgDeal=+this.value"></td></tr></tbody>
+          <tbody><tr><td><input type="number" step="0.1" class="cell-input num" id="edit-avg-deal" oninput="_editTarget.avgDeal=+this.value"></td></tr></tbody>
         </table>
       </section>
 
@@ -3219,8 +3219,9 @@ function _updCamp(i) {
 }
 
 function populateEdit() {
-  // edit target: fact if no compare, scenario data when comparing
-  window._editTarget = isComparing() ? compareData : data;
+  // edit target: deep copy so cancel truly cancels
+  window._editTargetLive = isComparing() ? compareData : data;
+  window._editTarget = JSON.parse(JSON.stringify(window._editTargetLive));
   const info = SCENARIOS.find(s => s.key === activeScenario);
   const hint = document.getElementById('edit-mode-hint');
   hint.innerHTML = activeScenario === 'fact'
@@ -3396,7 +3397,10 @@ function togglePrintMode() {
 }
 
 function applyData() {
-  archive[currentIdx].period = document.getElementById('period').value;
+  const live = window._editTargetLive || data;
+  const edited = window._editTarget;
+  Object.keys(edited).forEach(k => { live[k] = edited[k]; });
+  live.period = document.getElementById('period').value;
   saveArchive();
   renderWeekPills();
   render();
