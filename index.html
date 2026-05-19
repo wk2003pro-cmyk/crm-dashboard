@@ -2358,7 +2358,8 @@ function renderFunnel() {
   // Summary
   const cycle = data.funnel.reduce((s, f) => s + (+f.days || 0), 0);
   const totalConv = ef[0].count > 0 ? (ef[ef.length - 2].count / ef[0].count * 100) : 0;
-  const inWork = ef[0].count - (ef[ef.length - 2]?.count || 0) - (ef[ef.length - 1]?.count || 0);
+  const baseForWork = ef.length >= 2 ? ef[1].count : ef[0].count;
+  const inWork = baseForWork - (ef[ef.length - 2]?.count || 0) - (ef[ef.length - 1]?.count || 0);
   document.getElementById('funnel-summary').innerHTML = `
     <div><div class="fs-label">Полный цикл</div><div class="fs-val num">${cycle}<span class="small"> дн</span></div></div>
     <div><div class="fs-label">Сквозная конверсия</div><div class="fs-val num">${totalConv.toFixed(0)}<span class="small">%</span></div></div>
