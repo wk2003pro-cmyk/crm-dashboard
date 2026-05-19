@@ -1627,9 +1627,13 @@ if ('serviceWorker' in navigator) {
           <textarea id="edit-commentary-manager" class="commentary-textarea" placeholder="Разбор ключевых цифр, тенденций и решений за период…" oninput="_editTarget.commentary = _editTarget.commentary || {}; _editTarget.commentary.managerNote = this.value"></textarea>
         </label>
         <label style="display:flex; flex-direction:column; gap:6px;">
-          <span class="small" style="opacity:0.7;">Справка (контекст рынка ИЖС)</span>
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span class="small" style="opacity:0.7;">Справка (контекст рынка ИЖС)</span>
+            <button id="ai-market-btn" onclick="generateAIMarketBrief()"
+              style="padding:3px 10px; font-size:10px; border-radius:20px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; letter-spacing:0.05em;">✦ Собрать с рынка</button>
+          </div>
           <textarea id="edit-commentary-investor" class="commentary-textarea" placeholder="Актуальные тенденции рынка ИЖС Подмосковья: динамика спроса и цен, активность конкурентов, сезонность, внешние факторы влияющие на продажи…" oninput="_editTarget.commentary = _editTarget.commentary || {}; _editTarget.commentary.investorBrief = this.value"></textarea>
-          <span class="small" style="opacity:0.45; margin-top:2px;">Вносится вручную — новости рынка, аналитика, наблюдения из поля</span>
+          <span class="small" style="opacity:0.45; margin-top:2px;">AI собирает данные из интернета и пишет в контексте ваших цифр; можно дополнить вручную</span>
         </label>
       </section>
     </div>
@@ -3803,6 +3807,77 @@ function _applyCloudData(cloud) {
 // =========================================================
 // AI ANALYTICS
 // =========================================================
+async function generateAIMarketBrief() {
+  const apiKey = localStorage.getItem('crm_ai_key') || '';
+  if (!apiKey) { alert('Сначала введите API ключ в форме редактирования → раздел "Аналитика от AI"'); return; }
+
+  const btn = document.getElementById('ai-market-btn');
+  btn.textContent = '…';
+  btn.disabled = true;
+
+  const T = window._editTarget || data;
+  const kpi = getKPIs(T);
+  const totalSpent = (T.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, T.date, false), 0);
+  const cpl = kpi.leads > 0 ? Math.round(totalSpent / kpi.leads) : 0;
+
+  const ourCtx = `Наш посёлок ИЖС Подмосковье, чек ${T.avgDeal || 8} млн ₽. Период ${T.period}: ${kpi.leads} лидов, расход ${(totalSpent/1000).toFixed(0)}K ₽, CPL ${(cpl/1000).toFixed(1)}K ₽.`;
+  const userMsg = `Найди актуальную информацию о рынке загородной недвижимости и ИЖС Подмосковья прямо сейчас: динамика спроса и цен, настроения покупателей, активность конкурентов, сезонные и макроэкономические факторы. ${ourCtx} Напиши 3-4 предложения рыночной справки применительно к нашей ситуации. Только текст без заголовков и маркеров.`;
+
+  const callAPI = (messages, useSearch) => fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      ...(useSearch ? { tools: [{ type: 'web_search_20250305', name: 'web_search' }] } : {}),
+      messages,
+    }),
+  });
+
+  try {
+    let messages = [{ role: 'user', content: userMsg }];
+    let resp = await callAPI(messages, true);
+    let body = await resp.json();
+
+    // Fallback: if model doesn't support web_search tool — retry without it
+    if (!resp.ok && (resp.status === 400 || resp.status === 404)) {
+      resp = await callAPI(messages, false);
+      body = await resp.json();
+    }
+    if (!resp.ok) throw new Error(body?.error?.message || `HTTP ${resp.status}`);
+
+    // Multi-turn: if Claude stopped to run a web search — send results back
+    if (body.stop_reason === 'tool_use') {
+      const toolUses = body.content.filter(b => b.type === 'tool_use');
+      messages = [
+        ...messages,
+        { role: 'assistant', content: body.content },
+        { role: 'user', content: toolUses.map(b => ({ type: 'tool_result', tool_use_id: b.id, content: '' })) },
+      ];
+      resp = await callAPI(messages, true);
+      body = await resp.json();
+      if (!resp.ok) throw new Error(body?.error?.message || `HTTP ${resp.status}`);
+    }
+
+    const text = body.content?.find(b => b.type === 'text')?.text?.trim();
+    if (!text) throw new Error('Пустой ответ от API');
+
+    if (window._editTarget) {
+      window._editTarget.commentary = window._editTarget.commentary || {};
+      window._editTarget.commentary.investorBrief = text;
+    }
+    const ta = document.getElementById('edit-commentary-investor');
+    if (ta) ta.value = text;
+
+    btn.textContent = '✓';
+    setTimeout(() => { btn.textContent = '✦ Собрать с рынка'; btn.disabled = false; }, 2000);
+  } catch(e) {
+    alert('Ошибка: ' + e.message);
+    btn.textContent = '✦ Собрать с рынка';
+    btn.disabled = false;
+  }
+}
+
 async function generateAINarrative() {
   const apiKey = localStorage.getItem('crm_ai_key') || '';
   if (!apiKey) { alert('Сначала введите API ключ в форме редактирования → раздел "Аналитика от AI"'); return; }
