@@ -1,5 +1,5 @@
 {
-  "_ts": 1779205200747,
+  "_ts": 1779205843337,
   "data": [
     {
       "id": "w1",
@@ -520,6 +520,12 @@
         },
         {
           "name": "Наружная реклама ",
+          "monthlyBudget": 0,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
           "monthlyBudget": 0,
           "leads": 0,
           "impressions": 0
