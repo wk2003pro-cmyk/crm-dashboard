@@ -717,7 +717,8 @@ if ('serviceWorker' in navigator) {
     color: var(--accent);
   }
   .camp-roi.lo { color: var(--ink-mute); }
-  .camp-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 11.5px; }
+  .camp-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; font-size: 11.5px; }
+  .camp-stats-eff { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
   .camp-stat-label { color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; margin-bottom: 2px; }
   .camp-stat-val { font-family: var(--mono); font-weight: 600; color: var(--ink); font-size: 13px; }
 
@@ -1918,6 +1919,13 @@ function computeCampaignROI(c, w) {
   return weekly > 0 ? revenue / weekly : null;
 }
 
+function qualifiedLeadsForCampaign(c, w) {
+  const totalLeads = w.sources.reduce((s, x) => s + (+x.leads || 0), 0);
+  if (!totalLeads || !c.leads) return 0;
+  const qualRate = w.sources.reduce((s, x) => s + (+x.leads || 0) * (+x.quality || 0) / 100, 0) / totalLeads;
+  return Math.round(+c.leads * qualRate);
+}
+
 function formatMoney(n) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + ' млн';
   if (n >= 1_000) return Math.round(n / 1000) + 'K';
@@ -2283,6 +2291,17 @@ function renderCampaigns() {
     const roi = computeCampaignROI(c, data);
     const roiStr = roi != null ? roi.toFixed(1) + 'x' : '—';
     const roiCls = roi != null && roi >= 2.5 ? '' : 'lo';
+    const impressions = +(c.impressions || 0);
+    const ctr = impressions > 0 ? (c.leads / impressions * 100) : null;
+    const qualLeads = qualifiedLeadsForCampaign(c, data);
+    const cplQual = qualLeads > 0 ? Math.round(weekly / qualLeads) : null;
+    const effRow = impressions > 0 ? `
+        <div class="camp-stats camp-stats-eff">
+          <div><div class="camp-stat-label">Показы</div><div class="camp-stat-val">${impressions.toLocaleString('ru-RU')}</div></div>
+          <div><div class="camp-stat-label">CTR</div><div class="camp-stat-val">${ctr != null ? ctr.toFixed(2) + '%' : '—'}</div></div>
+          <div><div class="camp-stat-label">Квал.лиды</div><div class="camp-stat-val">${qualLeads}</div></div>
+          <div><div class="camp-stat-label">CPL квал.</div><div class="camp-stat-val">${cplQual != null ? cplQual.toLocaleString('ru-RU') + ' ₽' : '—'}</div></div>
+        </div>` : '';
     const cc = isComparing() ? compareData.campaigns[i] : null;
     const ccWeekly = cc ? campaignWeeklySpent(cc, compareData.date) : 0;
     const ccCpl = cc && cc.leads > 0 ? Math.round(ccWeekly / cc.leads) : 0;
@@ -2309,6 +2328,7 @@ function renderCampaigns() {
           <div><div class="camp-stat-label">Лиды</div><div class="camp-stat-val">${c.leads}</div></div>
           <div><div class="camp-stat-label">CPL</div><div class="camp-stat-val">${cpl.toLocaleString('ru-RU')} ₽</div></div>
         </div>
+        ${effRow}
         ${cmp}
       </div>
     `;
@@ -2739,15 +2759,16 @@ function buildAggregate(weeks, label) {
   const campMap = {};
   weeks.forEach(w => {
     (w.campaigns || []).forEach(c => {
-      if (!campMap[c.name]) campMap[c.name] = { name: c.name, monthlyBudget: 0, _spent: 0, leads: 0 };
+      if (!campMap[c.name]) campMap[c.name] = { name: c.name, monthlyBudget: 0, _spent: 0, leads: 0, impressions: 0 };
       campMap[c.name]._spent += campaignWeeklySpent(c, w.date);
       // Keep the monthly budget as-is (same value across weeks — not cumulative)
       campMap[c.name].monthlyBudget = +(c.monthlyBudget != null ? c.monthlyBudget : (c.spent || 0));
       campMap[c.name].leads += +c.leads;
+      campMap[c.name].impressions += +(c.impressions || 0);
     });
   });
   const campaigns = Object.values(campMap).map(c => ({
-    name: c.name, monthlyBudget: c.monthlyBudget, _spent: c._spent, leads: c.leads,
+    name: c.name, monthlyBudget: c.monthlyBudget, _spent: c._spent, leads: c.leads, impressions: c.impressions,
   }));
 
   const stageRef = weeks[0].funnel || [];
@@ -3195,6 +3216,9 @@ function _updCamp(i) {
   if (wEl) wEl.textContent = '≈ ' + weekly.toLocaleString('ru-RU') + ' ₽/нед';
   const rEl = document.getElementById('camp-roi-' + i);
   if (rEl) { rEl.textContent = roi != null ? roi.toFixed(1) + 'x' : '—'; rEl.style.opacity = roi != null ? '1' : '0.4'; }
+  const imp = +(c.impressions || 0);
+  const ctrEl = document.getElementById('camp-ctr-' + i);
+  if (ctrEl) ctrEl.textContent = 'CTR ' + (imp > 0 && c.leads > 0 ? (c.leads / imp * 100).toFixed(2) + '%' : '—');
 }
 
 function populateEdit() {
@@ -3246,11 +3270,17 @@ function populateEdit() {
              title="Месячный бюджет">
            <div id="camp-weekly-${i}" style="font-size:10px;color:var(--ink-mute);margin-top:2px;">≈ ${weeklyPreview.toLocaleString('ru-RU')} ₽/нед</div>
          </td>`;
+    const imp = c.impressions || 0;
+    const ctrPreview = imp > 0 && c.leads > 0 ? (c.leads / imp * 100).toFixed(2) + '%' : '—';
     return `
     <tr>
       <td><input class="cell-input" value="${c.name}" oninput="_editTarget.campaigns[${i}].name=this.value"></td>
       ${budgetCell}
       <td><input type="number" class="cell-input num" value="${c.leads}" oninput="_editTarget.campaigns[${i}].leads=+this.value; _updCamp(${i});"></td>
+      <td>
+        <input type="number" class="cell-input num" value="${imp}" oninput="_editTarget.campaigns[${i}].impressions=+this.value; _updCamp(${i});" placeholder="0" title="Количество показов рекламы">
+        <div id="camp-ctr-${i}" style="font-size:10px;color:var(--ink-mute);margin-top:2px;">CTR ${ctrPreview}</div>
+      </td>
       <td style="text-align:center;">
         <span id="camp-roi-${i}" class="num" style="opacity:${autoROI != null ? '1' : '0.4'}">${autoROI != null ? autoROI.toFixed(1) + 'x' : '—'}</span>
       </td>
@@ -3357,7 +3387,7 @@ function addProblem() { const T = window._editTarget; (T.problems = T.problems |
 function addPriority() { const T = window._editTarget; (T.priorities = T.priorities || []).push({ task: '', owner: '', due: '' }); populateEdit(); }
 function addInsight() { const T = window._editTarget; (T.insights = T.insights || []).push(''); populateEdit(); }
 function addSource() { const T = window._editTarget; T.sources.push({ name: 'Новый источник', leads: 0, qualified: 0, quality: 0 }); populateEdit(); }
-function addCampaign() { const T = window._editTarget; T.campaigns.push({ name: 'Новая кампания', monthlyBudget: 0, leads: 0 }); populateEdit(); }
+function addCampaign() { const T = window._editTarget; T.campaigns.push({ name: 'Новая кампания', monthlyBudget: 0, leads: 0, impressions: 0 }); populateEdit(); }
 function addFunnelStage() { const T = window._editTarget; T.funnel.push({ stage: 'Новый этап', count: 0, days: 0 }); populateEdit(); }
 function resetForecast() { const T = window._editTarget; delete T.forecast; populateEdit(); }
 function togglePrintMode() {
@@ -3612,6 +3642,7 @@ function _normaliseArchive() {
       if (c.monthlyBudget == null && c.spent != null) {
         c.monthlyBudget = c.spent; // migrate old data
       }
+      if (c.impressions == null) c.impressions = 0;
     });
   });
 }
