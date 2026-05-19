@@ -3834,59 +3834,38 @@ async function generateAIMarketBrief() {
   const cpl = kpi.leads > 0 ? Math.round(totalSpent / kpi.leads) : 0;
 
   const ourCtx = `Наш посёлок ИЖС Подмосковье, чек ${T.avgDeal || 8} млн ₽. Период ${T.period}: ${kpi.leads} лидов, расход ${(totalSpent/1000).toFixed(0)}K ₽, CPL ${(cpl/1000).toFixed(1)}K ₽.`;
-  const userMsg = `Найди актуальные данные о рынке ИЖС Подмосковья за ${T.period} и напиши ровно 3 предложения на русском языке: (1) динамика спроса и цен, (2) ипотечные ставки и доступность, (3) вывод для сегмента ${T.avgDeal || 8} млн ₽. Только факты с цифрами. Без вводных фраз, без markdown, без английского.`;
+  const systemPrompt = `Ты — аналитик рынка недвижимости России. Отвечаешь ТОЛЬКО на русском. ЗАПРЕЩЕНО: извиняться, объяснять что не нашёл, рекомендовать куда обратиться, использовать markdown. Если точных данных за период нет — пиши самые свежие доступные данные как факт без оговорок.`;
+  const userMsg = `Найди в интернете актуальные данные о рынке загородной недвижимости и ИЖС Подмосковья на май 2026 года. Наши данные: чек ${T.avgDeal || 8} млн ₽, CPL ${(cpl/1000).toFixed(1)}K ₽. Напиши ровно 3 предложения с цифрами: (1) спрос и цены на ИЖС, (2) ипотечные ставки и ключевая ставка ЦБ, (3) вывод для нашего сегмента. Только факты, максимум 60 слов.`;
 
   const wsHeaders = { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-beta': 'web-search-2025-03-05', 'anthropic-dangerous-direct-browser-access': 'true' };
-  const callAPI = (messages, useSearch) => fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: wsHeaders,
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 400,
-      ...(useSearch ? { tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }] } : {}),
-      messages,
-    }),
-  });
 
   try {
     let messages = [{ role: 'user', content: userMsg }];
-    let resp = await callAPI(messages, true);
+    let resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: wsHeaders,
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 400, system: systemPrompt, tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }], messages }),
+    });
     let body = await resp.json();
-
-    // Fallback: if model doesn't support web_search tool — retry without it
-    if (!resp.ok && (resp.status === 400 || resp.status === 404)) {
-      resp = await callAPI(messages, false);
-      body = await resp.json();
-    }
     if (!resp.ok) throw new Error(body?.error?.message || `HTTP ${resp.status}`);
 
-    // Multi-turn: Anthropic web_search is server-side — echo back tool_use, Anthropic fills results
     let turns = 0;
     while (body.stop_reason === 'tool_use' && turns < 3) {
       turns++;
-      const toolUses = body.content.filter(b => b.type === 'tool_use');
-      messages = [
-        ...messages,
-        { role: 'assistant', content: body.content },
-        { role: 'user', content: toolUses.map(b => ({ type: 'tool_result', tool_use_id: b.id, content: [{ type: 'text', text: '' }] })) },
-      ];
-      resp = await callAPI(messages, true);
+      messages = [...messages, { role: 'assistant', content: body.content }, { role: 'user', content: body.content.filter(b => b.type === 'tool_use').map(b => ({ type: 'tool_result', tool_use_id: b.id, content: [{ type: 'text', text: '' }] })) }];
+      resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: wsHeaders,
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 400, system: systemPrompt, tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }], messages }),
+      });
       body = await resp.json();
       if (!resp.ok) throw new Error(body?.error?.message || `HTTP ${resp.status}`);
     }
 
     let text = (body.content || []).filter(b => b.type === 'text').map(b => b.text).join(' ').trim();
-    // Убираем markdown bold/italic и вводные фразы
     text = text.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
-    text = text.replace(/^(Я помогу[^.]*\.|Мне нужно[^.]*\.|I'll[^.]*\.|Я найду[^.]*\.|Ищу[^.]*\.|Основываясь на[^.]*\.|Вот рыночная[^:]*:|На основе[^.]*\.|Согласно[^,]*,\s*вот[^:]*:|Я не нашёл[^.]*\.)\s*/gi, '').trim();
-    // Убираем все переносы строк — справка должна идти сплошным текстом
-    text = text
-      .replace(/\r\n/g, '\n')
-      .replace(/\n\s*([,;])/g, '$1')   // \n, → ,  и  \n; → ;
-      .replace(/\n/g, ' ')             // все остальные \n → пробел
-      .replace(/\s{2,}/g, ' ')
-      .trim();
-    if (!text) throw new Error('Пустой ответ — возможно web_search недоступен для этого ключа');
+    text = text.replace(/\n/g, ' ').replace(/\s{2,}/g, ' ').trim();
+    if (!text) throw new Error('Пустой ответ от API');
 
     if (window._editTarget) {
       window._editTarget.commentary = window._editTarget.commentary || {};
