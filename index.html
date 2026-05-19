@@ -3193,8 +3193,14 @@ function deleteScenarios() {
 // =========================================================
 function toggleEdit() {
   const m = document.getElementById('editModal');
-  if (m.classList.contains('open')) m.classList.remove('open');
-  else { m.classList.add('open'); populateEdit(); }
+  if (m.classList.contains('open')) {
+    m.classList.remove('open');
+  } else {
+    window._editTargetLive = isComparing() ? compareData : data;
+    window._editTarget = JSON.parse(JSON.stringify(window._editTargetLive));
+    m.classList.add('open');
+    populateEdit();
+  }
 }
 
 function _updSrcQ(i) {
@@ -3219,9 +3225,7 @@ function _updCamp(i) {
 }
 
 function populateEdit() {
-  // edit target: deep copy so cancel truly cancels
-  window._editTargetLive = isComparing() ? compareData : data;
-  window._editTarget = JSON.parse(JSON.stringify(window._editTargetLive));
+  // _editTarget is a deep copy created once in toggleEdit() — do not reset here
   const info = SCENARIOS.find(s => s.key === activeScenario);
   const hint = document.getElementById('edit-mode-hint');
   hint.innerHTML = activeScenario === 'fact'
