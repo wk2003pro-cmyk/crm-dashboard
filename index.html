@@ -3834,7 +3834,7 @@ async function generateAIMarketBrief() {
   const cpl = kpi.leads > 0 ? Math.round(totalSpent / kpi.leads) : 0;
 
   const ourCtx = `Наш посёлок ИЖС Подмосковье, чек ${T.avgDeal || 8} млн ₽. Период ${T.period}: ${kpi.leads} лидов, расход ${(totalSpent/1000).toFixed(0)}K ₽, CPL ${(cpl/1000).toFixed(1)}K ₽.`;
-  const userMsg = `Рынок ИЖС Подмосковья, ${T.period}. Чек ${T.avgDeal || 8} млн ₽, CPL ${(cpl/1000).toFixed(1)}K ₽. Найди данные и напиши 3 предложения: спрос/цены, ипотека, вывод для нашего сегмента. Без вводных фраз, максимум 55 слов.`;
+  const userMsg = `Напиши 3 предложения о рынке ИЖС Подмосковья за ${T.period}: (1) спрос и цены, (2) ипотека и ставки, (3) вывод для сегмента ${T.avgDeal || 8} млн ₽ при CPL ${(cpl/1000).toFixed(1)}K ₽. Начинай сразу с факта — без фраз "мне нужно найти", "основываясь на", "вот справка" и подобных. Максимум 55 слов.`;
 
   const wsHeaders = { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-beta': 'web-search-2025-03-05', 'anthropic-dangerous-direct-browser-access': 'true' };
   const callAPI = (messages, useSearch) => fetch('https://api.anthropic.com/v1/messages', {
@@ -3876,8 +3876,8 @@ async function generateAIMarketBrief() {
     }
 
     let text = (body.content || []).filter(b => b.type === 'text').map(b => b.text).join(' ').trim();
-    // Срезаем вводные фразы
-    text = text.replace(/^(Я помогу[^.]*\.|Основываясь на[^.]*\.|Вот рыночная[^:]*:|На основе[^.]*\.)\s*/i, '').trim();
+    // Срезаем вводные фразы и описания действий Claude
+    text = text.replace(/^(Я помогу[^.]*\.|Мне нужно[^.]*\.|Я найду[^.]*\.|Ищу[^.]*\.|Основываясь на[^.]*\.|Вот рыночная[^:]*:|На основе[^.]*\.|Согласно[^,]*,\s*вот[^:]*:)\s*/i, '').trim();
     // Убираем все переносы строк — справка должна идти сплошным текстом
     text = text
       .replace(/\r\n/g, '\n')
