@@ -1600,7 +1600,11 @@ if ('serviceWorker' in navigator) {
       </section>
 
       <section class="modal-section">
-        <div class="modal-section-title">⑦ Выводы</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+          <div class="modal-section-title" style="margin-bottom:0;">⑦ Выводы</div>
+          <button id="ai-insights-btn" onclick="generateAIInsights()"
+            style="padding:4px 12px; font-size:10px; border-radius:20px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; letter-spacing:0.05em; white-space:nowrap;">✦ AI выводы</button>
+        </div>
         <div id="edit-insights"></div>
         <button class="add-btn" onclick="addInsight()">+ Добавить вывод</button>
       </section>
@@ -1614,15 +1618,18 @@ if ('serviceWorker' in navigator) {
           <button id="ai-key-eye" onclick="_aiToggleKeyVis()" title="Показать ключ"
             style="padding:0 10px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; font-size:12px;">👁</button>
         </div>
-        <div class="small" style="opacity:0.55; margin-bottom:10px;">Ключ: console.anthropic.com → API Keys → формат sk-ant-api03-…</div>
-        <button id="ai-analytics-btn" class="btn btn-primary" style="width:100%; padding:11px;" onclick="generateAIAnalytics()">✦ Сгенерировать аналитику</button>
-        <div id="ai-error-msg" style="margin-top:8px; font-size:11px; color:#c0392b; word-break:break-word;"></div>
+        <div class="small" style="opacity:0.55;">Ключ: console.anthropic.com → API Keys → формат sk-ant-api03-…</div>
+        <div id="ai-error-msg" style="margin-top:6px; font-size:11px; color:#c0392b; word-break:break-word;"></div>
       </section>
 
       <section class="modal-section">
         <div class="modal-section-title">⑧ Комментарии</div>
         <label style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px;">
-          <span class="small" style="opacity:0.7;">Анализ периода (от руководителя)</span>
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span class="small" style="opacity:0.7;">Анализ периода (от руководителя)</span>
+            <button id="ai-manager-btn" onclick="generateAIManagerNote()"
+              style="padding:3px 10px; font-size:10px; border-radius:20px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; letter-spacing:0.05em; white-space:nowrap;">✦ AI анализ</button>
+          </div>
           <textarea id="edit-commentary-manager" class="commentary-textarea" placeholder="Разбор ключевых цифр, тенденций и решений за период…" oninput="_editTarget.commentary = _editTarget.commentary || {}; _editTarget.commentary.managerNote = this.value"></textarea>
         </label>
         <label style="display:flex; flex-direction:column; gap:6px;">
@@ -4005,94 +4012,87 @@ function _aiToggleKeyVis() {
   if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
 }
 
-async function generateAIAnalytics() {
+function _aiGetKey() {
   const inp = document.getElementById('ai-key-input');
-  const apiKey = (inp ? inp.value.trim() : '') || localStorage.getItem('crm_ai_key') || '';
-  if (!apiKey) {
-    inp && inp.focus();
-    alert('Введите API ключ Anthropic (формат: sk-ant-api03-…)');
-    return;
-  }
-  localStorage.setItem('crm_ai_key', apiKey);
+  const key = (inp ? inp.value.trim() : '') || localStorage.getItem('crm_ai_key') || '';
+  if (!key) { alert('Введите API ключ Anthropic в разделе "Аналитика от AI"'); }
+  return key;
+}
 
-  const T = window._editTarget;
+function _aiDataContext(T) {
   const totalLeads = (T.sources || []).reduce((s, x) => s + (+x.leads || 0), 0);
   const totalSpent = (T.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, T.date, false), 0);
   const cpl = totalLeads > 0 ? Math.round(totalSpent / totalLeads) : 0;
-
-  const prompt = `Ты — аналитик отдела продаж загородного посёлка ИЖС в Подмосковье. Проанализируй данные и дай сжатую аналитику. Пиши кратко — каждый вывод максимум 15-18 слов.
-
-ПЕРИОД: ${T.period}
-
-ИСТОЧНИКИ:
-${(T.sources || []).map(s => `• ${s.name}: ${s.leads} лидов, качество ${s.quality}%`).join('\n')}
-
-КАМПАНИИ:
-${(T.campaigns || []).map(c => {
-  const w = campaignWeeklySpent(c, T.date, false);
-  const ctr = c.impressions > 0 && c.leads > 0 ? (c.leads / c.impressions * 100).toFixed(2) + '%' : '—';
-  return `• ${c.name}: ${w.toLocaleString('ru')} ₽, показы ${c.impressions || 0}, лиды ${c.leads}, конв. ${ctr}`;
-}).join('\n')}
-
-ВОРОНКА: ${(T.funnel || []).map(f => `${f.stage.trim()} ${f.count}`).join(' → ')}
-ИТОГО: лидов ${totalLeads}, расход ${totalSpent.toLocaleString('ru')} ₽, CPL ${cpl.toLocaleString('ru')} ₽, чек ${T.avgDeal || 8} млн ₽
-
-Верни строго JSON (без markdown):
-{
-  "insights": ["вывод 1 (макс 18 слов)", "вывод 2", "вывод 3"],
-  "managerNote": "Ровно 2 предложения: (1) главная проблема/успех недели с цифрами, (2) одно конкретное действие."
-}`;
-
-  const btn = document.getElementById('ai-analytics-btn');
-  const errEl = document.getElementById('ai-error-msg');
-  if (errEl) errEl.textContent = '';
-  btn.textContent = 'Анализирую…';
-  btn.disabled = true;
-
-  const showErr = (msg) => {
-    if (errEl) errEl.textContent = msg;
-    btn.textContent = '✦ Сгенерировать аналитику';
-    btn.disabled = false;
+  return {
+    totalLeads, totalSpent, cpl,
+    text: [
+      `Период: ${T.period}`,
+      `Источники: ${(T.sources||[]).map(s=>`${s.name} ${s.leads}лид кач.${s.quality}%`).join(', ')}`,
+      `Кампании: ${(T.campaigns||[]).map(c=>{const w=campaignWeeklySpent(c,T.date,false);return `${c.name} ${(w/1000).toFixed(0)}K ₽ показы:${c.impressions||0} лиды:${c.leads}`;}).join('; ')}`,
+      `Воронка: ${(T.funnel||[]).map(f=>`${f.stage.trim()} ${f.count}`).join(' → ')}`,
+      `Итого: ${totalLeads} лидов, расход ${(totalSpent/1000).toFixed(0)}K ₽, CPL ${(cpl/1000).toFixed(1)}K ₽, чек ${T.avgDeal||8} млн ₽`,
+    ].join('\n'),
   };
+}
 
+async function _aiCall(prompt, maxTokens = 600) {
+  const apiKey = _aiGetKey();
+  if (!apiKey) return null;
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
+  });
+  const body = await resp.json().catch(() => null);
+  if (!resp.ok) {
+    if (resp.status === 401) localStorage.removeItem('crm_ai_key');
+    const errEl = document.getElementById('ai-error-msg');
+    if (errEl) errEl.textContent = `Ошибка ${resp.status}: ${body?.error?.message || ''}`;
+    throw new Error(body?.error?.message || `HTTP ${resp.status}`);
+  }
+  return body?.content?.[0]?.text || '';
+}
+
+async function generateAIInsights() {
+  const apiKey = _aiGetKey(); if (!apiKey) return;
+  const btn = document.getElementById('ai-insights-btn');
+  btn.textContent = '…'; btn.disabled = true;
+  const T = window._editTarget;
+  const ctx = _aiDataContext(T);
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
+    const text = await _aiCall(
+      `Ты — аналитик отдела продаж посёлка ИЖС Подмосковье. Дай 3 вывода по данным недели. Каждый вывод — ровно одно предложение, максимум 18 слов, конкретная цифра или факт.\n\n${ctx.text}\n\nВерни строго JSON без markdown:\n{"insights":["вывод 1","вывод 2","вывод 3"]}`
+    );
+    const m = text.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error('Не удалось разобрать ответ');
+    const parsed = JSON.parse(m[0]);
+    if (Array.isArray(parsed.insights)) { T.insights = parsed.insights; populateEdit(); }
+    btn.textContent = '✓'; setTimeout(() => { btn.textContent = '✦ AI выводы'; btn.disabled = false; }, 2000);
+  } catch(e) {
+    const errEl = document.getElementById('ai-error-msg');
+    if (errEl) errEl.textContent = e.message;
+    btn.textContent = '✦ AI выводы'; btn.disabled = false;
+  }
+}
 
-    const body = await resp.json().catch(() => null);
-    if (!resp.ok) {
-      if (resp.status === 401) localStorage.removeItem('crm_ai_key');
-      const msg = body?.error?.message || JSON.stringify(body) || `HTTP ${resp.status}`;
-      return showErr(`Ошибка ${resp.status}: ${msg}`);
-    }
-
-    const text = body?.content?.[0]?.text || '';
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return showErr('Не удалось разобрать ответ: ' + text.slice(0, 100));
-    const parsed = JSON.parse(jsonMatch[0]);
-
-    if (Array.isArray(parsed.insights)) T.insights = parsed.insights;
+async function generateAIManagerNote() {
+  const apiKey = _aiGetKey(); if (!apiKey) return;
+  const btn = document.getElementById('ai-manager-btn');
+  btn.textContent = '…'; btn.disabled = true;
+  const T = window._editTarget;
+  const ctx = _aiDataContext(T);
+  try {
+    const text = await _aiCall(
+      `Ты — аналитик отдела продаж посёлка ИЖС Подмосковье. Напиши анализ периода для руководителя: ровно 2 предложения. (1) Главная проблема или успех с конкретными цифрами. (2) Одно действие — что сделать на следующей неделе.\n\n${ctx.text}\n\nВерни только текст, без заголовков.`,
+      300
+    );
     T.commentary = T.commentary || {};
-    if (parsed.managerNote) T.commentary.managerNote = parsed.managerNote;
-    // investorBrief — вносится вручную (рыночный контекст), AI его не перезаписывает
-
-    populateEdit();
-    btn.textContent = '✓ Готово';
-    setTimeout(() => { btn.textContent = '✦ Сгенерировать аналитику'; btn.disabled = false; }, 2500);
-  } catch (e) {
-    showErr('Сетевая ошибка: ' + e.message);
+    T.commentary.managerNote = text.trim();
+    const ta = document.getElementById('edit-commentary-manager');
+    if (ta) ta.value = text.trim();
+    btn.textContent = '✓'; setTimeout(() => { btn.textContent = '✦ AI анализ'; btn.disabled = false; }, 2000);
+  } catch(e) {
+    btn.textContent = '✦ AI анализ'; btn.disabled = false;
   }
 }
 
