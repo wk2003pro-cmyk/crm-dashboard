@@ -3244,7 +3244,7 @@ function populateEdit() {
       <td><input type="number" class="cell-input num" value="${s.leads}" oninput="_editTarget.sources[${i}].leads=+this.value; _updSrcQ(${i});"></td>
       <td><input type="number" class="cell-input num" value="${s.qualified}" oninput="_editTarget.sources[${i}].qualified=+this.value; _updSrcQ(${i});"></td>
       <td id="src-q-${i}" style="text-align:center; font-variant-numeric: tabular-nums; opacity:0.75;">${q}%</td>
-      <td style="width:32px;"><button class="x" onclick="_editTarget.sources.splice(${i},1); populateEdit();" title="Удалить">×</button></td>
+      <td style="width:32px;"><button class="x" onclick="if(confirm('Удалить источник «${s.name}»?')){_editTarget.sources.splice(${i},1); populateEdit();}" title="Удалить">×</button></td>
     </tr>
   `;}).join('');
 
@@ -3286,7 +3286,7 @@ function populateEdit() {
       <td style="text-align:center;">
         <span id="camp-roi-${i}" class="num" style="opacity:${autoROI != null ? '1' : '0.4'}">${autoROI != null ? autoROI.toFixed(1) + 'x' : '—'}</span>
       </td>
-      <td style="width:32px;"><button class="x" onclick="_editTarget.campaigns.splice(${i},1); populateEdit();" title="Удалить">×</button></td>
+      <td style="width:32px;"><button class="x" onclick="if(confirm('Удалить кампанию «${c.name}»?')){_editTarget.campaigns.splice(${i},1); populateEdit();}" title="Удалить">×</button></td>
     </tr>
   `;}).join('');
 
@@ -3358,7 +3358,7 @@ function populateEdit() {
       <input class="cell-input" placeholder="Сделка" value="${p.deal}" oninput="_editTarget.problems[${i}].deal=this.value">
       <input class="cell-input" placeholder="Проблема" value="${p.issue}" oninput="_editTarget.problems[${i}].issue=this.value">
       <input type="number" class="cell-input num" placeholder="Дн" value="${p.days}" oninput="_editTarget.problems[${i}].days=+this.value">
-      <button class="x" onclick="_editTarget.problems.splice(${i},1); populateEdit();">×</button>
+      <button class="x" onclick="if(confirm('Удалить запись?')){_editTarget.problems.splice(${i},1); populateEdit();}">×</button>
     </div>
   `).join('');
 
@@ -3367,14 +3367,14 @@ function populateEdit() {
       <input class="cell-input" placeholder="Задача" value="${p.task}" oninput="_editTarget.priorities[${i}].task=this.value">
       <input class="cell-input" placeholder="Кто" value="${p.owner}" oninput="_editTarget.priorities[${i}].owner=this.value">
       <input class="cell-input" placeholder="Срок" value="${p.due}" oninput="_editTarget.priorities[${i}].due=this.value">
-      <button class="x" onclick="_editTarget.priorities.splice(${i},1); populateEdit();">×</button>
+      <button class="x" onclick="if(confirm('Удалить задачу?')){_editTarget.priorities.splice(${i},1); populateEdit();}">×</button>
     </div>
   `).join('');
 
   document.getElementById('edit-insights').innerHTML = (T.insights || []).map((ins, i) => `
     <div class="row-grid insight-edit">
       <input class="cell-input" value="${ins}" oninput="_editTarget.insights[${i}]=this.value">
-      <button class="x" onclick="_editTarget.insights.splice(${i},1); populateEdit();">×</button>
+      <button class="x" onclick="if(confirm('Удалить вывод?')){_editTarget.insights.splice(${i},1); populateEdit();}">×</button>
     </div>
   `).join('');
 
