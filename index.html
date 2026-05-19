@@ -1641,10 +1641,6 @@ if ('serviceWorker' in navigator) {
 // Поселок CRM Dashboard — application logic
 // ============================================================
 
-// ============================================================
-// Поселок CRM Dashboard — application logic
-// ============================================================
-
 // --- Scenarios meta
 const SCENARIOS = [
   { key: 'fact', label: 'Факт', color: '#c79a52', hint: 'Реальные данные за неделю' },
@@ -1805,11 +1801,25 @@ function campaignWeeklySpent(c, dateStr, aggMode) {
   return Math.round(weekly);
 }
 
+// Returns funnel with stage-0 and stage-1 counts derived from sources
+function effectiveFunnel(w) {
+  if (!w.funnel || !w.funnel.length) return w.funnel;
+  const sourcesTotal = w.sources.reduce((s, x) => s + (+x.leads || 0), 0);
+  const qualifiedTotal = Math.round(
+    w.sources.reduce((s, x) => s + (+x.leads || 0) * (+x.quality || 0) / 100, 0)
+  );
+  const funnel = w.funnel.map(f => ({ ...f }));
+  funnel[0] = { ...funnel[0], count: sourcesTotal };
+  if (funnel.length > 1) funnel[1] = { ...funnel[1], count: qualifiedTotal };
+  return funnel;
+}
+
 function getKPIs(w) {
   const leads = w.sources.reduce((s, x) => s + (+x.leads || 0), 0);
   const spent = (w.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, w.date), 0);
-  const conv = (w.funnel && w.funnel.length >= 2 && w.funnel[0].count > 0)
-    ? (w.funnel[w.funnel.length - 2].count / w.funnel[0].count * 100) : 0;
+  const f = effectiveFunnel(w);
+  const conv = (f && f.length >= 2 && f[0].count > 0)
+    ? (f[f.length - 2].count / f[0].count * 100) : 0;
   const rois = w.campaigns ? w.campaigns.map(c => computeCampaignROI(c, w)).filter(r => r != null) : [];
   const roi = rois.length ? rois.reduce((s, r) => s + r, 0) / rois.length : 0;
   return { leads, conv, spent, roi };
@@ -1966,17 +1976,18 @@ function renderPrintSummary() {
     document.getElementById('ps-fc-note').textContent = pv.manual && pv.note ? '« ' + pv.note + ' »' : '';
 
     // Funnel SVG (horizontal bars)
-    const fmax = Math.max(...w.funnel.map(f => f.count), 1);
+    const psFunnel = effectiveFunnel(w);
+    const fmax = Math.max(...psFunnel.map(f => f.count), 1);
     const fH = 24, fGap = 4, padL = 70, padR = 30, padT = 6;
     const fSvg = document.getElementById('ps-funnel-svg');
-    const fWidth = 240, fHeight = w.funnel.length * (fH + fGap) + padT + 4;
+    const fWidth = 240, fHeight = psFunnel.length * (fH + fGap) + padT + 4;
     fSvg.setAttribute('viewBox', `0 0 ${fWidth} ${fHeight}`);
-    fSvg.innerHTML = w.funnel.map((f, i) => {
+    fSvg.innerHTML = psFunnel.map((f, i) => {
       const y = padT + i * (fH + fGap);
       const barW = (f.count / fmax) * (fWidth - padL - padR);
-      const prev = i > 0 ? w.funnel[i-1].count : f.count;
+      const prev = i > 0 ? psFunnel[i-1].count : f.count;
       const conv = i > 0 && prev > 0 ? Math.round(f.count/prev*100) : 100;
-      const opacity = 0.4 + (1 - i / Math.max(w.funnel.length - 1, 1)) * 0.6;
+      const opacity = 0.4 + (1 - i / Math.max(psFunnel.length - 1, 1)) * 0.6;
       return `
         <text x="${padL - 6}" y="${y + fH/2 + 3}" font-size="8" text-anchor="end" fill="#555">${f.stage}</text>
         <rect x="${padL}" y="${y}" width="${barW}" height="${fH}" fill="#3d6b53" opacity="${opacity}"/>
@@ -2147,10 +2158,11 @@ function renderNarrative() {
   if (topSrc) parts.push(`главный канал — <strong>${topSrc.name}</strong> (${topSrc.leads} лидов)`);
 
   // funnel weak link
+  const _ef = effectiveFunnel(data);
   let weakStage = null, weakConv = 100;
-  for (let i = 1; i < data.funnel.length; i++) {
-    const c = data.funnel[i - 1].count > 0 ? data.funnel[i].count / data.funnel[i - 1].count * 100 : 0;
-    if (c < weakConv) { weakConv = c; weakStage = data.funnel[i].stage; }
+  for (let i = 1; i < _ef.length; i++) {
+    const c = _ef[i - 1].count > 0 ? _ef[i].count / _ef[i - 1].count * 100 : 0;
+    if (c < weakConv) { weakConv = c; weakStage = _ef[i].stage; }
   }
   if (weakStage && weakConv < 80) parts.push(`слабое звено воронки — <strong>${weakStage}</strong> (${weakConv.toFixed(0)}%)`);
 
@@ -2246,11 +2258,12 @@ function renderCampaigns() {
 }
 
 function renderFunnel() {
-  const maxFunnel = Math.max(data.funnel[0]?.count || 1, isComparing() ? (compareData.funnel[0]?.count || 0) : 0);
+  const ef = effectiveFunnel(data);
+  const maxFunnel = Math.max(ef[0]?.count || 1, isComparing() ? (effectiveFunnel(compareData)[0]?.count || 0) : 0);
   const scColor = compareMeta?.color || css('--accent');
-  document.getElementById('funnel-list').innerHTML = data.funnel.map((f, i) => {
+  document.getElementById('funnel-list').innerHTML = ef.map((f, i) => {
     const pct = (f.count / maxFunnel * 100);
-    const stageConv = i === 0 ? 100 : (data.funnel[i - 1].count > 0 ? (f.count / data.funnel[i - 1].count * 100) : 0);
+    const stageConv = i === 0 ? 100 : (ef[i - 1].count > 0 ? (f.count / ef[i - 1].count * 100) : 0);
     const convCls = stageConv >= 70 ? 'hi' : stageConv >= 50 ? 'mid' : 'lo';
     const days = f.days != null ? f.days : DEFAULT_STAGE_DAYS[i] || 0;
     const cf = isComparing() ? compareData.funnel[i] : null;
@@ -2275,8 +2288,8 @@ function renderFunnel() {
 
   // Summary
   const cycle = data.funnel.reduce((s, f) => s + (+f.days || 0), 0);
-  const totalConv = data.funnel[0].count > 0 ? (data.funnel[data.funnel.length - 2].count / data.funnel[0].count * 100) : 0;
-  const dropoff = data.funnel[0].count - data.funnel[data.funnel.length - 1].count;
+  const totalConv = ef[0].count > 0 ? (ef[ef.length - 2].count / ef[0].count * 100) : 0;
+  const dropoff = ef[0].count - ef[ef.length - 1].count;
   document.getElementById('funnel-summary').innerHTML = `
     <div><div class="fs-label">Полный цикл</div><div class="fs-val num">${cycle}<span class="small"> дн</span></div></div>
     <div><div class="fs-label">Сквозная конверсия</div><div class="fs-val num">${totalConv.toFixed(0)}<span class="small">%</span></div></div>
@@ -3112,13 +3125,22 @@ function populateEdit() {
     </tr>
   `;}).join('');
 
-  document.getElementById('edit-funnel').innerHTML = T.funnel.map((f, i) => `
+  const srcTotal = T.sources.reduce((s, x) => s + (+x.leads || 0), 0);
+  const srcQualified = Math.round(T.sources.reduce((s, x) => s + (+x.leads || 0) * (+x.quality || 0) / 100, 0));
+  document.getElementById('edit-funnel').innerHTML = T.funnel.map((f, i) => {
+    const isAuto = i === 0 || i === 1;
+    const autoVal = i === 0 ? srcTotal : srcQualified;
+    const autoHint = i === 0 ? 'Сумма лидов из источников' : 'Сумма квалифицированных из источников (лиды × качество%)';
+    return `
     <tr>
       <td style="padding:4px 6px; font-size:13px;">${f.stage}</td>
-      <td><input type="number" class="cell-input num" value="${f.count}" oninput="_editTarget.funnel[${i}].count=+this.value"></td>
+      <td>${isAuto
+        ? `<span class="cell-input num" style="display:inline-flex;align-items:center;opacity:0.6;cursor:default;" title="${autoHint}">${autoVal} <span style="font-size:10px;margin-left:4px;">авто</span></span>`
+        : `<input type="number" class="cell-input num" value="${f.count}" oninput="_editTarget.funnel[${i}].count=+this.value">`
+      }</td>
       <td><input type="number" class="cell-input num" value="${f.days || 0}" oninput="_editTarget.funnel[${i}].days=+this.value"></td>
     </tr>
-  `).join('');
+  `;}).join('');
 
   document.getElementById('edit-avg-deal').value = T.avgDeal || 8;
   document.getElementById('edit-avg-deal').setAttribute('oninput', '_editTarget.avgDeal=+this.value');
