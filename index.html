@@ -1499,6 +1499,29 @@ if ('serviceWorker' in navigator) {
     </div>
   </section>
 
+  <!-- =================== COMMENTARY =================== -->
+  <section class="section" id="commentary-section">
+    <div class="section-head">
+      <h2 class="section-title">
+        <span class="section-title-num">/ 06</span>
+        Комментарии
+      </h2>
+    </div>
+    <div class="card" style="padding: 32px 36px;">
+      <div class="commentary-grid">
+        <div class="commentary-panel">
+          <div class="commentary-label">Анализ периода</div>
+          <div id="commentary-manager"></div>
+        </div>
+        <div class="commentary-divider"></div>
+        <div class="commentary-panel">
+          <div class="commentary-label">Справка</div>
+          <div id="commentary-investor"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- =================== FOOTER =================== -->
   <footer class="footer">
     <div>
@@ -2511,6 +2534,9 @@ function renderCommentary() {
   const c = data.commentary || {};
   const mEl = document.getElementById('commentary-manager');
   const iEl = document.getElementById('commentary-investor');
+  const sec = document.getElementById('commentary-section');
+  const hasAnyMain = c.managerNote || c.investorBrief;
+  if (sec) sec.style.display = hasAnyMain ? '' : 'none';
   if (mEl) mEl.innerHTML = c.managerNote
     ? `<div class="commentary-text">${c.managerNote.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
     : `<div class="commentary-text empty">Анализ не заполнен</div>`;
