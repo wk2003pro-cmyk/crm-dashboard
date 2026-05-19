@@ -2055,13 +2055,13 @@ function renderPrintSummary() {
       const barW = (f.count / fmax) * (fWidth - padL - padR);
       const bW = Math.max(barW, 1);
       const prev = i > 0 ? psFunnel[i-1].count : f.count;
-      const conv = i > 0 && prev > 0 ? Math.round(f.count/prev*100) : 100;
+      const conv = prev > 0 ? Math.round(f.count/prev*100) : null;
       const opacity = 0.4 + (1 - i / Math.max(psFunnel.length - 1, 1)) * 0.6;
       const label = f.stage.trim();
       // % inside bar if wide enough; color: white on dark bars, dark green on light bars
-      const showInside = i > 0 && barW >= 26;
+      const showInside = i > 0 && conv !== null && barW >= 26;
       const inBarColor = opacity >= 0.68 ? '#fff' : '#2d5042';
-      const convEl = i > 0
+      const convEl = i > 0 && conv !== null
         ? (showInside
             ? `<text x="${padL + barW/2}" y="${y + fH/2 + 3}" font-size="6.5" font-weight="600" font-family="${ff}" text-anchor="middle" fill="${inBarColor}">${conv}%</text>`
             : `<text x="${padL + bW + 22}" y="${y + fH/2 + 3}" font-size="6" font-family="${ff}" fill="#888">${conv}%</text>`)
