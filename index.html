@@ -4056,20 +4056,24 @@ async function _aiCall(prompt, maxTokens = 600) {
 async function generateAIInsights() {
   const apiKey = _aiGetKey(); if (!apiKey) return;
   const btn = document.getElementById('ai-insights-btn');
+  const errEl = document.getElementById('ai-error-msg');
   btn.textContent = '…'; btn.disabled = true;
+  if (errEl) errEl.textContent = '';
   const T = window._editTarget;
   const ctx = _aiDataContext(T);
   try {
     const text = await _aiCall(
-      `Ты — аналитик отдела продаж посёлка ИЖС Подмосковье. Дай 3 вывода по данным недели. Каждый вывод — ровно одно предложение, максимум 18 слов, конкретная цифра или факт.\n\n${ctx.text}\n\nВерни строго JSON без markdown:\n{"insights":["вывод 1","вывод 2","вывод 3"]}`
+      `Ты — аналитик отдела продаж посёлка ИЖС Подмосковье. Дай ровно 3 вывода по данным недели. Каждый — одно предложение с конкретной цифрой, максимум 18 слов.\n\n${ctx.text}\n\nОтветь ровно тремя строками, каждая начинается с числа и точки:\n1. ...\n2. ...\n3. ...`,
+      400
     );
-    const m = text.match(/\{[\s\S]*\}/);
-    if (!m) throw new Error('Не удалось разобрать ответ');
-    const parsed = JSON.parse(m[0]);
-    if (Array.isArray(parsed.insights)) { T.insights = parsed.insights; populateEdit(); }
+    const lines = text.split('\n')
+      .map(l => l.replace(/^\d+[\.\)]\s*/, '').trim())
+      .filter(l => l.length > 8);
+    if (!lines.length) throw new Error('Пустой ответ — попробуйте ещё раз');
+    T.insights = lines.slice(0, 3);
+    populateEdit();
     btn.textContent = '✓'; setTimeout(() => { btn.textContent = '✦ AI выводы'; btn.disabled = false; }, 2000);
   } catch(e) {
-    const errEl = document.getElementById('ai-error-msg');
     if (errEl) errEl.textContent = e.message;
     btn.textContent = '✦ AI выводы'; btn.disabled = false;
   }
