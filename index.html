@@ -3836,7 +3836,7 @@ async function generateAIMarketBrief() {
   const systemPrompt = `Ты — аналитик рынка недвижимости. Пишешь ТОЛЬКО на русском. Отвечай СТРОГО тремя предложениями подряд без заголовков, нумерации, списков, переносов строк, markdown. Первое слово — строчная буква, не заглавная. ЗАПРЕЩЕНО КАТЕГОРИЧЕСКИ: нумеровать предложения (1. 2. 3.), писать заголовки, использовать CAPS LOCK, писать вводные фразы («Я ищу», «К сожалению», «На основе», «Рыночная справка:»). Используй только данные 2026 года. Данные 2025 года и старше — НЕ включай ни при каких условиях. Если свежих данных нет — пиши про тренды мая 2026 без упоминания старых лет. Стиль: одним блоком, деловой, конкретный.`;
   const ef = effectiveFunnel(T);
   const convRate = ef.length >= 2 ? Math.round(ef[ef.length-1].count / ef[0].count * 100) : 0;
-  const userMsg = `Найди актуальные данные о рынке ИЖС Подмосковья за май 2026 года. Наши показатели: чек ${T.avgDeal || 8} млн ₽, лидов ${kpi.leads}, CPL ${(cpl/1000).toFixed(1)}K ₽, конверсия ${convRate}%. Напиши строго 3 предложения подряд без нумерации и заголовков: первое — состояние рынка с цифрами (ипотека, спрос, цены), второе — как это объясняет наши показатели, третье — одно конкретное действие которое стоит предпринять в этой ситуации. Итого не более 55 слов.`;
+  const userMsg = `Найди актуальные данные о рынке ИЖС Подмосковья за май 2026 года. Наши показатели: чек ${T.avgDeal || 8} млн ₽, лидов ${kpi.leads}, CPL ${(cpl/1000).toFixed(1)}K ₽, конверсия ${convRate}%. Напиши ровно 3 законченных предложения подряд, без нумерации и заголовков: первое — состояние рынка с цифрами (ипотека, спрос, цены), второе — как это объясняет наши показатели, третье — одно конкретное действие. Каждое предложение должно быть завершённым и заканчиваться точкой.`;
 
   const wsHeaders = { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-beta': 'web-search-2025-03-05', 'anthropic-dangerous-direct-browser-access': 'true' };
 
@@ -3845,7 +3845,7 @@ async function generateAIMarketBrief() {
     let resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: wsHeaders,
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 400, system: systemPrompt, tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }], messages }),
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 700, system: systemPrompt, tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }], messages }),
     });
     let body = await resp.json();
     if (!resp.ok) throw new Error(body?.error?.message || `HTTP ${resp.status}`);
@@ -3857,7 +3857,7 @@ async function generateAIMarketBrief() {
       resp = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: wsHeaders,
-        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 400, system: systemPrompt, tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }], messages }),
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 700, system: systemPrompt, tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }], messages }),
       });
       body = await resp.json();
       if (!resp.ok) throw new Error(body?.error?.message || `HTTP ${resp.status}`);
@@ -3887,9 +3887,7 @@ async function generateAIMarketBrief() {
     if (_fresh.length > 0 && _fresh.join('').trim().length > 30) text = _fresh.join('').replace(/\s{2,}/g, ' ').trim();
     // strip any remaining ALL-CAPS header line at start (e.g. "РЫНОК ИЖС ПОДМОСКОВЬЯ, МАЙ 2026.")
     text = text.replace(/^[А-ЯЁA-Z\s,—\-\.]{15,80}\.\s*/g, '').trim();
-    // capitalize first letter of each sentence (after . ! ?)
-    text = text.replace(/(^|[.!?]\s+)([а-яёa-z])/g, (_, sep, ch) => sep + ch.toUpperCase());
-    // capitalize very first character
+    // capitalize only the very first character (не трогаем после точки — там могут быть аббревиатуры)
     text = text.charAt(0).toUpperCase() + text.slice(1);
     // ensure ends with a period
     if (text && !/[.!?]$/.test(text)) text += '.';
