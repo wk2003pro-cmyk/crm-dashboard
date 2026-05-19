@@ -1704,17 +1704,9 @@ if ('serviceWorker' in navigator) {
         <ul class="ps-list" id="ps-insights"></ul>
       </div>
 
-      <div class="ps-sec" id="ps-commentary" style="display:none">
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <div>
-            <div class="ps-sec-title" style="margin-bottom:4px;">Анализ периода</div>
-            <div id="ps-commentary-manager" class="ps-commentary-text"></div>
-          </div>
-          <div>
-            <div class="ps-sec-title" style="margin-bottom:4px;">Справка — контекст рынка ИЖС</div>
-            <div id="ps-commentary-investor" class="ps-commentary-text"></div>
-          </div>
-        </div>
+      <div class="ps-sec" id="ps-commentary-manager-sec" style="display:none">
+        <div class="ps-sec-title" style="margin-bottom:4px;">Анализ периода</div>
+        <div id="ps-commentary-manager" class="ps-commentary-text"></div>
       </div>
     </div>
 
@@ -1737,6 +1729,11 @@ if ('serviceWorker' in navigator) {
           <svg id="ps-donut-svg" viewBox="0 0 120 120"></svg>
           <div class="ps-legend" id="ps-donut-legend"></div>
         </div>
+      </div>
+
+      <div class="ps-sec" id="ps-commentary-investor-sec" style="display:none">
+        <div class="ps-sec-title" style="margin-bottom:4px;">Справка — контекст рынка ИЖС</div>
+        <div id="ps-commentary-investor" class="ps-commentary-text"></div>
       </div>
     </div>
   </div>
@@ -2562,18 +2559,20 @@ function renderCommentary() {
     ? `<div class="commentary-text">${c.investorBrief.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
     : `<div class="commentary-text empty">Справка не заполнена</div>`;
 
-  // Print summary
-  const psEl = document.getElementById('ps-commentary');
+  // Print summary — Анализ периода (левая колонка)
+  const psMSec = document.getElementById('ps-commentary-manager-sec');
   const psM = document.getElementById('ps-commentary-manager');
-  const psI = document.getElementById('ps-commentary-investor');
-  const hasAny = c.managerNote || c.investorBrief;
-  if (psEl) psEl.style.display = hasAny ? '' : 'none';
+  if (psMSec) psMSec.style.display = c.managerNote ? '' : 'none';
   if (psM) psM.innerHTML = c.managerNote
     ? c.managerNote.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    : `<span class="ps-commentary-empty">—</span>`;
+    : '';
+  // Print summary — Справка (правая колонка, под распределением)
+  const psISec = document.getElementById('ps-commentary-investor-sec');
+  const psI = document.getElementById('ps-commentary-investor');
+  if (psISec) psISec.style.display = c.investorBrief ? '' : 'none';
   if (psI) psI.innerHTML = c.investorBrief
     ? c.investorBrief.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    : `<span class="ps-commentary-empty">—</span>`;
+    : '';
 }
 
 // =========================================================
