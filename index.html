@@ -937,8 +937,7 @@ if ('serviceWorker' in navigator) {
   .add-btn { font-size: 12px; color: var(--accent); margin-top: 6px; padding: 6px 10px; }
 
   /* ========== COMMENTARY ========== */
-  .commentary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-  @media (max-width: 720px) { .commentary-grid { grid-template-columns: 1fr; } }
+  .commentary-grid { display: flex; flex-direction: column; gap: 28px; }
   .commentary-panel { display: flex; flex-direction: column; gap: 10px; }
   .commentary-label {
     font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
@@ -946,11 +945,11 @@ if ('serviceWorker' in navigator) {
   }
   .commentary-label::before { content: ''; width: 16px; height: 1px; background: var(--accent); }
   .commentary-text {
-    font-size: 14px; line-height: 1.65; color: var(--ink-mid);
-    white-space: pre-wrap; min-height: 40px;
+    font-family: var(--serif); font-size: 18px; line-height: 1.6; color: var(--ink-mid);
+    white-space: pre-wrap;
   }
-  .commentary-text.empty { font-style: italic; color: var(--ink-faint); font-family: var(--serif); font-size: 15px; }
-  .commentary-divider { width: 1px; background: var(--line-soft); align-self: stretch; }
+  .commentary-text.empty { font-style: italic; color: var(--ink-faint); font-size: 17px; }
+  .commentary-divider { height: 1px; background: var(--line-soft); }
   .commentary-textarea {
     width: 100%; min-height: 120px; resize: vertical;
     background: var(--surface-2); border: 1px solid var(--line);
@@ -1515,7 +1514,7 @@ if ('serviceWorker' in navigator) {
         </div>
         <div class="commentary-divider"></div>
         <div class="commentary-panel">
-          <div class="commentary-label">Справка</div>
+          <div class="commentary-label">Справка — контекст рынка ИЖС</div>
           <div id="commentary-investor"></div>
         </div>
       </div>
