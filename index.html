@@ -1024,10 +1024,11 @@ if ('serviceWorker' in navigator) {
   #print-summary .ps-chart-sec svg { width: 100%; display: block; }
   #print-summary .ps-donut-wrap { display: grid; grid-template-columns: 95px 1fr; gap: 8px; align-items: center; }
   #print-summary .ps-legend { display: flex; flex-direction: column; gap: 2px; font-size: 8.5px; }
-  #print-summary .ps-legend .ps-leg-row { display: flex; align-items: center; gap: 5px; }
-  #print-summary .ps-legend .ps-leg-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
-  #print-summary .ps-legend .ps-leg-name { flex: 1; }
-  #print-summary .ps-legend .ps-leg-num { font-variant-numeric: tabular-nums; color: #888; }
+  #print-summary .ps-legend .ps-leg-row { display: grid; grid-template-columns: 7px 1fr 18px 22px; align-items: center; gap: 4px; }
+  #print-summary .ps-legend .ps-leg-dot { width: 7px; height: 7px; border-radius: 2px; }
+  #print-summary .ps-legend .ps-leg-name { }
+  #print-summary .ps-legend .ps-leg-count { font-variant-numeric: tabular-nums; color: #555; text-align: right; font-weight: 500; }
+  #print-summary .ps-legend .ps-leg-pct { font-variant-numeric: tabular-nums; color: #999; text-align: right; }
 
   #print-summary .ps-list { margin: 0; padding: 0; list-style: none; }
   #print-summary .ps-list li { padding: 3px 0; border-bottom: 1px dotted #e0dcce; font-size: 9px; line-height: 1.35; }
@@ -2096,7 +2097,7 @@ function renderPrintSummary() {
       `<text x="${cx}" y="${cy - 2}" font-size="18" font-family="Georgia, serif" text-anchor="middle" fill="#1a1a17" font-weight="500">${totalLeads2}</text>` +
       `<text x="${cx}" y="${cy + 12}" font-size="7" text-anchor="middle" fill="#888" letter-spacing="0.1em">ЛИДОВ</text>`;
     document.getElementById('ps-donut-legend').innerHTML = w.sources.map((s, i) =>
-      `<div class="ps-leg-row"><span class="ps-leg-dot" style="background:${palette[i % palette.length]}"></span><span class="ps-leg-name">${s.name}</span><span class="ps-leg-num">${s.leads} · ${Math.round(s.leads/totalLeads2*100)}%</span></div>`
+      `<div class="ps-leg-row"><span class="ps-leg-dot" style="background:${palette[i % palette.length]}"></span><span class="ps-leg-name">${s.name}</span><span class="ps-leg-count">${s.leads}</span><span class="ps-leg-pct">${Math.round(s.leads/totalLeads2*100)}%</span></div>`
     ).join('');
 
     const psInsightsEl = document.getElementById('ps-insights');
