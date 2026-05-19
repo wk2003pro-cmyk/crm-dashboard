@@ -1692,7 +1692,8 @@ if ('serviceWorker' in navigator) {
 </svg>
 </template>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script>// ============================================================
+<script>// =====
+// ============================================================
 // Поселок CRM Dashboard — application logic
 // ============================================================
 
@@ -3594,6 +3595,15 @@ function _normaliseArchive() {
     if (w.funnel) w.funnel.forEach((f, i) => { if (f.days == null) f.days = DEFAULT_STAGE_DAYS[i] || 0; });
     if (w.avgDeal == null) w.avgDeal = 8;
     if (!w.commentary) w.commentary = {};
+    // Auto-fix period label if start day doesn't match the week's date field
+    if (w.date && w.period) {
+      const d = new Date(w.date);
+      const periodStart = parseInt(w.period.split('–')[0]);
+      if (!isNaN(periodStart) && periodStart !== d.getDate()) {
+        const to = new Date(d.getTime() + 6 * 86400000);
+        w.period = fmtPeriodRu(w.date, to.toISOString().split('T')[0]);
+      }
+    }
   });
   archive.forEach(w => {
     (w.campaigns || []).forEach(c => {
