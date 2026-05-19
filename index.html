@@ -936,7 +936,38 @@ if ('serviceWorker' in navigator) {
 
   .add-btn { font-size: 12px; color: var(--accent); margin-top: 6px; padding: 6px 10px; }
 
-  /* ========== FOOTER ========== */
+  /* ========== COMMENTARY ========== */
+  .commentary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 720px) { .commentary-grid { grid-template-columns: 1fr; } }
+  .commentary-panel { display: flex; flex-direction: column; gap: 10px; }
+  .commentary-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-mute); display: flex; align-items: center; gap: 8px;
+  }
+  .commentary-label::before { content: ''; width: 16px; height: 1px; background: var(--accent); }
+  .commentary-text {
+    font-size: 14px; line-height: 1.65; color: var(--ink-mid);
+    white-space: pre-wrap; min-height: 40px;
+  }
+  .commentary-text.empty { font-style: italic; color: var(--ink-faint); font-family: var(--serif); font-size: 15px; }
+  .commentary-divider { width: 1px; background: var(--line-soft); align-self: stretch; }
+  .commentary-textarea {
+    width: 100%; min-height: 120px; resize: vertical;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: var(--r-md); padding: 12px 14px;
+    font-family: var(--sans); font-size: 13.5px; line-height: 1.6;
+    color: var(--ink); outline: none;
+  }
+  .commentary-textarea:focus { border-color: var(--accent); }
+
+  /* Print commentary */
+  .ps-commentary { margin-top: 18px; padding-top: 14px; border-top: 1px solid #ddd; }
+  .ps-commentary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .ps-commentary-label { font-size: 7px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #888; margin-bottom: 5px; }
+  .ps-commentary-text { font-size: 9px; line-height: 1.55; color: #333; white-space: pre-wrap; }
+  .ps-commentary-empty { font-size: 9px; color: #aaa; font-style: italic; }
+
+    /* ========== FOOTER ========== */
   .footer {
     margin-top: 80px; padding-top: 32px; border-top: 1px solid var(--line);
     display: flex; justify-content: space-between; align-items: center;
@@ -1545,6 +1576,18 @@ if ('serviceWorker' in navigator) {
         <div id="edit-insights"></div>
         <button class="add-btn" onclick="addInsight()">+ Добавить вывод</button>
       </section>
+
+      <section class="modal-section">
+        <div class="modal-section-title">⑧ Комментарии</div>
+        <label style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px;">
+          <span class="small" style="opacity:0.7;">Анализ периода (от руководителя)</span>
+          <textarea id="edit-commentary-manager" class="commentary-textarea" placeholder="Разбор ключевых цифр, тенденций и решений за период…" oninput="_editTarget.commentary = _editTarget.commentary || {}; _editTarget.commentary.managerNote = this.value"></textarea>
+        </label>
+        <label style="display:flex; flex-direction:column; gap:6px;">
+          <span class="small" style="opacity:0.7;">Справка для инвесторов</span>
+          <textarea id="edit-commentary-investor" class="commentary-textarea" placeholder="Аналитическая справка: динамика спроса, рыночный контекст, выводы для принятия решений…" oninput="_editTarget.commentary = _editTarget.commentary || {}; _editTarget.commentary.investorBrief = this.value"></textarea>
+        </label>
+      </section>
     </div>
 
     <div class="modal-foot">
@@ -2071,6 +2114,7 @@ function render() {
   renderProblems();
   renderPriorities();
   renderInsights();
+  renderCommentary();
   renderCharts();
 }
 
@@ -2397,6 +2441,31 @@ function renderInsights() {
   `).join('') : '<div class="empty-state">Выводы не записаны</div>';
 }
 
+function renderCommentary() {
+  const c = data.commentary || {};
+  const mEl = document.getElementById('commentary-manager');
+  const iEl = document.getElementById('commentary-investor');
+  if (mEl) mEl.innerHTML = c.managerNote
+    ? `<div class="commentary-text">${c.managerNote.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
+    : `<div class="commentary-text empty">Анализ не заполнен</div>`;
+  if (iEl) iEl.innerHTML = c.investorBrief
+    ? `<div class="commentary-text">${c.investorBrief.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
+    : `<div class="commentary-text empty">Справка не заполнена</div>`;
+
+  // Print summary
+  const psEl = document.getElementById('ps-commentary');
+  const psM = document.getElementById('ps-commentary-manager');
+  const psI = document.getElementById('ps-commentary-investor');
+  const hasAny = c.managerNote || c.investorBrief;
+  if (psEl) psEl.style.display = hasAny ? '' : 'none';
+  if (psM) psM.innerHTML = c.managerNote
+    ? c.managerNote.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    : `<span class="ps-commentary-empty">—</span>`;
+  if (psI) psI.innerHTML = c.investorBrief
+    ? c.investorBrief.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    : `<span class="ps-commentary-empty">—</span>`;
+}
+
 // =========================================================
 // CHARTS
 // =========================================================
@@ -2682,6 +2751,10 @@ function buildAggregate(weeks, label) {
     problems: weeks.flatMap(w => w.problems || []),
     priorities: weeks.flatMap(w => w.priorities || []),
     insights: weeks.flatMap(w => w.insights || []),
+    commentary: {
+      managerNote: weeks.map(w => w.commentary?.managerNote).filter(Boolean).join('\n\n'),
+      investorBrief: weeks.map(w => w.commentary?.investorBrief).filter(Boolean).join('\n\n'),
+    },
     _isAggregate: true, _weekCount: weeks.length,
   };
 }
@@ -2765,7 +2838,7 @@ function openWeekPicker(editIdx) {
       const last = archive[archive.length - 1];
       const clone = last ? JSON.parse(JSON.stringify(last)) : null;
       const fresh = clone ? { ...clone, id: 'w' + Date.now(), date: f, period, scenarios: undefined }
-        : { id: 'w' + Date.now(), date: f, period, sources: [{ name: 'Сайт', leads: 0, quality: 0 }], campaigns: [], funnel: [{ stage: 'Новые лиды', count: 0 }], avgDeal: 8, problems: [], priorities: [], insights: [] };
+        : { id: 'w' + Date.now(), date: f, period, sources: [{ name: 'Сайт', leads: 0, quality: 0 }], campaigns: [], funnel: [{ stage: 'Новые лиды', count: 0 }], avgDeal: 8, problems: [], priorities: [], insights: [], commentary: {} };
       archive.push(fresh);
       archive.sort((a, b) => new Date(a.date) - new Date(b.date));
       currentIdx = archive.findIndex(x => x.id === fresh.id);
@@ -3257,6 +3330,12 @@ function populateEdit() {
       <button class="x" onclick="_editTarget.insights.splice(${i},1); populateEdit();">×</button>
     </div>
   `).join('');
+
+  const c = T.commentary || {};
+  const cmEl = document.getElementById('edit-commentary-manager');
+  const ciEl = document.getElementById('edit-commentary-investor');
+  if (cmEl) cmEl.value = c.managerNote || '';
+  if (ciEl) ciEl.value = c.investorBrief || '';
 }
 
 function addProblem() { const T = window._editTarget; (T.problems = T.problems || []).push({ client: '', deal: '', issue: '', days: 0 }); populateEdit(); }
@@ -3502,6 +3581,7 @@ function _normaliseArchive() {
   archive.forEach(w => {
     if (w.funnel) w.funnel.forEach((f, i) => { if (f.days == null) f.days = DEFAULT_STAGE_DAYS[i] || 0; });
     if (w.avgDeal == null) w.avgDeal = 8;
+    if (!w.commentary) w.commentary = {};
   });
   archive.forEach(w => {
     (w.campaigns || []).forEach(c => {
