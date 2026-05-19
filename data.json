@@ -1,5 +1,5 @@
 {
-  "_ts": 1779194908707,
+  "_ts": 1779205200747,
   "data": [
     {
       "id": "w1",
@@ -509,18 +509,12 @@
         {
           "name": "Джейкет (Авито, ЦИАН, ДОМ.КЛИК и пр.)",
           "monthlyBudget": 162608,
-          "leads": 7,
-          "impressions": 100
-        },
-        {
-          "name": "Яндекс",
-          "monthlyBudget": 147900,
           "leads": 0,
           "impressions": 0
         },
         {
-          "name": "Програматик (Таргетная реклама)",
-          "monthlyBudget": 0,
+          "name": "Яндекс",
+          "monthlyBudget": 147900,
           "leads": 0,
           "impressions": 0
         },
@@ -583,8 +577,8 @@
         "note": "Квалифицировано 8 потенциальных Лидов , из них проведен 1 показ"
       },
       "commentary": {
-        "managerNote": "",
-        "investorBrief": ""
+        "managerNote": "1",
+        "investorBrief": "1"
       }
     }
   ]
