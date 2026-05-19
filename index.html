@@ -1588,6 +1588,7 @@ if ('serviceWorker' in navigator) {
         </div>
         <div class="small" style="opacity:0.55; margin-bottom:10px;">Ключ: console.anthropic.com → API Keys → формат sk-ant-api03-…</div>
         <button id="ai-analytics-btn" class="btn btn-primary" style="width:100%; padding:11px;" onclick="generateAIAnalytics()">✦ Сгенерировать аналитику</button>
+        <div id="ai-error-msg" style="margin-top:8px; font-size:11px; color:#c0392b; word-break:break-word;"></div>
       </section>
 
       <section class="modal-section">
@@ -3816,8 +3817,16 @@ ${(T.funnel || []).map(f => `• ${f.stage.trim()}: ${f.count}`).join('\n')}
 }`;
 
   const btn = document.getElementById('ai-analytics-btn');
+  const errEl = document.getElementById('ai-error-msg');
+  if (errEl) errEl.textContent = '';
   btn.textContent = 'Анализирую…';
   btn.disabled = true;
+
+  const showErr = (msg) => {
+    if (errEl) errEl.textContent = msg;
+    btn.textContent = '✦ Сгенерировать аналитику';
+    btn.disabled = false;
+  };
 
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -3835,16 +3844,16 @@ ${(T.funnel || []).map(f => `• ${f.stage.trim()}: ${f.count}`).join('\n')}
       }),
     });
 
+    const body = await resp.json().catch(() => null);
     if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      if (resp.status === 401) { localStorage.removeItem('crm_ai_key'); }
-      throw new Error(err.error?.message || `Ошибка ${resp.status}`);
+      if (resp.status === 401) localStorage.removeItem('crm_ai_key');
+      const msg = body?.error?.message || JSON.stringify(body) || `HTTP ${resp.status}`;
+      return showErr(`Ошибка ${resp.status}: ${msg}`);
     }
 
-    const result = await resp.json();
-    const text = result.content[0].text;
+    const text = body?.content?.[0]?.text || '';
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('Не удалось разобрать ответ AI');
+    if (!jsonMatch) return showErr('Не удалось разобрать ответ: ' + text.slice(0, 100));
     const parsed = JSON.parse(jsonMatch[0]);
 
     if (Array.isArray(parsed.insights)) T.insights = parsed.insights;
@@ -3857,9 +3866,7 @@ ${(T.funnel || []).map(f => `• ${f.stage.trim()}: ${f.count}`).join('\n')}
     btn.textContent = '✓ Готово';
     setTimeout(() => { btn.textContent = '✦ Сгенерировать аналитику'; btn.disabled = false; }, 2500);
   } catch (e) {
-    alert('Ошибка: ' + e.message);
-    btn.textContent = '✦ Сгенерировать аналитику';
-    btn.disabled = false;
+    showErr('Сетевая ошибка: ' + e.message);
   }
 }
 
