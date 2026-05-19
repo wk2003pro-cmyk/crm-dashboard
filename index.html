@@ -3614,7 +3614,9 @@ function _applyCloudData(cloud) {
   localStorage.setItem('poselok_archive_v3', cloudStr);
   localStorage.setItem('poselok_save_ts', (cloud.ts || 0).toString());
   _normaliseArchive();
-  currentIdx = Math.min(currentIdx, archive.length - 1);
+  currentIdx = archive.length - 1;
+  aggregateMode = false;
+  selectedWeeks = new Set([currentIdx]);
   data = archive[currentIdx];
   renderWeekPills();
   render();
