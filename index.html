@@ -945,10 +945,10 @@ if ('serviceWorker' in navigator) {
   }
   .commentary-label::before { content: ''; width: 16px; height: 1px; background: var(--accent); }
   .commentary-text {
-    font-family: var(--serif); font-size: 18px; line-height: 1.6; color: var(--ink-mid);
-    white-space: pre-wrap;
+    font-family: var(--serif); font-size: 22px; line-height: 1.4; color: var(--ink);
+    letter-spacing: -0.005em; white-space: pre-wrap;
   }
-  .commentary-text.empty { font-style: italic; color: var(--ink-faint); font-size: 17px; }
+  .commentary-text.empty { font-style: italic; color: var(--ink-faint); }
   .commentary-divider { height: 1px; background: var(--line-soft); }
   .commentary-textarea {
     width: 100%; min-height: 120px; resize: vertical;
@@ -4081,10 +4081,21 @@ async function generateAIManagerNote() {
   btn.textContent = '…'; btn.disabled = true;
   const T = window._editTarget;
   const ctx = _aiDataContext(T);
+
+  // Добавляем данные прошлой недели для сравнения
+  const prevIdx = archive.indexOf(data) - 1;
+  const prevW = prevIdx >= 0 ? archive[prevIdx] : null;
+  let prevLine = '';
+  if (prevW) {
+    const pLeads = (prevW.sources || []).reduce((s, x) => s + (+x.leads || 0), 0);
+    const pSpent = (prevW.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, prevW.date, false), 0);
+    prevLine = `\nПРОШЛАЯ НЕДЕЛЯ (${prevW.period}): лидов ${pLeads}, расход ${(pSpent/1000).toFixed(0)}K ₽`;
+  }
+
   try {
     const text = await _aiCall(
-      `Ты — аналитик отдела продаж посёлка ИЖС Подмосковье. Напиши анализ периода для руководителя: ровно 2 предложения. (1) Главная проблема или успех с конкретными цифрами. (2) Одно действие — что сделать на следующей неделе.\n\n${ctx.text}\n\nВерни только текст, без заголовков.`,
-      300
+      `Ты — аналитик отдела продаж посёлка ИЖС Подмосковье. Напиши анализ для руководителя: 2 коротких предложения. (1) Ключевая тенденция недели относительно прошлой с конкретными цифрами. (2) Одно действие на следующую неделю.\n\n${ctx.text}${prevLine}\n\nТолько текст, без заголовков. Максимум 50 слов.`,
+      250
     );
     T.commentary = T.commentary || {};
     T.commentary.managerNote = text.trim();
