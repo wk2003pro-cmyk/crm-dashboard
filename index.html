@@ -2058,8 +2058,7 @@ function renderPrintSummary() {
       const opacity = 0.4 + (1 - i / Math.max(psFunnel.length - 1, 1)) * 0.6;
       const label = f.stage.trim();
       return `
-        <text x="${padL - 5}" y="${y + fH/2 + 3}" font-size="7.5" font-family="${ff}" text-anchor="end" fill="#555"
-          textLength="${padL - 10}" lengthAdjust="spacingAndGlyphs">${label}</text>
+        <text x="${padL - 5}" y="${y + fH/2 + 3}" font-size="7.5" font-family="${ff}" text-anchor="end" fill="#555">${label}</text>
         <rect x="${padL}" y="${y}" width="${Math.max(barW, 1)}" height="${fH}" fill="#3d6b53" opacity="${opacity}"/>
         <text x="${padL + Math.max(barW, 1) + 4}" y="${y + fH/2 + 3}" font-size="8" font-weight="600" font-family="${ff}" fill="#1a1a17">${f.count}</text>
         ${i > 0 ? `<text x="${padL + Math.max(barW, 1) + 4}" y="${y + fH/2 + 11}" font-size="6" font-family="${ff}" fill="#888">${conv}%</text>` : ''}
