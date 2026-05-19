@@ -1627,8 +1627,9 @@ if ('serviceWorker' in navigator) {
           <textarea id="edit-commentary-manager" class="commentary-textarea" placeholder="Разбор ключевых цифр, тенденций и решений за период…" oninput="_editTarget.commentary = _editTarget.commentary || {}; _editTarget.commentary.managerNote = this.value"></textarea>
         </label>
         <label style="display:flex; flex-direction:column; gap:6px;">
-          <span class="small" style="opacity:0.7;">Справка</span>
-          <textarea id="edit-commentary-investor" class="commentary-textarea" placeholder="Аналитическая справка: динамика спроса, рыночный контекст, выводы для принятия решений…" oninput="_editTarget.commentary = _editTarget.commentary || {}; _editTarget.commentary.investorBrief = this.value"></textarea>
+          <span class="small" style="opacity:0.7;">Справка (контекст рынка ИЖС)</span>
+          <textarea id="edit-commentary-investor" class="commentary-textarea" placeholder="Актуальные тенденции рынка ИЖС Подмосковья: динамика спроса и цен, активность конкурентов, сезонность, внешние факторы влияющие на продажи…" oninput="_editTarget.commentary = _editTarget.commentary || {}; _editTarget.commentary.investorBrief = this.value"></textarea>
+          <span class="small" style="opacity:0.45; margin-top:2px;">Вносится вручную — новости рынка, аналитика, наблюдения из поля</span>
         </label>
       </section>
     </div>
@@ -3945,31 +3946,27 @@ async function generateAIAnalytics() {
   const totalSpent = (T.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, T.date, false), 0);
   const cpl = totalLeads > 0 ? Math.round(totalSpent / totalLeads) : 0;
 
-  const prompt = `Ты — аналитик отдела продаж загородного посёлка ИЖС в Подмосковье. Проанализируй данные еженедельного отчёта и дай чёткую аналитику на русском языке.
+  const prompt = `Ты — аналитик отдела продаж загородного посёлка ИЖС в Подмосковье. Проанализируй данные и дай сжатую аналитику. Пиши кратко — каждый вывод максимум 15-18 слов.
 
 ПЕРИОД: ${T.period}
 
-ИСТОЧНИКИ ЛИДОВ:
+ИСТОЧНИКИ:
 ${(T.sources || []).map(s => `• ${s.name}: ${s.leads} лидов, качество ${s.quality}%`).join('\n')}
 
-РЕКЛАМНЫЕ КАМПАНИИ:
+КАМПАНИИ:
 ${(T.campaigns || []).map(c => {
   const w = campaignWeeklySpent(c, T.date, false);
   const ctr = c.impressions > 0 && c.leads > 0 ? (c.leads / c.impressions * 100).toFixed(2) + '%' : '—';
-  return `• ${c.name}: расход ${w.toLocaleString('ru')} ₽, показы ${c.impressions || 0}, лиды ${c.leads}, конв. ${ctr}`;
+  return `• ${c.name}: ${w.toLocaleString('ru')} ₽, показы ${c.impressions || 0}, лиды ${c.leads}, конв. ${ctr}`;
 }).join('\n')}
 
-ВОРОНКА:
-${(T.funnel || []).map(f => `• ${f.stage.trim()}: ${f.count}`).join('\n')}
+ВОРОНКА: ${(T.funnel || []).map(f => `${f.stage.trim()} ${f.count}`).join(' → ')}
+ИТОГО: лидов ${totalLeads}, расход ${totalSpent.toLocaleString('ru')} ₽, CPL ${cpl.toLocaleString('ru')} ₽, чек ${T.avgDeal || 8} млн ₽
 
-СРЕДНИЙ ЧЕК: ${T.avgDeal || 8} млн ₽
-ИТОГО: лидов ${totalLeads}, расход ${totalSpent.toLocaleString('ru')} ₽, CPL ${cpl.toLocaleString('ru')} ₽
-
-Верни ответ строго в JSON (без markdown, без пояснений):
+Верни строго JSON (без markdown):
 {
-  "insights": ["вывод 1", "вывод 2", "вывод 3", "вывод 4"],
-  "managerNote": "2-3 предложения для руководителя: главные тенденции недели, что сработало, что нет, одна конкретная рекомендация по действиям",
-  "investorBrief": "2-3 предложения аналитической справки: динамика спроса, рыночный контекст, выводы для принятия инвестиционных решений"
+  "insights": ["вывод 1 (макс 18 слов)", "вывод 2", "вывод 3"],
+  "managerNote": "Ровно 2 предложения: (1) главная проблема/успех недели с цифрами, (2) одно конкретное действие."
 }`;
 
   const btn = document.getElementById('ai-analytics-btn');
@@ -4015,7 +4012,7 @@ ${(T.funnel || []).map(f => `• ${f.stage.trim()}: ${f.count}`).join('\n')}
     if (Array.isArray(parsed.insights)) T.insights = parsed.insights;
     T.commentary = T.commentary || {};
     if (parsed.managerNote) T.commentary.managerNote = parsed.managerNote;
-    if (parsed.investorBrief) T.commentary.investorBrief = parsed.investorBrief;
+    // investorBrief — вносится вручную (рыночный контекст), AI его не перезаписывает
 
     populateEdit();
     btn.textContent = '✓ Готово';
