@@ -1712,6 +1712,14 @@ if ('serviceWorker' in navigator) {
         </table>
       </div>
 
+      <div class="ps-sec" id="ps-history-sec" style="display:none">
+        <div class="ps-sec-title">Динамика — последние недели</div>
+        <table class="ps-table">
+          <thead><tr><th class="ps-name">Период</th><th class="ps-num">Лиды</th><th class="ps-num">Расход</th><th class="ps-num">CPL</th><th class="ps-num">Конв.</th></tr></thead>
+          <tbody id="ps-history-body"></tbody>
+        </table>
+      </div>
+
       <div class="ps-sec">
         <div class="ps-sec-title">Выводы</div>
         <ul class="ps-list" id="ps-insights"></ul>
@@ -1749,14 +1757,6 @@ if ('serviceWorker' in navigator) {
       <div class="ps-sec" id="ps-commentary-investor-sec" style="display:none">
         <div class="ps-sec-title" style="margin-bottom:4px;">Справка — контекст рынка ИЖС</div>
         <div id="ps-commentary-investor" class="ps-commentary-text"></div>
-      </div>
-
-      <div class="ps-sec" id="ps-history-sec" style="display:none">
-        <div class="ps-sec-title">Динамика — последние недели</div>
-        <table class="ps-table">
-          <thead><tr><th class="ps-name">Период</th><th class="ps-num">Лиды</th><th class="ps-num">Расход</th><th class="ps-num">CPL</th><th class="ps-num">Конв.</th></tr></thead>
-          <tbody id="ps-history-body"></tbody>
-        </table>
       </div>
     </div>
   </div>
