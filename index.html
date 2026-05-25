@@ -1751,7 +1751,7 @@ if ('serviceWorker' in navigator) {
 
       <div class="ps-sec ps-chart-sec">
         <div class="ps-sec-title">Распределение по источникам</div>
-        <svg id="ps-sources-bar-svg" viewBox="0 0 240 80" style="width:100%;display:block;"></svg>
+        <svg id="ps-sources-bar-svg" viewBox="0 0 290 80" style="width:100%;display:block;"></svg>
       </div>
 
       <div class="ps-sec" id="ps-commentary-investor-sec" style="display:none">
@@ -2163,9 +2163,9 @@ function renderPrintSummary() {
     const maxSrcL = activeSrc[0]?.leads || 1;
     const bSvg = document.getElementById('ps-sources-bar-svg');
     if (bSvg) {
-      const bH = 16, bGap = 3, bPadL = 94, barMaxW = 88, bPadT = 4, bFF = "Inter,system-ui,sans-serif";
+      const bH = 16, bGap = 3, bPadL = 108, barMaxW = 120, bPadT = 4, bFF = "Inter,system-ui,sans-serif";
       const svgH = Math.max(activeSrc.length * (bH + bGap) + bPadT, 20);
-      bSvg.setAttribute('viewBox', `0 0 240 ${svgH}`);
+      bSvg.setAttribute('viewBox', `0 0 290 ${svgH}`);
       bSvg.innerHTML = activeSrc.length === 0
         ? `<text x="4" y="14" font-size="9" fill="#aaa" font-family="${bFF}">Нет данных</text>`
         : activeSrc.map((s, i) => {
