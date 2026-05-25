@@ -788,20 +788,20 @@ if ('serviceWorker' in navigator) {
   .fs-val { font-family: var(--serif); font-size: 28px; color: var(--ink); margin-top: 4px; }
   .fs-val .small { font-size: 14px; color: var(--ink-mute); font-style: italic; }
 
-  /* ========== QUALITY DONUT ========== */
+  /* ========== QUALITY BARS ========== */
   .quality-card { display: flex; flex-direction: column; }
-  .quality-canvas-wrap { position: relative; flex: 1; display: grid; place-items: center; min-height: 220px; }
-  .quality-center {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    text-align: center;
-  }
-  .quality-center-val { font-family: var(--serif); font-size: 44px; line-height: 1; color: var(--ink); }
-  .quality-center-label { font-size: 10px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 4px; }
-  .quality-legend { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
-  .ql-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
-  .ql-dot { width: 8px; height: 8px; border-radius: 2px; }
-  .ql-name { flex: 1; color: var(--ink-mid); }
-  .ql-val { font-family: var(--mono); color: var(--ink); font-weight: 500; }
+  .quality-bars { display: flex; flex-direction: column; gap: 12px; padding: 8px 0 4px; flex: 1; }
+  .quality-bar-row { display: grid; grid-template-columns: 100px 1fr 38px; align-items: center; gap: 10px; }
+  .quality-bar-name { font-size: 12px; color: var(--ink-mid); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .quality-bar-track { height: 10px; background: var(--surface-2); border-radius: 5px; overflow: hidden; }
+  .quality-bar-fill { height: 100%; border-radius: 5px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+  .quality-bar-fill.q-hi { background: var(--pos); }
+  .quality-bar-fill.q-mid { background: var(--accent); }
+  .quality-bar-fill.q-lo { background: var(--neg); }
+  .quality-bar-val { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--ink); }
+  .quality-avg-row { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); display: flex; justify-content: space-between; align-items: baseline; }
+  .quality-avg-label { font-size: 11px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.1em; }
+  .quality-avg-val { font-family: var(--serif); font-size: 28px; color: var(--ink); }
 
   /* ========== PROBLEMS ========== */
   .problem {
@@ -1206,8 +1206,7 @@ if ('serviceWorker' in navigator) {
     .camp-stat-label { font-size: 6px !important; }
 
     /* Charts: hide most, they don't print well */
-    #qualityChart, #dynamicsChart, #qualityLegendBox, #quality-legend,
-    .src-row .spark, canvas[id*="spark"], .kpi-spark { display: none !important; }
+    #dynamicsChart, .src-row .spark, canvas[id*="spark"], .kpi-spark { display: none !important; }
 
     /* Problems / priorities — keep tight */
     #problems-list, #priorities-list, #insights-list { font-size: 9px !important; }
@@ -1299,7 +1298,7 @@ if ('serviceWorker' in navigator) {
 
     .chart-wrap { height: 200px; }
     .chart-wrap.tall { height: 220px; }
-    .quality-canvas-wrap { min-height: 160px; }
+    .quality-bars { gap: 8px !important; }
 
     .footer { flex-direction: column; gap: 4px; text-align: center; }
   }
@@ -1480,16 +1479,13 @@ if ('serviceWorker' in navigator) {
       <div class="card quality-card">
         <div class="card-head">
           <div class="card-title">Качество лидов</div>
-          <div class="card-sub">по источнику</div>
+          <div class="card-sub">% целевых лидов по источнику</div>
         </div>
-        <div class="quality-canvas-wrap">
-          <canvas id="qualityChart"></canvas>
-          <div class="quality-center">
-            <div class="quality-center-val" id="avg-quality">79%</div>
-            <div class="quality-center-label">среднее</div>
-          </div>
+        <div class="quality-bars" id="quality-bars"></div>
+        <div class="quality-avg-row">
+          <div class="quality-avg-label">Среднее по всем источникам</div>
+          <div class="quality-avg-val" id="avg-quality">—%</div>
         </div>
-        <div class="quality-legend" id="quality-legend"></div>
       </div>
     </div>
   </section>
@@ -2831,43 +2827,23 @@ function renderCharts() {
     }
   });
 
-  // --- Quality donut
-  if (charts.quality) charts.quality.destroy();
-  const palette = ['#fbbf24', '#84cc16', '#60a5fa', '#a78bfa', '#f87171', '#06b6d4', '#ec4899'];
-  charts.quality = new Chart(document.getElementById('qualityChart'), {
-    type: 'doughnut',
-    data: {
-      labels: data.sources.map(s => s.name),
-      datasets: [{
-        data: data.sources.map(s => s.leads),
-        backgroundColor: palette.slice(0, data.sources.length),
-        borderColor: css('--surface'),
-        borderWidth: 3,
-        hoverOffset: 6,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      cutout: '70%',
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: css('--ink'), titleColor: css('--bg'), bodyColor: css('--bg'),
-          padding: 10, cornerRadius: 6,
-        }
-      }
-    }
-  });
-
-  // Manual legend for donut
-  const totalLeads = data.sources.reduce((s, x) => s + x.leads, 0);
-  document.getElementById('quality-legend').innerHTML = data.sources.map((s, i) => `
-    <div class="ql-row">
-      <span class="ql-dot" style="background:${palette[i]}"></span>
-      <span class="ql-name">${s.name}</span>
-      <span class="ql-val">${totalLeads > 0 ? Math.round(s.leads / totalLeads * 100) : 0}%</span>
-    </div>
-  `).join('');
+  // --- Quality bars (replaces donut — book: horizontal bars beat pie/donut for % comparison)
+  if (charts.quality) { charts.quality.destroy(); charts.quality = null; }
+  const srcsWithLeads = data.sources.filter(s => s.leads > 0).sort((a, b) => (b.quality || 0) - (a.quality || 0));
+  const barsEl = document.getElementById('quality-bars');
+  if (srcsWithLeads.length === 0) {
+    barsEl.innerHTML = '<div class="empty-state">Нет данных о источниках</div>';
+  } else {
+    barsEl.innerHTML = srcsWithLeads.map(s => {
+      const q = Math.min(+(s.quality) || 0, 100);
+      const cls = q >= 70 ? 'q-hi' : q >= 50 ? 'q-mid' : 'q-lo';
+      return `<div class="quality-bar-row">
+        <div class="quality-bar-name" title="${s.name}">${s.name}</div>
+        <div class="quality-bar-track"><div class="quality-bar-fill ${cls}" style="width:${q}%"></div></div>
+        <div class="quality-bar-val">${q}%</div>
+      </div>`;
+    }).join('');
+  }
 }
 
 function setDynMetric(m) {
