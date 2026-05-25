@@ -588,6 +588,25 @@ if ('serviceWorker' in navigator) {
   .delta.neg { background: var(--neg-soft); color: var(--neg); }
   .delta.neutral { background: var(--surface-2); color: var(--ink-mute); }
 
+  /* ===== KPI TARGET ===== */
+  .kpi-target { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+  .kpi-target-label { font-family: var(--mono); font-size: 10px; color: var(--ink-mute); letter-spacing: 0.04em; }
+  .kpi-target-bar { height: 3px; background: var(--surface-2); border-radius: 2px; overflow: hidden; }
+  .kpi-target-fill { height: 100%; border-radius: 2px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+  .kpi-target-fill.achieved { background: var(--pos); }
+  .kpi-target-fill.progress { background: var(--accent); }
+
+  /* ===== PLAN PROGRESS BAR ===== */
+  .plan-progress {
+    display: flex; align-items: center; gap: 14px;
+    margin-top: 16px; padding: 13px 20px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+  }
+  .plan-progress-label { font-size: 12px; font-weight: 500; color: var(--ink-mute); flex-shrink: 0; white-space: nowrap; }
+  .plan-progress-track { flex: 1; height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+  .plan-progress-fill { height: 100%; border-radius: 3px; transition: width .8s cubic-bezier(.4,0,.2,1); }
+  .plan-progress-pct { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--ink); flex-shrink: 0; min-width: 3ch; text-align: right; }
+
   /* ===== COMPARISON ===== */
   .kpi-compare {
     display: flex; align-items: center; gap: 8px;
@@ -745,6 +764,8 @@ if ('serviceWorker' in navigator) {
     min-width: 0;
   }
   [data-theme="light"] .funnel-bar { background: linear-gradient(90deg, var(--ink), var(--accent-deep)); }
+  .funnel-bar.bottleneck { background: linear-gradient(90deg, #a07828, #c79a52) !important; }
+  [data-theme="light"] .funnel-bar.bottleneck { background: linear-gradient(90deg, #9a7020, #c79a52) !important; }
   .funnel-meta {
     position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
     display: flex; align-items: center; gap: 14px;
@@ -1366,6 +1387,11 @@ if ('serviceWorker' in navigator) {
   <!-- =================== KPI =================== -->
   <section style="margin-top: 24px; margin-bottom: 40px;">
     <div class="kpi-grid" id="kpi-grid"></div>
+    <div class="plan-progress no-print" id="plan-progress" style="display:none">
+      <div class="plan-progress-label" id="plan-progress-label">0 из 0 лидов</div>
+      <div class="plan-progress-track"><div class="plan-progress-fill" id="plan-progress-fill"></div></div>
+      <div class="plan-progress-pct" id="plan-progress-pct">0%</div>
+    </div>
   </section>
 
   <!-- =================== NARRATIVE =================== -->
@@ -1594,26 +1620,39 @@ if ('serviceWorker' in navigator) {
       </section>
 
       <section class="modal-section">
-        <div class="modal-section-title">⑤ Прогноз закрытия (оценка РП)</div>
+        <div class="modal-section-title">⑤ Цели недели (KPI-план)</div>
+        <div class="modal-hint" style="margin-bottom:10px;">0 = цель не задана. Задайте план лидов — появится прогресс-бар на дашборде.</div>
+        <table class="data-table">
+          <thead><tr><th>Лиды (план)</th><th>Целевой CPL, ₽</th><th>Конверсия цель, %</th></tr></thead>
+          <tbody><tr>
+            <td><input type="number" class="cell-input num" id="edit-target-leads" placeholder="0" oninput="(_editTarget.kpiTargets=_editTarget.kpiTargets||{}).leads=+this.value"></td>
+            <td><input type="number" class="cell-input num" id="edit-target-cpl" placeholder="0" oninput="(_editTarget.kpiTargets=_editTarget.kpiTargets||{}).cpl=+this.value"></td>
+            <td><input type="number" class="cell-input num" id="edit-target-conv" placeholder="0" oninput="(_editTarget.kpiTargets=_editTarget.kpiTargets||{}).conv=+this.value"></td>
+          </tr></tbody>
+        </table>
+      </section>
+
+      <section class="modal-section">
+        <div class="modal-section-title">⑥ Прогноз закрытия (оценка РП)</div>
         <div class="modal-hint" style="margin-bottom:10px;">Если поля пустые — считается автоматически из воронки. Заполните, чтобы поставить экспертную оценку.</div>
         <div id="edit-forecast"></div>
       </section>
 
       <section class="modal-section">
-        <div class="modal-section-title">⑤ Проблемные сделки</div>
+        <div class="modal-section-title">⑦ Проблемные сделки</div>
         <div id="edit-problems"></div>
         <button class="add-btn" onclick="addProblem()">+ Добавить сделку</button>
       </section>
 
       <section class="modal-section">
-        <div class="modal-section-title">⑥ Приоритеты</div>
+        <div class="modal-section-title">⑧ Приоритеты</div>
         <div id="edit-priorities"></div>
         <button class="add-btn" onclick="addPriority()">+ Добавить приоритет</button>
       </section>
 
       <section class="modal-section">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-          <div class="modal-section-title" style="margin-bottom:0;">⑦ Выводы</div>
+          <div class="modal-section-title" style="margin-bottom:0;">⑨ Выводы</div>
           <button id="ai-insights-btn" onclick="generateAIInsights()"
             style="padding:4px 12px; font-size:10px; border-radius:20px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; letter-spacing:0.05em; white-space:nowrap;">✦ AI выводы</button>
         </div>
@@ -1635,7 +1674,7 @@ if ('serviceWorker' in navigator) {
       </section>
 
       <section class="modal-section">
-        <div class="modal-section-title">⑧ Комментарии</div>
+        <div class="modal-section-title">⑩ Комментарии</div>
         <label style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px;">
           <div style="display:flex; align-items:center; justify-content:space-between;">
             <span class="small" style="opacity:0.7;">Анализ периода (от руководителя)</span>
@@ -2132,6 +2171,15 @@ function renderPrintSummary() {
     const fWidth = 290, fHeight = psFunnel.length * (fH + fGap) + padT + 4;
     fSvg.setAttribute('viewBox', `0 0 ${fWidth} ${fHeight}`);
     const ff = "Inter,system-ui,sans-serif";
+    // Find print bottleneck
+    let psMinConv = Infinity, psBottleneckIdx = -1;
+    if (psFunnel[0]?.count > 0) {
+      psFunnel.forEach((f, i) => {
+        if (i === 0) return;
+        const sc = psFunnel[i-1].count > 0 ? f.count / psFunnel[i-1].count * 100 : 0;
+        if (sc < psMinConv) { psMinConv = sc; psBottleneckIdx = i; }
+      });
+    }
     fSvg.innerHTML = psFunnel.map((f, i) => {
       const y = padT + i * (fH + fGap);
       const barW = (f.count / fmax) * (fWidth - padL - padR);
@@ -2140,20 +2188,25 @@ function renderPrintSummary() {
       const conv = i > 0 ? (f.count === 0 ? 0 : prev > 0 ? Math.round(f.count/prev*100) : null) : null;
       const opacity = 0.4 + (1 - i / Math.max(psFunnel.length - 1, 1)) * 0.6;
       const label = f.stage.trim();
+      const isBottleneck = i === psBottleneckIdx && psBottleneckIdx > 0;
+      const barFill = isBottleneck ? '#c79a52' : '#3d6b53';
       // % inside bar if wide enough; if narrow — show left of bar
       const showInside = i > 0 && conv !== null && barW >= 28;
-      const inBarColor = opacity >= 0.68 ? '#fff' : '#2d5042';
+      const inBarColor = isBottleneck ? '#fff' : (opacity >= 0.68 ? '#fff' : '#2d5042');
       const outsideX = Math.min(padL + bW + 22, fWidth - 18);
       const convEl = i > 0 && conv !== null
         ? (showInside
             ? `<text x="${padL + barW/2}" y="${y + fH/2 + 3}" font-size="6.5" font-weight="600" font-family="${ff}" text-anchor="middle" fill="${inBarColor}">${conv}%</text>`
             : `<text x="${outsideX}" y="${y + fH/2 + 3}" font-size="6.5" font-weight="600" font-family="${ff}" text-anchor="middle" fill="#888">${conv}%</text>`)
         : '';
+      const bottleneckMark = isBottleneck
+        ? `<text x="${fWidth - 4}" y="${y + fH/2 + 3}" font-size="7" font-family="${ff}" text-anchor="end" fill="#c79a52">▲ узкое</text>`
+        : '';
       return `
         <text x="${padL - 5}" y="${y + fH/2 + 3}" font-size="7.5" font-family="${ff}" text-anchor="end" fill="#555">${label}</text>
-        <rect x="${padL}" y="${y}" width="${bW}" height="${fH}" fill="#3d6b53" opacity="${opacity}"/>
+        <rect x="${padL}" y="${y}" width="${bW}" height="${fH}" fill="${barFill}" opacity="${opacity}"/>
         <text x="${padL + bW + 4}" y="${y + fH/2 + 3}" font-size="8" font-weight="600" font-family="${ff}" fill="#1a1a17">${f.count}</text>
-        ${convEl}
+        ${convEl}${bottleneckMark}
       `;
     }).join('');
 
@@ -2292,12 +2345,14 @@ function renderKPI() {
     : archive.slice(Math.max(0, currentIdx - 5), currentIdx + 1).map(getKPIs);
   const scColor = compareMeta?.color || css('--accent');
 
+  const kt = data.kpiTargets || {};
+
   const cards = [
-    { label: 'Новые лиды', expl: 'Сколько новых обращений пришло за период', fact: kpi.leads, scen: cKpi?.leads, fmt: v => v, unit: '', sparkVals: sparkRange.map(k => k.leads), sparkColor: css('--accent'), delta: deltaPill(prevK?.leads, kpi.leads) },
-    { label: 'Конверсия', expl: 'Доля лидов, дошедших до контракта', fact: kpi.conv, scen: cKpi?.conv, fmt: v => v.toFixed(0), unit: '%', sparkVals: sparkRange.map(k => k.conv), sparkColor: css('--pos'), delta: deltaPill(prevK?.conv, kpi.conv, { isPP: true }) },
-    { label: 'Расходы', expl: 'Сколько потратили на рекламу', fact: kpi.spent, scen: cKpi?.spent, fmt: v => formatMoney(v), unit: '₽', sparkVals: sparkRange.map(k => k.spent), sparkColor: css('--ink-mid'), delta: deltaPill(prevK?.spent, kpi.spent, { isMoney: true }) },
-    { label: 'ROI', expl: 'Сколько рублей выручки на рубль рекламы', fact: kpi.roi, scen: cKpi?.roi, fmt: v => v.toFixed(1), unit: 'x', sparkVals: sparkRange.map(k => k.roi), sparkColor: css('--accent'), delta: deltaPill(prevK?.roi, kpi.roi) },
-    { label: 'CPL', expl: 'Стоимость одного лида', fact: kpi.cpl, scen: cKpi?.cpl, fmt: v => (v/1000).toFixed(1) + 'K', unit: '₽', sparkVals: sparkRange.map(k => k.cpl), sparkColor: css('--ink-mid'), delta: deltaPill(prevK?.cpl, kpi.cpl, { isMoney: true }) },
+    { label: 'Новые лиды', expl: 'Сколько новых обращений пришло за период', fact: kpi.leads, scen: cKpi?.leads, fmt: v => v, unit: '', sparkVals: sparkRange.map(k => k.leads), sparkColor: css('--accent'), delta: deltaPill(prevK?.leads, kpi.leads), targetKey: 'leads', targetFmt: v => v + ' лидов', targetGood: 'high' },
+    { label: 'Конверсия', expl: 'Доля лидов, дошедших до контракта', fact: kpi.conv, scen: cKpi?.conv, fmt: v => v.toFixed(0), unit: '%', sparkVals: sparkRange.map(k => k.conv), sparkColor: css('--pos'), delta: deltaPill(prevK?.conv, kpi.conv, { isPP: true }), targetKey: 'conv', targetFmt: v => v.toFixed(0) + '%', targetGood: 'high' },
+    { label: 'Расходы', expl: 'Сколько потратили на рекламу', fact: kpi.spent, scen: cKpi?.spent, fmt: v => formatMoney(v), unit: '₽', sparkVals: sparkRange.map(k => k.spent), sparkColor: css('--ink-mid'), delta: deltaPill(prevK?.spent, kpi.spent, { isMoney: true }), targetKey: null },
+    { label: 'ROI', expl: 'Сколько рублей выручки на рубль рекламы', fact: kpi.roi, scen: cKpi?.roi, fmt: v => v.toFixed(1), unit: 'x', sparkVals: sparkRange.map(k => k.roi), sparkColor: css('--accent'), delta: deltaPill(prevK?.roi, kpi.roi), targetKey: null },
+    { label: 'CPL', expl: 'Стоимость одного лида', fact: kpi.cpl, scen: cKpi?.cpl, fmt: v => (v/1000).toFixed(1) + 'K', unit: '₽', sparkVals: sparkRange.map(k => k.cpl), sparkColor: css('--ink-mid'), delta: deltaPill(prevK?.cpl, kpi.cpl, { isMoney: true }), targetKey: 'cpl', targetFmt: v => (v/1000).toFixed(1) + 'K ₽', targetGood: 'low' },
   ];
 
   document.getElementById('kpi-grid').innerHTML = cards.map((c, i) => {
@@ -2308,6 +2363,20 @@ function renderKPI() {
         <span class="kpi-cmp-val num">${c.fmt(c.scen)}${c.unit}</span>
         <span class="kpi-cmp-delta num">${kpiCmpDelta(c.fact, c.scen, c.unit === '%')}</span>
       </div>` : '';
+    let targetRow = '';
+    if (c.targetKey) {
+      const tv = kt[c.targetKey] || 0;
+      if (tv > 0) {
+        const achieved = c.targetGood === 'high' ? c.fact >= tv : c.fact > 0 && c.fact <= tv;
+        const pct = c.targetGood === 'high'
+          ? Math.min(c.fact / tv * 100, 100)
+          : (c.fact > 0 ? Math.min(tv / c.fact * 100, 100) : 0);
+        targetRow = `<div class="kpi-target">
+          <div class="kpi-target-label">Цель: ${c.targetFmt(tv)}${achieved ? ' ✓' : ''}</div>
+          <div class="kpi-target-bar"><div class="kpi-target-fill ${achieved ? 'achieved' : 'progress'}" style="width:${pct.toFixed(0)}%"></div></div>
+        </div>`;
+      }
+    }
     return `
     <div class="kpi">
       <div class="kpi-label">${c.label}</div>
@@ -2318,6 +2387,7 @@ function renderKPI() {
         ${c.delta}
         <canvas class="kpi-spark" data-spark="${i}"></canvas>
       </div>
+      ${targetRow}
     </div>
     `;
   }).join('');
@@ -2329,6 +2399,22 @@ function renderKPI() {
       drawSparkline(cv, c.sparkVals, c.sparkColor);
     });
   });
+
+  // Plan progress bar
+  const planEl = document.getElementById('plan-progress');
+  if (kt.leads > 0) {
+    const pct = Math.min(kpi.leads / kt.leads * 100, 100);
+    const remaining = kt.leads - kpi.leads;
+    planEl.style.display = '';
+    document.getElementById('plan-progress-label').textContent =
+      `${kpi.leads} из ${kt.leads} лидов${remaining > 0 ? ` · осталось ${remaining}` : ' · план выполнен ✓'}`;
+    const fill = document.getElementById('plan-progress-fill');
+    fill.style.width = pct.toFixed(0) + '%';
+    fill.style.background = pct >= 100 ? 'var(--pos)' : 'var(--accent)';
+    document.getElementById('plan-progress-pct').textContent = pct.toFixed(0) + '%';
+  } else {
+    planEl.style.display = 'none';
+  }
 
   document.getElementById('src-total').textContent = kpi.leads;
 }
@@ -2464,6 +2550,17 @@ function renderFunnel() {
   const ef = effectiveFunnel(data);
   const maxFunnel = Math.max(ef[0]?.count || 1, isComparing() ? (effectiveFunnel(compareData)[0]?.count || 0) : 0);
   const scColor = compareMeta?.color || css('--accent');
+
+  // Find bottleneck — stage with lowest inter-stage conversion
+  let minConv = Infinity, bottleneckIdx = -1;
+  if (ef[0]?.count > 0) {
+    ef.forEach((f, i) => {
+      if (i === 0) return;
+      const sc = ef[i-1].count > 0 ? f.count / ef[i-1].count * 100 : 0;
+      if (sc < minConv) { minConv = sc; bottleneckIdx = i; }
+    });
+  }
+
   document.getElementById('funnel-list').innerHTML = ef.map((f, i) => {
     const pct = (f.count / maxFunnel * 100);
     const stageConv = i === 0 ? 100 : (ef[i - 1].count > 0 ? (f.count / ef[i - 1].count * 100) : 0);
@@ -2471,14 +2568,16 @@ function renderFunnel() {
     const days = f.days != null ? f.days : DEFAULT_STAGE_DAYS[i] || 0;
     const cf = isComparing() ? compareData.funnel[i] : null;
     const cmpBar = cf ? `<div class="funnel-bar-cmp" style="width:${cf.count / maxFunnel * 100}%; background:${scColor};"><span class="funnel-cmp-count num">${cf.count}</span></div>` : '';
+    const isBottleneck = i === bottleneckIdx && bottleneckIdx > 0;
     return `
       <div class="funnel-row ${isComparing() ? 'with-cmp' : ''}">
         <span class="funnel-stage">${f.stage}</span>
         <div class="funnel-bars-col">
           <div class="funnel-bar-wrap">
-            <div class="funnel-bar" style="width:${pct}%"></div>
+            <div class="funnel-bar${isBottleneck ? ' bottleneck' : ''}" style="width:${pct}%"></div>
             <div class="funnel-meta">
               ${i > 0 ? `<span class="funnel-conv ${convCls}">${stageConv.toFixed(0)}%</span>` : ''}
+              ${isBottleneck ? `<span style="font-size:10px;color:#c79a52;" title="Узкое место">▲</span>` : ''}
               ${days > 0 ? `<span class="funnel-days">⏱ ${days}д</span>` : ''}
               <span class="num" style="font-family: var(--serif); font-size: 24px; color: var(--ink);">${f.count}</span>
             </div>
@@ -3009,7 +3108,7 @@ function openWeekPicker(editIdx) {
       const last = archive[archive.length - 1];
       const clone = last ? JSON.parse(JSON.stringify(last)) : null;
       const fresh = clone ? { ...clone, id: 'w' + Date.now(), date: f, period, scenarios: undefined }
-        : { id: 'w' + Date.now(), date: f, period, sources: [{ name: 'Сайт', leads: 0, quality: 0 }], campaigns: [], funnel: [{ stage: 'Новые лиды', count: 0 }], avgDeal: 8, problems: [], priorities: [], insights: [], commentary: {} };
+        : { id: 'w' + Date.now(), date: f, period, sources: [{ name: 'Сайт', leads: 0, quality: 0 }], campaigns: [], funnel: [{ stage: 'Новые лиды', count: 0 }], avgDeal: 8, problems: [], priorities: [], insights: [], commentary: {}, kpiTargets: {} };
       archive.push(fresh);
       archive.sort((a, b) => new Date(a.date) - new Date(b.date));
       currentIdx = archive.findIndex(x => x.id === fresh.id);
@@ -3449,6 +3548,15 @@ function populateEdit() {
   document.getElementById('edit-avg-deal').value = T.avgDeal || 8;
   document.getElementById('edit-avg-deal').setAttribute('oninput', '_editTarget.avgDeal=+this.value');
 
+  // kpiTargets
+  const kt = T.kpiTargets || {};
+  const tlEl = document.getElementById('edit-target-leads');
+  const tcEl = document.getElementById('edit-target-cpl');
+  const tvEl = document.getElementById('edit-target-conv');
+  if (tlEl) tlEl.value = kt.leads || '';
+  if (tcEl) tcEl.value = kt.cpl || '';
+  if (tvEl) tvEl.value = kt.conv || '';
+
   // Forecast (manual override by РП)
   const fc = T.forecast || {};
   const auto = pipelineValue({ ...T, forecast: null });
@@ -3773,6 +3881,7 @@ function _normaliseArchive() {
     if (w.funnel) w.funnel.forEach((f, i) => { if (f.days == null) f.days = DEFAULT_STAGE_DAYS[i] || 0; });
     if (w.avgDeal == null) w.avgDeal = 8;
     if (!w.commentary) w.commentary = {};
+    if (!w.kpiTargets) w.kpiTargets = {};
     // Auto-fix period label if start day doesn't match the week's date field
     if (w.date && w.period) {
       const d = new Date(w.date);
