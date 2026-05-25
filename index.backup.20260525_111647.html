@@ -1,0 +1,4198 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Поселок · Еженедельный отчёт</title>
+<style>
+  #auth-gate {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #1a2e26;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Instrument Serif', Georgia, serif;
+  }
+  #auth-gate .gate-card {
+    width: 320px; padding: 48px 40px 40px;
+    background: #244035;
+    border: .5px solid #3a5b4d;
+    border-radius: 20px;
+    box-shadow: 0 32px 80px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+  }
+  #auth-gate .gate-brand {
+    font-size: 13px; letter-spacing: .18em; text-transform: uppercase;
+    color: #6fa089; margin-bottom: 8px; font-family: 'Inter', sans-serif; font-weight: 500;
+  }
+  #auth-gate .gate-title {
+    font-size: 32px; color: #f0ebde; font-style: italic; margin-bottom: 32px;
+    line-height: 1.1; text-align: center;
+  }
+  #auth-gate .gate-input {
+    width: 100%; height: 48px; padding: 0 18px;
+    background: #1a2e26; border: 1px solid #3a5b4d; border-radius: 10px;
+    color: #f0ebde; font-size: 22px; letter-spacing: .3em; text-align: center;
+    outline: none; font-family: 'JetBrains Mono', monospace;
+    transition: border-color .15s;
+    -webkit-text-security: disc; text-security: disc;
+    margin-bottom: 14px;
+  }
+  #auth-gate .gate-input:focus { border-color: #c79a52; }
+  #auth-gate .gate-input.shake {
+    animation: gate-shake .35s cubic-bezier(.36,.07,.19,.97);
+    border-color: #f87171;
+  }
+  #auth-gate .gate-btn {
+    width: 100%; height: 48px; border: 0; border-radius: 10px;
+    background: #c79a52; color: #1a2e26;
+    font-size: 14px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    font-family: 'Inter', sans-serif; cursor: pointer;
+    transition: background .15s, transform .1s;
+  }
+  #auth-gate .gate-btn:hover { background: #d4aa63; }
+  #auth-gate .gate-btn:active { transform: scale(.97); }
+  #auth-gate .gate-error {
+    margin-top: 12px; font-size: 12px; color: #f87171;
+    font-family: 'Inter', sans-serif; height: 16px; text-align: center;
+  }
+  @keyframes gate-shake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(4px); }
+    30%, 50%, 70% { transform: translateX(-6px); }
+    40%, 60% { transform: translateX(6px); }
+  }
+  body.auth-locked { overflow: hidden; }
+
+  /* ── Режим чтения: скрываем элементы редактирования ── */
+  body.role-reader .admin-only { display: none !important; }
+  body.role-reader #themeToggle { display: flex !important; }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Google Fonts загружается асинхронно — не блокирует рендер если недоступен -->
+<link rel="stylesheet" media="print" onload="this.media='all'"
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
+<script>
+(function() {
+  const ROLES = {
+    'a64332fe1df1790cb79d428bf5b5767ddd589b1cca825cb1b9eb30f7e9aaee03': 'reader',
+    '61ab550f4c85a975cd46f8606ede483d8ee720a76f627773de1bc1dd8ce5fb35': 'admin',
+  };
+
+  async function getRole(input) {
+    const val = input.trim();
+    try {
+      if (window.crypto && crypto.subtle) {
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(val));
+        const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+        return ROLES[hex] || null;
+      }
+    } catch(e) {}
+    // Fallback для старых/корпоративных браузеров
+    if (val === '1910') return 'reader';
+    if (val === '1019') return 'admin';
+    return null;
+  }
+
+  function applyRole(role) {
+    window.__crmRole = role;
+    document.body.classList.remove('auth-locked', 'role-reader', 'role-admin');
+    document.body.classList.add('role-' + role);
+  }
+
+  function unlock(role) {
+    const gate = document.getElementById('auth-gate');
+    if (gate) { gate.style.opacity = '0'; gate.style.transition = 'opacity .3s'; setTimeout(() => gate.remove(), 300); }
+    applyRole(role);
+  }
+
+  window.__gateCheck = async function() {
+    const inp = document.getElementById('gate-input');
+    const err = document.getElementById('gate-error');
+    const role = await getRole(inp.value);
+    if (role) {
+      try { sessionStorage.setItem('crm_auth_role', role); } catch(e) {}
+      unlock(role);
+    } else {
+      inp.classList.remove('shake');
+      void inp.offsetWidth;
+      inp.classList.add('shake');
+      err.textContent = 'Неверный код';
+      inp.value = '';
+      setTimeout(() => { inp.classList.remove('shake'); err.textContent = ''; }, 1500);
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', function() {
+    let savedRole = null;
+    try { savedRole = sessionStorage.getItem('crm_auth_role'); } catch(e) {}
+    if (savedRole === 'reader' || savedRole === 'admin') { applyRole(savedRole); return; }
+
+    document.body.classList.add('auth-locked');
+    const gate = document.createElement('div');
+    gate.id = 'auth-gate';
+    gate.innerHTML = `
+      <div class="gate-card">
+        <div class="gate-brand">Поселок · СИЛВА</div>
+        <div class="gate-title">Еженедельный<br>отчёт</div>
+        <input id="gate-input" class="gate-input" type="password" inputmode="numeric"
+               placeholder="····" maxlength="20" autocomplete="off"
+               onkeydown="if(event.key==='Enter') window.__gateCheck()" autofocus>
+        <button class="gate-btn" onclick="window.__gateCheck()">Войти</button>
+        <div id="gate-error" class="gate-error"></div>
+      </div>`;
+    document.body.prepend(gate);
+    setTimeout(() => { const i = document.getElementById('gate-input'); if(i) i.focus(); }, 150);
+  });
+})();
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/crm-dashboard/sw.js').catch(() => {});
+}
+</script>
+<style>
+  /* ========== TOKENS ========== */
+  :root {
+    --serif: 'Instrument Serif', 'Times New Roman', serif;
+    --sans: 'Inter', -apple-system, system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 16px;
+    --r-xl: 22px;
+
+    --accent: #fbbf24;
+    --accent-deep: #d97706;
+    --accent-soft: rgba(251, 191, 36, 0.12);
+
+    --pos: #84cc16;
+    --pos-soft: rgba(132, 204, 22, 0.14);
+    --neg: #f87171;
+    --neg-soft: rgba(248, 113, 113, 0.12);
+    --warn: #fbbf24;
+  }
+
+  /* СИЛВА — forest premium */
+  [data-theme="dark"] {
+    --bg: #1a2e26;
+    --bg-grain: #1e342b;
+    --surface: #244035;
+    --surface-2: #2b4a3e;
+    --surface-hover: #345548;
+    --line: #3a5b4d;
+    --line-soft: #2e4d40;
+    --ink: #f0ebde;
+    --ink-mid: #cdc9bc;
+    --ink-mute: #8a9089;
+    --ink-faint: #4e544e;
+    --accent: #c79a52;
+    --accent-deep: #a07a3a;
+    --accent-soft: rgba(199, 154, 82, 0.12);
+    --forest: #6fa089;
+    --forest-deep: #3d6b53;
+    --shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 12px 32px -16px rgba(0,0,0,0.65);
+  }
+
+  [data-theme="light"] {
+    --bg: #fbf8ef;
+    --bg-grain: #f6f2e6;
+    --surface: #fdfaf2;
+    --surface-2: #f3eede;
+    --surface-hover: #ece6d2;
+    --line: #d8d0b7;
+    --line-soft: #e0d8c0;
+    --ink: #1c2a23;
+    --ink-mid: #3a4a40;
+    --ink-mute: #6f7a72;
+    --ink-faint: #b0ad9c;
+    --accent: #a87a3a;
+    --accent-deep: #845c25;
+    --accent-soft: rgba(168, 122, 58, 0.10);
+    --forest: #3d6b53;
+    --forest-deep: #1f4030;
+    --pos: #3d6b53;
+    --pos-soft: rgba(61, 107, 83, 0.10);
+    --neg: #a83a2a;
+    --neg-soft: rgba(168, 58, 42, 0.08);
+    --shadow: 0 1px 0 rgba(255,255,255,0.6) inset, 0 8px 24px -12px rgba(40,40,20,0.16);
+  }
+
+  /* ========== BASE ========== */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "ss01", "cv11";
+    min-height: 100vh;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(circle at 85% -10%, var(--accent-soft) 0%, transparent 40%),
+      radial-gradient(circle at -5% 80%, color-mix(in srgb, var(--forest) 18%, transparent) 0%, transparent 45%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .page { position: relative; z-index: 1; max-width: 1440px; margin: 0 auto; padding: 0 32px 80px; }
+  .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+  .mono { font-family: var(--mono); }
+  .serif { font-family: var(--serif); font-weight: 400; letter-spacing: -0.01em; }
+
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  input { font-family: inherit; }
+
+  /* ========== TOPBAR ========== */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(14px) saturate(140%);
+    border-bottom: 1px solid var(--line);
+    display: flex; flex-direction: column; align-items: stretch; gap: 0;
+  }
+  .topbar-main {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; padding: 10px 32px;
+  }
+  .topbar-archive {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 32px 9px;
+    border-top: 1px solid var(--line);
+    overflow-x: auto; overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .topbar-archive::-webkit-scrollbar { display: none; }
+  .topbar-archive .pf-row { flex-wrap: nowrap; }
+  .topbar-archive .pill-row { flex: none; flex-wrap: nowrap; }
+  .topbar-archive-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-mute);
+    white-space: nowrap; flex-shrink: 0; padding-right: 4px;
+  }
+  .topbar-archive-sep {
+    width: 1px; height: 16px; background: var(--line); flex-shrink: 0; margin: 0 2px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--ink); color: var(--bg);
+    display: grid; place-items: center;
+    font-family: var(--serif); font-size: 22px; font-style: italic;
+    position: relative;
+  }
+  .brand-mark::after {
+    content: ""; position: absolute; inset: -1px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), transparent 60%);
+    z-index: -1;
+  }
+  .brand-name { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+  .brand-sub { font-size: 11px; color: var(--ink-mute); margin-top: 1px; }
+
+  .topbar-actions { display: flex; align-items: center; gap: 6px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    border-radius: var(--r-md);
+    font-size: 13px; font-weight: 500;
+    color: var(--ink-mid);
+    background: transparent;
+    border: 1px solid transparent;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--surface-hover); color: var(--ink); }
+  .btn-ghost { color: var(--ink-mute); }
+  .btn-primary {
+    background: var(--accent); color: #1a1a17;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .btn-primary:hover { background: var(--accent-deep); color: var(--ink); }
+  .btn-outline { border: 1px solid var(--line); }
+  .btn-outline:hover { border-color: var(--ink-faint); background: var(--surface-hover); }
+  .btn-sm { padding: 6px 10px; font-size: 12px; }
+  .btn-icon { width: 36px; height: 36px; padding: 0; justify-content: center; }
+  .theme-toggle {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid var(--line);
+    display: grid; place-items: center;
+    color: var(--ink-mid);
+    transition: all .2s;
+  }
+  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  .sync-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid var(--line);
+    display: grid; place-items: center;
+    font-size: 14px; color: var(--ink-mute);
+    background: transparent; cursor: pointer;
+    transition: all .2s;
+  }
+  .sync-btn:hover, .sync-btn.sync-idle { color: var(--ink); border-color: var(--ink-faint); }
+  .sync-btn.sync-ok   { color: var(--pos); border-color: var(--pos); }
+  .sync-btn.sync-err  { color: var(--neg); border-color: var(--neg); }
+  .sync-btn.sync-saving { color: var(--accent); border-color: var(--accent); animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ========== HERO ========== */
+  .hero {
+    padding: 56px 0 32px;
+    display: grid; grid-template-columns: 1fr auto; gap: 48px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 40px;
+    align-items: end;
+  }
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-mute);
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 18px;
+  }
+  .hero-eyebrow::before {
+    content: ""; width: 24px; height: 1px; background: var(--accent);
+  }
+  .hero h1 {
+    margin: 0; font-family: var(--serif); font-weight: 400;
+    font-size: clamp(48px, 6.5vw, 88px);
+    line-height: 0.95; letter-spacing: -0.025em;
+    color: var(--ink);
+  }
+  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero-meta { text-align: right; min-width: 260px; }
+  .hero-period-label { font-size: 11px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 8px; }
+  .hero-period {
+    font-family: var(--serif); font-size: 32px; line-height: 1; font-style: italic;
+    background: transparent; border: none; color: var(--ink); width: 100%; text-align: right;
+    padding: 4px 0;
+  }
+  .hero-period:focus { outline: none; border-bottom: 1px dashed var(--accent); }
+  .hero-tags { display: flex; gap: 6px; justify-content: flex-end; margin-top: 16px; flex-wrap: wrap; }
+  .tag {
+    font-size: 10.5px; padding: 4px 10px; border-radius: 99px;
+    border: 1px solid var(--line); color: var(--ink-mute);
+    text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500;
+    background: var(--surface);
+  }
+
+  /* ========== TOPBAR SCENARIO WIDGET ========== */
+  .topbar-scenarios {
+    display: flex; align-items: center; gap: 4px;
+    padding: 4px;
+    background: var(--surface-2);
+    border-radius: 99px;
+    border: 1px solid var(--line);
+  }
+  .topbar-scenarios-label {
+    font-size: 9.5px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-mute);
+    padding: 0 10px 0 8px;
+  }
+  .scn-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px;
+    border-radius: 99px;
+    font-size: 11.5px; font-weight: 500;
+    color: var(--ink-mid);
+    background: transparent;
+    border: none;
+    transition: all .15s;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .scn-pill:hover { color: var(--ink); background: var(--surface-hover); }
+  .scn-pill.active {
+    background: var(--ink); color: var(--bg); font-weight: 600;
+  }
+  .scn-pill.scn-active-color {
+    color: #0d1612;
+    font-weight: 600;
+  }
+  .scn-pill-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; opacity: 0.85;
+  }
+  .scn-source-btn {
+    width: 24px; height: 24px;
+    margin-left: 2px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    border: 1px solid var(--line);
+    color: var(--ink-mute);
+    background: var(--surface);
+    font-size: 11px; font-weight: 600;
+    cursor: pointer;
+    position: relative;
+  }
+  .scn-source-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .scn-source-pop {
+    position: absolute; top: calc(100% + 8px); right: 0;
+    width: 320px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    box-shadow: 0 20px 40px -12px rgba(0,0,0,0.3);
+    font-size: 11.5px; line-height: 1.5;
+    color: var(--ink-mid);
+    text-align: left; text-transform: none; letter-spacing: 0;
+    z-index: 100;
+    display: none;
+    font-weight: 400;
+  }
+  .scn-source-pop.open { display: block; }
+  .scn-source-pop h4 {
+    margin: 0 0 8px; font-family: var(--serif); font-size: 16px;
+    font-weight: 400; letter-spacing: -0.01em; color: var(--ink);
+  }
+  .scn-source-pop p { margin: 0 0 6px; }
+  .scn-source-pop .src-cite { color: var(--ink-mute); font-size: 10.5px; font-style: italic; }
+  .scn-source-pop .src-edit-btn {
+    margin-top: 10px; display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 10px; border-radius: 6px; background: var(--accent-soft); color: var(--accent);
+    font-size: 11px; font-weight: 600; border: none; cursor: pointer;
+  }
+  .scn-source-pop .src-edit-btn:hover { background: var(--accent); color: #0d1612; }
+
+  /* ========== ARCHIVE STRIP ========== */
+  .strip { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .strip-col { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .strip-top { display: flex; align-items: center; gap: 12px; width: 100%; }
+  .pf-row { display: flex; gap: 3px; flex-wrap: wrap; }
+  .pf-pill {
+    padding: 3px 10px; border-radius: 99px; border: 1px solid var(--line-soft);
+    font-size: 11px; font-weight: 500; color: var(--ink-mute);
+    background: transparent; cursor: pointer; transition: all .15s;
+    white-space: nowrap;
+  }
+  .pf-pill:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .pf-pill.active {
+    background: var(--surface-2); color: var(--ink); border-color: var(--line);
+    font-weight: 600;
+  }
+  .strip-label {
+    font-size: 10.5px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-mute);
+    min-width: 88px;
+  }
+  .pill-row { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; }
+  .pill {
+    padding: 6px 12px; border-radius: 99px;
+    font-size: 12px; font-weight: 500;
+    color: var(--ink-mid);
+    background: transparent;
+    border: 1px solid var(--line-soft);
+    transition: all .12s;
+    font-variant-numeric: tabular-nums;
+  }
+  .pill:hover { border-color: var(--ink-faint); color: var(--ink); }
+  .pill-wrap { display: inline-flex; align-items: stretch; gap: 0; border-radius: 99px; border: 1px solid var(--line-soft); }
+  .pill-wrap.active { background: var(--ink); border-color: var(--ink); }
+  .pill-wrap .pill { border: none; }
+  .pill-wrap.active .pill { background: transparent; color: var(--bg); }
+  .pill-x {
+    padding: 0 10px 0 4px; font-size: 14px; color: var(--ink-faint);
+    border: none; background: transparent; cursor: pointer; border-radius: 99px;
+    line-height: 1;
+  }
+  .pill-wrap.active .pill-x { color: var(--bg); opacity: 0.6; }
+  .pill-x:hover { color: var(--neg); opacity: 1; }
+  .pill-add { color: var(--accent); border: 1px dashed var(--accent); }
+  .pill-add:hover { background: var(--accent-soft); color: var(--accent); border-style: solid; }
+  .hero-period { cursor: pointer; }
+  .hero-period:hover { color: var(--accent); }
+  .pill.active {
+    background: var(--ink); color: var(--bg); border-color: var(--ink);
+    font-weight: 600;
+  }
+  .pill.scenario-active { color: #1a1a17; border-color: transparent; font-weight: 600; }
+  .strip-end { display: flex; gap: 6px; }
+
+  /* ========== SECTION ========== */
+  .section { margin-bottom: 56px; }
+  .section-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 20px; gap: 16px;
+  }
+  .section-title {
+    font-family: var(--serif); font-size: 32px; font-weight: 400;
+    letter-spacing: -0.015em; line-height: 1;
+    display: flex; align-items: baseline; gap: 14px;
+  }
+  .section-title-num {
+    font-size: 12px; font-family: var(--mono); color: var(--accent);
+    font-weight: 500; letter-spacing: 0.1em;
+  }
+  .section-actions { display: flex; gap: 4px; }
+
+  /* ========== CARD ========== */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+  .card-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 18px; gap: 12px;
+  }
+  .card-title { font-size: 13px; font-weight: 600; letter-spacing: -0.005em; color: var(--ink); }
+  .card-sub { font-size: 11px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  /* ========== KPI ========== */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; background: var(--surface); }
+  .kpi {
+    padding: 24px 28px;
+    border-right: 1px solid var(--line);
+    position: relative;
+    transition: background .2s;
+  }
+  .kpi:last-child { border-right: none; }
+  .kpi:hover { background: var(--surface-hover); }
+  .kpi-label {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-mute);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .kpi-label::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+  }
+  .kpi-expl {
+    font-size: 11.5px; color: var(--ink-mute); line-height: 1.35;
+    margin-top: -10px; margin-bottom: 14px; max-width: 22ch;
+    font-style: italic;
+  }
+  .kpi-value {
+    font-family: var(--serif); font-size: 56px; line-height: 0.92;
+    font-weight: 400; letter-spacing: -0.025em; color: var(--ink);
+    display: flex; align-items: baseline; gap: 6px;
+  }
+  .kpi-unit { font-size: 22px; color: var(--ink-mute); font-style: italic; }
+  .kpi-foot {
+    margin-top: 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+  }
+  .kpi-spark { height: 28px; flex: 1; min-width: 0; }
+  .delta {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: var(--mono); font-size: 11.5px; font-weight: 500;
+    padding: 3px 8px; border-radius: 4px;
+  }
+  .delta.pos { background: var(--pos-soft); color: var(--pos); }
+  .delta.neg { background: var(--neg-soft); color: var(--neg); }
+  .delta.neutral { background: var(--surface-2); color: var(--ink-mute); }
+
+  /* ===== COMPARISON ===== */
+  .kpi-compare {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 10px; padding: 8px 10px;
+    border-radius: 6px; background: var(--surface-2);
+    border-left: 3px solid var(--sc);
+    font-size: 12px;
+  }
+  .kpi-cmp-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sc); }
+  .kpi-cmp-label { color: var(--ink-mute); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; }
+  .kpi-cmp-val { color: var(--sc); font-weight: 600; margin-left: auto; }
+  .kpi-cmp-delta { font-family: var(--mono); font-size: 10.5px; color: var(--ink-mute); padding: 2px 6px; border-radius: 4px; background: var(--bg); }
+
+  .src-row-cmp { grid-template-columns: 110px 1fr auto auto; }
+  .src-bars { display: flex; flex-direction: column; gap: 3px; }
+  .src-bar-compare { opacity: 0.85; }
+  .src-bar-fill-cmp { background: var(--sc) !important; }
+  .src-nums { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+  .src-leads-cmp { font-family: var(--mono); font-size: 11px; font-weight: 500; }
+
+  .camp-compare {
+    margin-top: 10px; padding: 10px 12px;
+    border-left: 3px solid var(--sc);
+    background: var(--surface-2); border-radius: 6px;
+  }
+  .camp-cmp-tag {
+    display: inline-block;
+    font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--sc); margin-bottom: 6px;
+  }
+
+  .funnel-row.with-cmp .funnel-bar-wrap { height: 44px; }
+  .funnel-row.with-cmp .funnel-stage { align-self: start; padding-top: 14px; }
+  .funnel-bar-cmp {
+    height: 18px; margin-top: 4px;
+    border-radius: 4px;
+    display: flex; align-items: center; padding-left: 12px;
+    color: #1a1a17; font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+    opacity: 0.9;
+    position: relative;
+  }
+  .funnel-cmp-count { color: rgba(0,0,0,0.85); }
+
+  .pipeline-cmp {
+    margin-top: 14px; padding: 8px 12px;
+    border-radius: 6px; background: rgba(255,255,255,0.12);
+    border-left: 3px solid var(--sc);
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 12px;
+    position: relative; z-index: 1;
+  }
+  .pipeline-cmp-tag { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.75; }
+  .pipeline-cmp-val { font-weight: 600; }
+  .pipeline-cmp-delta { font-family: var(--mono); font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.25); }
+
+  /* ========== NARRATIVE ========== */
+  .narrative {
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 28px 32px;
+    background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+    position: relative; overflow: hidden;
+  }
+  .narrative::before {
+    content: "";
+    position: absolute; top: 0; right: -40px; width: 240px; height: 240px;
+    background: radial-gradient(circle, var(--accent-soft) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .narrative-head {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .narrative-head::after {
+    content: ""; flex: 1; height: 1px; background: var(--line);
+  }
+  .narrative-text {
+    font-family: var(--serif); font-size: 24px; line-height: 1.35;
+    letter-spacing: -0.005em; color: var(--ink-mid);
+    position: relative;
+  }
+  .narrative-text strong {
+    color: var(--ink); font-weight: 400;
+    box-shadow: inset 0 -10px 0 var(--accent-soft);
+  }
+  .narrative-text .up { color: var(--pos); font-style: normal; font-family: var(--mono); font-size: 19px; font-weight: 500; }
+  .narrative-text .down { color: var(--neg); font-style: normal; font-family: var(--mono); font-size: 19px; font-weight: 500; }
+
+  /* ========== TWO COLS ========== */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  .grid-2-3 { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; }
+  .grid-equal-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  /* ========== SOURCES ========== */
+  .src-row {
+    display: grid; grid-template-columns: 110px 1fr auto auto; gap: 14px;
+    align-items: center;
+    padding: 12px 0; border-bottom: 1px solid var(--line-soft);
+  }
+  .src-row:last-child { border-bottom: none; }
+  .src-name { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .src-bar { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+  .src-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-deep), var(--accent)); border-radius: 3px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+  .src-quality {
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    padding: 2px 7px; border-radius: 4px;
+    background: var(--surface-2); color: var(--ink-mid);
+    min-width: 44px; text-align: center;
+  }
+  .src-quality.q-hi { background: var(--pos-soft); color: var(--pos); }
+  .src-quality.q-lo { background: var(--neg-soft); color: var(--neg); }
+  .src-leads { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--ink); min-width: 30px; text-align: right; }
+
+  /* ========== CAMPAIGNS ========== */
+  .camp-row {
+    padding: 16px 0; border-bottom: 1px solid var(--line-soft);
+  }
+  .camp-row:last-child { border-bottom: none; }
+  .camp-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .camp-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .camp-roi {
+    font-family: var(--serif); font-size: 22px; font-style: italic;
+    color: var(--accent);
+  }
+  .camp-roi.lo { color: var(--ink-mute); }
+  .camp-stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; font-size: 11.5px; }
+  .camp-stat-label { color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; margin-bottom: 2px; }
+  .camp-stat-val { font-family: var(--mono); font-weight: 600; color: var(--ink); font-size: 13px; }
+
+  /* ========== FUNNEL ========== */
+  .funnel { display: flex; flex-direction: column; gap: 6px; }
+  .funnel-row {
+    display: grid; grid-template-columns: 130px 1fr; align-items: center;
+    gap: 12px; position: relative;
+  }
+  .funnel-stage {
+    font-weight: 500; color: var(--ink); font-size: 12px;
+    text-align: right; line-height: 1.25;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .funnel-bars-col { display: flex; flex-direction: column; gap: 4px; }
+  .funnel-bar-wrap {
+    height: 56px; background: var(--surface-2); border-radius: var(--r-sm);
+    overflow: hidden; position: relative;
+  }
+  .funnel-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--ink), var(--ink) 60%, var(--accent) 100%);
+    transition: width .8s cubic-bezier(.4,0,.2,1);
+    border-radius: var(--r-sm);
+    min-width: 0;
+  }
+  [data-theme="light"] .funnel-bar { background: linear-gradient(90deg, var(--ink), var(--accent-deep)); }
+  .funnel-meta {
+    position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+    display: flex; align-items: center; gap: 14px;
+    font-size: 12px;
+  }
+  .funnel-conv { font-family: var(--mono); font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
+  .funnel-conv.hi { background: var(--pos-soft); color: var(--pos); }
+  .funnel-conv.mid { background: var(--accent-soft); color: var(--accent); }
+  .funnel-conv.lo { background: var(--neg-soft); color: var(--neg); }
+  .funnel-days {
+    font-family: var(--mono); font-size: 10.5px; color: var(--ink-mute);
+    background: var(--bg); padding: 2px 6px; border-radius: 4px;
+    border: 1px solid var(--line);
+  }
+  .funnel-summary {
+    margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--line);
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+  }
+  .fs-label { font-size: 10px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.1em; }
+  .fs-val { font-family: var(--serif); font-size: 28px; color: var(--ink); margin-top: 4px; }
+  .fs-val .small { font-size: 14px; color: var(--ink-mute); font-style: italic; }
+
+  /* ========== QUALITY DONUT ========== */
+  .quality-card { display: flex; flex-direction: column; }
+  .quality-canvas-wrap { position: relative; flex: 1; display: grid; place-items: center; min-height: 220px; }
+  .quality-center {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .quality-center-val { font-family: var(--serif); font-size: 44px; line-height: 1; color: var(--ink); }
+  .quality-center-label { font-size: 10px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 4px; }
+  .quality-legend { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+  .ql-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+  .ql-dot { width: 8px; height: 8px; border-radius: 2px; }
+  .ql-name { flex: 1; color: var(--ink-mid); }
+  .ql-val { font-family: var(--mono); color: var(--ink); font-weight: 500; }
+
+  /* ========== PROBLEMS ========== */
+  .problem {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--neg);
+    border-radius: var(--r-md);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    background: var(--surface);
+    transition: all .15s;
+  }
+  .problem:hover { background: var(--surface-hover); border-left-color: var(--accent); }
+  .problem-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 6px; }
+  .problem-client { font-weight: 600; font-size: 14px; color: var(--ink); }
+  .problem-deal { font-size: 12px; color: var(--ink-mute); margin-top: 2px; }
+  .problem-days {
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    padding: 4px 9px; border-radius: 4px;
+    background: var(--neg-soft); color: var(--neg);
+    flex-shrink: 0;
+  }
+  .problem-issue { font-size: 12.5px; color: var(--ink-mid); margin-top: 8px; line-height: 1.4; }
+  .empty-state { font-size: 13px; color: var(--ink-mute); padding: 16px; text-align: center; font-style: italic; font-family: var(--serif); }
+
+  /* ========== PRIORITIES ========== */
+  .priority {
+    display: grid; grid-template-columns: 32px 1fr auto; gap: 14px;
+    align-items: start;
+    padding: 14px 0; border-bottom: 1px solid var(--line-soft);
+  }
+  .priority:last-child { border-bottom: none; }
+  .priority-num {
+    font-family: var(--serif); font-style: italic; font-size: 28px;
+    line-height: 1; color: var(--accent);
+  }
+  .priority-task { font-size: 13px; line-height: 1.4; color: var(--ink); }
+  .priority-meta { font-size: 11px; color: var(--ink-mute); margin-top: 4px; font-family: var(--mono); }
+  .priority-due {
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    padding: 3px 8px; border-radius: 4px;
+    background: var(--surface-2); color: var(--ink-mid);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  /* ========== PIPELINE VALUE ========== */
+  .pipeline-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+  .pipeline-hero {
+    padding: 32px;
+    background: linear-gradient(135deg, var(--ink) 0%, color-mix(in srgb, var(--ink) 75%, var(--accent)) 100%);
+    color: var(--bg);
+    border-radius: var(--r-lg);
+    position: relative; overflow: hidden;
+  }
+  [data-theme="light"] .pipeline-hero { background: linear-gradient(135deg, #1a1a17 0%, #3a2410 100%); color: #fdfcf8; }
+  .pipeline-hero-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; opacity: 0.7; margin-bottom: 12px; }
+  .pipeline-hero-val { font-family: var(--serif); font-size: 64px; line-height: 1; font-weight: 400; letter-spacing: -0.02em; }
+  .pipeline-hero-unit { font-size: 24px; font-style: italic; opacity: 0.7; }
+  .pipeline-hero-note { font-size: 12px; opacity: 0.7; margin-top: 12px; max-width: 80%; line-height: 1.5; }
+  .pipeline-manual-badge {
+    position: absolute; top: 18px; right: 18px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 5px 9px; border-radius: 999px;
+    background: rgba(255,255,255,0.18); color: #fdfcf8;
+    backdrop-filter: blur(4px);
+  }
+  .pipeline-manual-note {
+    font-family: var(--serif); font-style: italic; font-size: 14px;
+    opacity: 0.85; margin-top: 8px; max-width: 80%; line-height: 1.5;
+    position: relative; z-index: 1;
+  }
+  .pipeline-hero-decoration {
+    position: absolute; bottom: -50px; right: -50px;
+    font-family: var(--serif); font-size: 240px; line-height: 1;
+    font-style: italic; opacity: 0.06;
+    pointer-events: none;
+  }
+  .pipeline-split { display: flex; flex-direction: column; gap: 12px; }
+  .pipeline-stat {
+    padding: 16px 20px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    flex: 1;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .ps-label { font-size: 12px; color: var(--ink-mid); }
+  .ps-val { font-family: var(--mono); font-size: 16px; font-weight: 600; color: var(--ink); }
+
+  /* ========== CHART CARDS ========== */
+  .chart-card { padding: 24px 24px 16px; }
+  .chart-wrap { height: 280px; position: relative; }
+  .chart-wrap.tall { height: 320px; }
+  .metric-tabs { display: flex; gap: 2px; padding: 2px; background: var(--surface-2); border-radius: var(--r-sm); }
+  .metric-tab {
+    padding: 6px 12px; font-size: 11.5px; font-weight: 500;
+    color: var(--ink-mute); border-radius: 5px;
+    transition: all .15s;
+  }
+  .metric-tab.active { background: var(--bg); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
+  /* ========== MODAL ========== */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    max-width: 920px; width: 100%; max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-head {
+    position: sticky; top: 0; background: var(--surface); border-bottom: 1px solid var(--line);
+    padding: 20px 28px; display: flex; align-items: center; justify-content: space-between;
+    z-index: 1;
+  }
+  .modal-title { font-family: var(--serif); font-size: 28px; }
+  .modal-hint { font-size: 12px; color: var(--ink-mute); margin-top: 4px; }
+  .modal-body { padding: 24px 28px; }
+  .modal-section { margin-bottom: 28px; }
+  .modal-section-title {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-mute); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .modal-section-title::before {
+    content: ""; width: 18px; height: 1px; background: var(--accent);
+  }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th {
+    font-size: 10.5px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-mute); text-align: left; padding: 6px 8px;
+  }
+  .data-table td { padding: 4px 4px; }
+  .cell-input {
+    width: 100%; padding: 8px 10px;
+    background: var(--bg); border: 1px solid var(--line);
+    border-radius: var(--r-sm); color: var(--ink); font-size: 13px;
+    font-family: inherit;
+  }
+  .cell-input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+  .cell-input.num { font-family: var(--mono); text-align: center; }
+  .row-grid { display: grid; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .row-grid.problem-edit { grid-template-columns: 1.5fr 1.5fr 2fr 60px 30px; }
+  .row-grid.priority-edit { grid-template-columns: 3fr 1fr 80px 30px; }
+  .row-grid.insight-edit { grid-template-columns: 1fr 30px; }
+  .row-grid .x { color: var(--neg); font-size: 18px; line-height: 1; padding: 6px; }
+  .modal-foot { display: flex; gap: 10px; padding: 20px 28px; border-top: 1px solid var(--line); position: sticky; bottom: 0; background: var(--surface); }
+
+  .add-btn { font-size: 12px; color: var(--accent); margin-top: 6px; padding: 6px 10px; }
+
+  /* ========== COMMENTARY ========== */
+  .commentary-grid { display: flex; flex-direction: column; gap: 28px; }
+  .commentary-panel { display: flex; flex-direction: column; gap: 10px; }
+  .commentary-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-mute); display: flex; align-items: center; gap: 8px;
+  }
+  .commentary-label::before { content: ''; width: 16px; height: 1px; background: var(--accent); }
+  .commentary-text {
+    font-family: var(--serif); font-size: 22px; line-height: 1.4; color: var(--ink);
+    letter-spacing: -0.005em; white-space: pre-wrap;
+  }
+  .commentary-text.empty { font-style: italic; color: var(--ink-faint); }
+  .commentary-divider { height: 1px; background: var(--line-soft); }
+  .commentary-textarea {
+    width: 100%; min-height: 120px; resize: vertical;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: var(--r-md); padding: 12px 14px;
+    font-family: var(--sans); font-size: 13.5px; line-height: 1.6;
+    color: var(--ink); outline: none;
+  }
+  .commentary-textarea:focus { border-color: var(--accent); }
+
+  /* Print commentary */
+  .ps-commentary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .ps-commentary-label { font-size: 7px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #888; margin-bottom: 5px; }
+  .ps-commentary-text { font-size: 9px; line-height: 1.55; color: #333; white-space: pre-wrap; }
+  .ps-commentary-empty { font-size: 9px; color: #aaa; font-style: italic; }
+
+    /* ========== FOOTER ========== */
+  .footer {
+    margin-top: 80px; padding-top: 32px; border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--ink-mute);
+  }
+  .footer-mark { font-family: var(--serif); font-style: italic; font-size: 18px; color: var(--ink-mid); }
+
+  /* PRINT — единая компактная страница */
+  #print-summary { display: none; }
+  /* shared screen + print styles for print-summary */
+  #print-summary { font-family: var(--sans, system-ui); font-size: 9px; line-height: 1.35; color: #1a1a17; }
+  #print-summary * { box-sizing: border-box; }
+  #print-summary .ps-header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 8px; border-bottom: 2px solid #1a1a17; margin-bottom: 10px; }
+  #print-summary .ps-brand { font-family: var(--serif, Georgia); font-size: 10px; font-weight: 600; letter-spacing: 0.32em; color: #c79a52; margin-bottom: 4px; }
+  #print-summary .ps-title { font-family: var(--serif, Georgia); font-size: 20px; font-weight: 500; line-height: 1.1; letter-spacing: -0.01em; }
+  #print-summary .ps-meta { text-align: right; }
+  #print-summary .ps-period { font-family: var(--serif, Georgia); font-size: 13px; font-style: italic; }
+  #print-summary .ps-gen { font-size: 8px; color: #888; margin-top: 2px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  #print-summary .ps-kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; border-top: 1px solid #c8c4b8; border-bottom: 1px solid #c8c4b8; margin-bottom: 10px; }
+  #print-summary .ps-kpis > div { padding: 7px 10px; border-right: 1px solid #e5e1d4; }
+  #print-summary .ps-kpis > div:last-child { border-right: none; }
+  #print-summary .ps-kpi-label { font-size: 7px; letter-spacing: 0.16em; text-transform: uppercase; color: #888; font-weight: 600; }
+  #print-summary .ps-kpi-expl { font-size: 8px; color: #999; font-style: italic; line-height: 1.25; margin-top: 1px; }
+  #print-summary .ps-kpi-val { font-family: var(--serif, Georgia); font-size: 22px; line-height: 1.1; font-weight: 500; margin-top: 2px; }
+  #print-summary .ps-kpi-sub { font-size: 8px; color: #888; }
+
+  #print-summary .ps-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 12px; }
+  #print-summary .ps-left, #print-summary .ps-right { display: flex; flex-direction: column; gap: 8px; }
+  #print-summary .ps-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  #print-summary .ps-narrative { padding: 8px 10px; background: #faf7ee; border-left: 3px solid #c79a52; font-size: 10px; line-height: 1.45; }
+  #print-summary .ps-narrative .up { color: #2c7a4b; font-weight: 600; }
+  #print-summary .ps-narrative .down { color: #b53a2b; font-weight: 600; }
+
+  #print-summary .ps-sec { border: 1px solid #d8d3c4; border-radius: 3px; padding: 7px 9px; background: #fff; }
+  #print-summary .ps-sec-title { font-size: 8px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #888; padding-bottom: 4px; margin-bottom: 5px; border-bottom: 1px solid #ece8da; }
+
+  #print-summary .ps-table { width: 100%; border-collapse: collapse; font-size: 9px; }
+  #print-summary .ps-table th { font-size: 7px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #888; padding: 2px 4px; border-bottom: 1px solid #e5e1d4; }
+  #print-summary .ps-table td { padding: 2.5px 4px; border-bottom: 1px dotted #e0dcce; vertical-align: middle; }
+  #print-summary .ps-table tr:last-child td { border-bottom: none; }
+  #print-summary .ps-table .ps-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  #print-summary .ps-table .ps-name { font-weight: 500; }
+  #print-summary .ps-table th.ps-num { text-align: right; }
+
+  #print-summary .ps-forecast { background: #fff; color: #1a1a17; border: 1px solid #d8d3c4; padding: 9px 11px; border-radius: 3px; }
+  #print-summary .ps-fc-title { color: #888 !important; border-color: #ece8da !important; }
+  #print-summary .ps-fc-val { font-family: var(--serif, Georgia); font-size: 38px; line-height: 1; font-weight: 500; letter-spacing: -0.02em; margin-top: 2px; color: #1a1a17; }
+  #print-summary .ps-fc-unit { font-size: 16px; font-style: italic; opacity: 0.55; }
+  #print-summary .ps-fc-sub { font-size: 9px; color: #888; margin-top: 5px; }
+  #print-summary .ps-fc-note { font-family: var(--serif, Georgia); font-style: italic; font-size: 10px; color: #c79a52; margin-top: 5px; line-height: 1.35; }
+  #print-summary .ps-fc-note:empty { display: none; }
+
+  #print-summary .ps-chart-sec svg { width: 100%; display: block; }
+  #print-summary .ps-donut-wrap { display: grid; grid-template-columns: 95px 1fr; gap: 8px; align-items: center; }
+  #print-summary .ps-legend { display: flex; flex-direction: column; gap: 2px; font-size: 8.5px; }
+  #print-summary .ps-legend .ps-leg-row { display: grid; grid-template-columns: 7px 1fr 18px 22px; align-items: center; gap: 4px; }
+  #print-summary .ps-legend .ps-leg-dot { width: 7px; height: 7px; border-radius: 2px; }
+  #print-summary .ps-legend .ps-leg-name { }
+  #print-summary .ps-legend .ps-leg-count { font-variant-numeric: tabular-nums; color: #555; text-align: right; font-weight: 500; }
+  #print-summary .ps-legend .ps-leg-pct { font-variant-numeric: tabular-nums; color: #999; text-align: right; }
+
+  #print-summary .ps-list { margin: 0; padding: 0; list-style: none; }
+  #print-summary .ps-list li { padding: 3px 0; border-bottom: 1px dotted #e0dcce; font-size: 9px; line-height: 1.35; }
+  #print-summary .ps-list li:last-child { border-bottom: none; }
+  #print-summary .ps-list .ps-li-meta { font-size: 8px; color: #888; }
+
+  /* On-screen print-mode preview */
+  body.print-mode { background: #e5e3dc; padding: 20px 0; }
+  body.print-mode > *:not(#print-summary):not(#print-mode-bar) { display: none !important; }
+  body.print-mode #print-summary {
+    display: block;
+    width: 277mm; min-height: 190mm;
+    margin: 0 auto;
+    padding: 12mm;
+    background: #fff;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.18);
+  }
+  #print-mode-bar {
+    display: none;
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    z-index: 100;
+    background: var(--ink); color: var(--surface);
+    border-radius: 999px;
+    padding: 6px 8px 6px 16px;
+    gap: 10px; align-items: center;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    font-size: 12px;
+  }
+  body.print-mode #print-mode-bar { display: flex; }
+  #print-mode-bar .pmb-title { font-weight: 500; letter-spacing: 0.02em; }
+  #print-mode-bar button {
+    border: none; padding: 7px 14px; border-radius: 999px;
+    cursor: pointer; font-size: 12px; font-weight: 500;
+    font-family: inherit;
+  }
+  #print-mode-bar .pmb-print { background: var(--accent); color: #fff; }
+  #print-mode-bar .pmb-back { background: rgba(255,255,255,0.15); color: var(--surface); }
+  @page { size: A4 landscape; margin: 12mm; }
+  @media print {
+    html, body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+    /* ── Версия для совещания ── */
+    body::before, body::after { display: none !important; }
+    html { background: #fff !important; }
+    body.print-mode { background: #fff !important; padding: 0 !important; margin: 0 !important; min-height: 0 !important; }
+    body.print-mode > *:not(#print-summary) { display: none !important; }
+    #print-mode-bar { display: none !important; }
+    body:not(.print-mode) #print-summary { display: none !important; }
+    body.print-mode #print-summary {
+      display: block !important;
+      width: 100% !important;
+      min-height: 0 !important;
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      background: #fff !important;
+      color: #111 !important;
+    }
+
+    /* ── Компактные размеры для одностраничной печати ── */
+    body.print-mode #print-summary .ps-header { padding-bottom: 5px !important; margin-bottom: 6px !important; }
+    body.print-mode #print-summary .ps-brand { font-size: 8px !important; }
+    body.print-mode #print-summary .ps-title { font-size: 14px !important; }
+    body.print-mode #print-summary .ps-period { font-size: 10px !important; }
+    body.print-mode #print-summary .ps-kpis { margin-bottom: 6px !important; }
+    body.print-mode #print-summary .ps-kpis > div { padding: 4px 8px !important; }
+    body.print-mode #print-summary .ps-kpi-val { font-size: 16px !important; }
+    body.print-mode #print-summary .ps-grid { gap: 8px !important; }
+    body.print-mode #print-summary .ps-left,
+    body.print-mode #print-summary .ps-right { gap: 5px !important; }
+    body.print-mode #print-summary .ps-row2 { gap: 5px !important; }
+    body.print-mode #print-summary .ps-narrative { padding: 5px 8px !important; font-size: 9px !important; }
+    body.print-mode #print-summary .ps-sec { padding: 4px 7px !important; }
+    body.print-mode #print-summary .ps-sec-title { padding-bottom: 3px !important; margin-bottom: 3px !important; }
+    body.print-mode #print-summary .ps-forecast { padding: 5px 9px !important; }
+    body.print-mode #print-summary .ps-fc-val { font-size: 24px !important; }
+    body.print-mode #print-summary .ps-fc-unit { font-size: 12px !important; }
+    body.print-mode #print-summary .ps-fc-sub { margin-top: 3px !important; }
+    body.print-mode #print-summary .ps-fc-note { margin-top: 3px !important; font-size: 9px !important; }
+
+    /* ── Обычная печать дашборда ── */
+    body:not(.print-mode) { background: white !important; color: #000 !important; font-size: 9px; }
+    body:not(.print-mode) .no-print, body:not(.print-mode) .topbar, body:not(.print-mode) .archive-strip, body:not(.print-mode) .scenario-strip, body:not(.print-mode) .modal-overlay,
+    .topbar-scenarios, #scenario-pills, .strip-end,
+    .pipeline-hero-decoration, .hero-decoration,
+    .pipeline-cmp, .pipeline-manual-badge { display: none !important; }
+
+    /* Layout */
+    .page { max-width: none !important; padding: 0 !important; margin: 0 !important; }
+    section, .section, .card, .narrative, .kpi, .kpi-grid,
+    .pipeline-hero, .pipeline-split, .funnel-card, .sources-card {
+      box-shadow: none !important;
+      border-color: #aaa !important;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    body * { animation: none !important; transition: none !important; }
+
+    /* HERO */
+    .hero { gap: 8px !important; margin: 0 0 6px !important; padding: 6px 0 !important; border: none !important; display: flex !important; justify-content: space-between; align-items: flex-end; }
+    .hero h1 { font-size: 18px !important; line-height: 1.1 !important; margin: 0 !important; }
+    .hero h1 em { font-style: italic; }
+    .hero-eyebrow { font-size: 8px !important; margin-bottom: 3px !important; }
+    .hero-meta, .hero-period, .hero-tags { font-size: 8px !important; }
+
+    /* KPIs */
+    .kpi-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 0 !important; margin: 4px 0 !important; border: 1px solid #aaa !important; }
+    .kpi { padding: 4px 6px !important; border-right: 1px solid #ddd !important; border-bottom: none !important; }
+    .kpi-label { font-size: 7px !important; margin-bottom: 2px !important; }
+    .kpi-val { font-size: 16px !important; line-height: 1 !important; }
+    .kpi-sub, .kpi-delta, .kpi-unit, .delta { font-size: 7px !important; }
+    .kpi canvas { display: none !important; }
+
+    /* Narrative */
+    .narrative { padding: 6px 8px !important; margin: 4px 0 !important; font-size: 9px !important; line-height: 1.35 !important; }
+
+    /* Cards & grids — compact */
+    .grid-2, .grid-3, .grid-2-3, .pipeline-grid, .grid-equal-3 {
+      gap: 6px !important; margin: 4px 0 !important;
+    }
+    .card, section { padding: 6px 8px !important; margin-bottom: 4px !important; }
+    .card-head { margin-bottom: 4px !important; }
+    .card-title { font-size: 10px !important; }
+    .card-sub, .small { font-size: 7px !important; }
+
+    /* Pipeline hero */
+    .pipeline-hero { padding: 8px 10px !important; }
+    .pipeline-hero-label { font-size: 7px !important; margin-bottom: 2px !important; }
+    .pipeline-hero-val { font-size: 22px !important; }
+    .pipeline-hero-unit { font-size: 11px !important; }
+    .pipeline-hero-note, .pipeline-manual-note { font-size: 8px !important; margin-top: 3px !important; }
+    .pipeline-stat { padding: 4px 6px !important; }
+    .ps-val { font-size: 12px !important; }
+    .ps-label { font-size: 7px !important; }
+
+    /* Sources / campaigns / funnel rows */
+    .src-row, .camp-card, .funnel-row, .prob-row, .prio-row {
+      padding: 3px 4px !important; margin-bottom: 2px !important;
+      page-break-inside: avoid;
+    }
+    .src-name, .camp-name, .funnel-stage { font-size: 9px !important; }
+    .src-leads, .src-quality, .camp-roi { font-size: 10px !important; }
+    .src-bar, .funnel-bar { height: 4px !important; }
+    .camp-stats { gap: 6px !important; }
+    .camp-stat-val { font-size: 10px !important; }
+    .camp-stat-label { font-size: 6px !important; }
+
+    /* Charts: hide most, they don't print well */
+    #qualityChart, #dynamicsChart, #qualityLegendBox, #quality-legend,
+    .src-row .spark, canvas[id*="spark"], .kpi-spark { display: none !important; }
+
+    /* Problems / priorities — keep tight */
+    #problems-list, #priorities-list, #insights-list { font-size: 9px !important; }
+    .insight-row, .prob-row, .prio-row { padding: 3px 4px !important; }
+
+    h2, h3 { font-size: 11px !important; margin: 4px 0 2px !important; }
+
+    /* Page fit footer */
+    .page-print-footer { display: block !important; font-size: 7px; text-align: right; opacity: 0.6; margin-top: 4px; }
+  }
+  .page-print-footer { display: none; }
+
+  /* RESPONSIVE */
+  @media (max-width: 1100px) {
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .kpi { border-right: none; border-bottom: 1px solid var(--line); }
+    .kpi:nth-child(odd) { border-right: 1px solid var(--line); }
+    .grid-2, .grid-3, .grid-2-3, .pipeline-grid, .grid-equal-3 { grid-template-columns: 1fr; }
+    .hero { grid-template-columns: 1fr; gap: 24px; }
+    .hero-meta { text-align: left; }
+    .hero-period, .hero-tags { text-align: left; justify-content: flex-start; }
+  }
+  @media (max-width: 768px) {
+    .topbar-scenarios { display: none; }
+    .topbar-secondary { display: none; }
+    .section-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .section-title { font-size: 26px; }
+    .metric-tabs { width: 100%; overflow-x: auto; }
+    .topbar-main { padding: 8px 16px; }
+    .topbar-archive { padding: 5px 16px 8px; }
+  }
+  @media (max-width: 640px) {
+    .page { padding: 0 12px 60px; }
+    .topbar-main { padding: 8px 12px; gap: 6px; }
+    .topbar-archive { padding: 5px 12px 8px; }
+    .topbar-secondary { display: none; }
+    .topbar-scenarios { display: none; }
+    .topbar-actions { gap: 4px; }
+
+    .hero h1 { font-size: 30px; line-height: 1.15; }
+    .hero-eyebrow { font-size: 11px; }
+
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .kpi { border-right: none; border-bottom: 1px solid var(--line); }
+    .kpi:nth-child(odd) { border-right: 1px solid var(--line); }
+    .kpi:last-child, .kpi:nth-last-child(2):nth-child(odd) { border-bottom: none; }
+    .kpi-val { font-size: 24px !important; }
+    .kpi-spark { display: none !important; }
+    .kpi-compare { display: none; }
+
+    .card { padding: 16px; }
+    .card-head { margin-bottom: 12px; }
+
+    .src-row {
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto auto;
+      gap: 4px 8px;
+    }
+    .src-name { grid-area: 1 / 1; font-size: 12px; }
+    .src-quality { grid-area: 1 / 2; }
+    .src-bar { grid-area: 2 / 1 / 3 / 3; }
+    .src-row .spark, .src-row-cmp .spark { display: none !important; }
+    .src-row-cmp { grid-template-columns: 1fr auto; grid-template-rows: auto auto; }
+
+    .funnel-summary { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .camp-stats { grid-template-columns: 1fr 1fr; }
+
+    .narrative { padding: 20px; }
+
+    .modal-overlay { padding: 0; align-items: flex-end; }
+    .modal {
+      border-radius: var(--r-lg) var(--r-lg) 0 0;
+      max-height: 92vh;
+      width: 100%;
+      max-width: 100%;
+    }
+    .modal-head { padding: 16px 20px; }
+    .modal-title { font-size: 20px; }
+    .modal-body { padding: 12px 16px; }
+    .modal-foot { padding: 12px 16px; flex-wrap: wrap; }
+    .data-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .data-table thead, .data-table tbody, .data-table tr { display: table; width: 100%; table-layout: fixed; }
+
+    .strip { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; gap: 8px; }
+    .pill-row { flex-wrap: nowrap; min-width: max-content; }
+
+    .pipeline-hero-val { font-size: 44px; }
+    .pipeline-hero-decoration { font-size: 80px; }
+
+    .chart-wrap { height: 200px; }
+    .chart-wrap.tall { height: 220px; }
+    .quality-canvas-wrap { min-height: 160px; }
+
+    .footer { flex-direction: column; gap: 4px; text-align: center; }
+  }
+  @media (max-width: 380px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .kpi:nth-child(odd) { border-right: none; }
+    .kpi:last-child { border-bottom: none; }
+    .topbar-actions .btn-outline { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- =================== TOPBAR =================== -->
+<header class="topbar no-print">
+  <div class="topbar-main">
+    <div class="brand">
+      <div class="brand-mark">С</div>
+      <div>
+        <div class="brand-name">СИЛВА · Поселок</div>
+        <div class="brand-sub">CRM · Еженедельный отчёт</div>
+      </div>
+    </div>
+
+    <div class="topbar-scenarios" id="topbar-scenarios"></div>
+
+    <div class="topbar-actions">
+      <div class="topbar-secondary">
+        <button class="btn btn-ghost btn-sm admin-only" onclick="exportBackup()">Экспорт</button>
+        <button class="btn btn-ghost btn-sm admin-only" onclick="document.getElementById('importFile').click()">Импорт</button>
+        <input type="file" id="importFile" accept=".json" onchange="importBackup(event)" style="display:none">
+        <button class="btn btn-ghost btn-sm" onclick="togglePrintMode()">Версия для совещания</button>
+        <button class="btn btn-ghost btn-sm" onclick="window.print()">Печать</button>
+      </div>
+      <button class="btn btn-outline btn-sm admin-only" onclick="newWeek()">＋ Неделя</button>
+      <button class="btn btn-primary btn-sm admin-only" onclick="toggleEdit()">Редактировать</button>
+      <button class="sync-btn admin-only" id="sync-btn" onclick="openSyncModal()" title="Настроить синхронизацию">☁</button>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Тема">
+        <svg id="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="topbar-archive" id="topbar-archive">
+    <span class="topbar-archive-label">Архив</span>
+    <div id="period-filter" class="pf-row"></div>
+    <div id="pf-year-sep" class="topbar-archive-sep" style="display:none"></div>
+    <div id="period-months" class="pf-row" style="display:none"></div>
+    <div id="pf-month-sep" class="topbar-archive-sep"></div>
+    <div class="pill-row" id="week-pills"></div>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- =================== HERO =================== -->
+  <section class="hero">
+    <div>
+      <div class="hero-eyebrow"><span id="hero-week-label">Неделя</span> <span id="hero-week-no" class="num">4</span> · <span id="hero-month">август</span> <span id="hero-year" class="num">2024</span></div>
+      <h1>Поток лидов<br><em>усилился</em> на 35%.</h1>
+      <button id="ai-hero-btn" class="admin-only" onclick="generateAIHero()" title="Сгенерировать заголовок через AI"
+        style="margin-top:8px; padding:5px 12px; font-size:11px; border-radius:20px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; letter-spacing:0.05em;">✦ AI заголовок</button>
+    </div>
+    <div class="hero-meta">
+      <div class="hero-period-label">Период отчёта</div>
+      <input type="text" id="period" class="hero-period" value="22–28 августа" readonly onclick="openWeekPicker(currentIdx)" title="Кликните, чтобы изменить даты">
+      <div class="hero-tags">
+        <span class="tag">Маркетинг</span>
+        <span class="tag">CRM</span>
+        <span class="tag">Сделки</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== WEEK / SCENARIO STRIPS =================== -->
+  <div class="strip no-print" id="scenario-block" style="display:none;">
+    <div class="strip-label">Сценарий</div>
+    <div class="pill-row" id="scenario-pills"></div>
+    <div class="strip-end">
+      <button class="btn btn-ghost btn-sm admin-only" id="create-scenarios-btn" onclick="createScenarios()">Создать сценарии</button>
+      <button class="btn btn-ghost btn-sm admin-only" id="delete-scenarios-btn" onclick="deleteScenarios()" style="display:none; color: var(--neg);">Удалить</button>
+    </div>
+  </div>
+
+  <!-- =================== KPI =================== -->
+  <section style="margin-top: 24px; margin-bottom: 40px;">
+    <div class="kpi-grid" id="kpi-grid"></div>
+  </section>
+
+  <!-- =================== NARRATIVE =================== -->
+  <section class="section">
+    <div class="narrative">
+      <div class="narrative-head">
+        <span>Сводка недели</span>
+        <button id="ai-narrative-btn" class="admin-only" onclick="generateAINarrative()" title="Сгенерировать сводку через AI"
+          style="padding:3px 10px; font-size:10px; border-radius:20px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; letter-spacing:0.05em; flex-shrink:0;">✦ AI</button>
+        <button id="edit-narrative-btn" class="admin-only" onclick="toggleNarrativeEdit()" title="Редактировать сводку"
+          style="padding:3px 10px; font-size:10px; border-radius:20px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; letter-spacing:0.05em; flex-shrink:0;">✎ Изменить</button>
+      </div>
+      <div class="narrative-text" id="narrative"></div>
+      <textarea id="narrative-editor" style="display:none; width:100%; font-family:var(--serif); font-size:24px; line-height:1.35; color:var(--ink-mid); background:transparent; border:1px solid var(--accent); border-radius:8px; padding:12px; resize:vertical; min-height:80px; box-sizing:border-box; letter-spacing:-0.005em;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      <div id="narrative-edit-foot" style="display:none; margin-top:8px; display:none; gap:8px;">
+        <button onclick="saveNarrativeEdit()" style="padding:5px 16px; border-radius:20px; background:var(--accent); color:#fff; border:none; cursor:pointer; font-size:11px;">Сохранить</button>
+        <button onclick="cancelNarrativeEdit()" style="padding:5px 16px; border-radius:20px; background:transparent; border:1px solid var(--line); color:var(--ink-mute); cursor:pointer; font-size:11px;">Отмена</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== DYNAMICS =================== -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">
+        <span class="section-title-num">/ 01</span>
+        Динамика
+      </h2>
+      <div class="metric-tabs" id="dyn-tabs">
+        <button class="metric-tab active" data-metric="leads" onclick="setDynMetric('leads')">Лиды</button>
+        <button class="metric-tab" data-metric="conv" onclick="setDynMetric('conv')">Конверсия</button>
+        <button class="metric-tab" data-metric="spent" onclick="setDynMetric('spent')">Расходы</button>
+        <button class="metric-tab" data-metric="roi" onclick="setDynMetric('roi')">Окупаемость</button>
+      </div>
+    </div>
+    <div class="card chart-card">
+      <div class="chart-wrap tall">
+        <canvas id="dynamicsChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== MARKETING =================== -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">
+        <span class="section-title-num">/ 02</span>
+        Маркетинг
+      </h2>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Источники лидов</div>
+          <div class="card-sub">всего <span id="src-total" class="num">77</span></div>
+        </div>
+        <div id="sources-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Рекламные кампании</div>
+          <div class="card-sub">Окупаемость</div>
+        </div>
+        <div id="campaigns-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== FUNNEL =================== -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">
+        <span class="section-title-num">/ 03</span>
+        Воронка продаж
+      </h2>
+    </div>
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Конверсия по этапам</div>
+          <div class="card-sub">время прохождения этапа</div>
+        </div>
+        <div class="funnel" id="funnel-list"></div>
+        <div class="funnel-summary" id="funnel-summary"></div>
+      </div>
+      <div class="card quality-card">
+        <div class="card-head">
+          <div class="card-title">Качество лидов</div>
+          <div class="card-sub">по источнику</div>
+        </div>
+        <div class="quality-canvas-wrap">
+          <canvas id="qualityChart"></canvas>
+          <div class="quality-center">
+            <div class="quality-center-val" id="avg-quality">79%</div>
+            <div class="quality-center-label">среднее</div>
+          </div>
+        </div>
+        <div class="quality-legend" id="quality-legend"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== PIPELINE =================== -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">
+        <span class="section-title-num">/ 04</span>
+        Сделки и приоритеты
+      </h2>
+    </div>
+
+    <div class="pipeline-grid" style="margin-bottom: 16px;">
+      <div class="pipeline-hero">
+        <div class="pipeline-hero-label">Прогноз закрытия / weighted pipeline</div>
+        <div class="pipeline-hero-val"><span id="pipeline-value">128</span><span class="pipeline-hero-unit"> млн ₽</span></div>
+        <div class="pipeline-hero-note">Оценочная сумма всех сделок воронки, взвешенная по средней конверсии каждого этапа. Включая <span id="pipeline-deals">16</span> активных контрактов.</div>
+        <div class="pipeline-hero-decoration">₽</div>
+      </div>
+      <div class="pipeline-split">
+        <div class="pipeline-stat">
+          <span class="ps-label">Средний цикл сделки</span>
+          <span class="ps-val" id="ps-cycle">21 дн</span>
+        </div>
+        <div class="pipeline-stat">
+          <span class="ps-label">Средний чек</span>
+          <span class="ps-val" id="ps-avg">8.0 млн ₽</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== INSIGHTS =================== -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">
+        <span class="section-title-num">/ 05</span>
+        Выводы и действия
+      </h2>
+    </div>
+    <div class="card" style="padding: 32px 36px;">
+      <div id="insights"></div>
+    </div>
+  </section>
+
+  <!-- =================== COMMENTARY =================== -->
+  <section class="section" id="commentary-section">
+    <div class="section-head">
+      <h2 class="section-title">
+        <span class="section-title-num">/ 06</span>
+        Комментарии
+      </h2>
+    </div>
+    <div class="card" style="padding: 32px 36px;">
+      <div class="commentary-grid">
+        <div class="commentary-panel">
+          <div class="commentary-label">Анализ периода</div>
+          <div id="commentary-manager"></div>
+        </div>
+        <div class="commentary-divider"></div>
+        <div class="commentary-panel">
+          <div class="commentary-label">Справка — контекст рынка ИЖС</div>
+          <div id="commentary-investor"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== FOOTER =================== -->
+  <footer class="footer">
+    <div>
+      Сгенерировано <span id="gen-date" class="num"></span>
+    </div>
+    <div class="footer-mark">— Поселок —</div>
+    <div>Внутренний документ</div>
+  </footer>
+
+</div>
+
+<!-- =================== EDIT MODAL =================== -->
+<div class="modal-overlay no-print" id="editModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Заполнить данные за неделю</div>
+        <div class="modal-hint" id="edit-mode-hint"></div>
+      </div>
+      <button class="btn btn-icon" onclick="toggleEdit()" style="font-size: 22px;">×</button>
+    </div>
+
+    <div class="modal-body">
+      <section class="modal-section">
+        <div class="modal-section-title">① Источники лидов (AmoCRM)</div>
+        <table class="data-table">
+          <thead><tr><th style="width:38%">Источник</th><th>Лиды</th><th>Квалифицировано</th><th style="width:80px;">Качество</th><th></th></tr></thead>
+          <tbody id="edit-sources"></tbody>
+        </table>
+        <button class="add-btn" onclick="addSource()">+ Добавить источник</button>
+      </section>
+
+      <section class="modal-section">
+        <div class="modal-section-title">② Кампании (Excel маркетинга)</div>
+        <table class="data-table">
+          <thead><tr><th style="width:32%">Кампания</th><th>Бюджет/мес</th><th>Показы</th><th>Лиды</th><th>Окупаемость (авто)</th></tr></thead>
+          <tbody id="edit-campaigns"></tbody>
+        </table>
+        <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
+          <button class="add-btn" onclick="addCampaign()">+ Добавить кампанию</button>
+          <span class="small" style="opacity:0.55; margin-left:auto;">ROI = лиды × конверсия воронки × средний чек ÷ расход</span>
+        </div>
+      </section>
+
+      <section class="modal-section">
+        <div class="modal-section-title">③ Воронка (AmoCRM)</div>
+        <table class="data-table">
+          <thead><tr><th style="width:60%">Этап</th><th>Кол-во</th><th>Среднее время (дн)</th></tr></thead>
+          <tbody id="edit-funnel"></tbody>
+        </table>
+      </section>
+
+      <section class="modal-section">
+        <div class="modal-section-title">④ Средний чек по сделкам</div>
+        <table class="data-table">
+          <thead><tr><th>Средняя сумма контракта (млн ₽)</th></tr></thead>
+          <tbody><tr><td><input type="number" step="0.1" class="cell-input num" id="edit-avg-deal" oninput="_editTarget.avgDeal=+this.value"></td></tr></tbody>
+        </table>
+      </section>
+
+      <section class="modal-section">
+        <div class="modal-section-title">⑤ Прогноз закрытия (оценка РП)</div>
+        <div class="modal-hint" style="margin-bottom:10px;">Если поля пустые — считается автоматически из воронки. Заполните, чтобы поставить экспертную оценку.</div>
+        <div id="edit-forecast"></div>
+      </section>
+
+      <section class="modal-section">
+        <div class="modal-section-title">⑤ Проблемные сделки</div>
+        <div id="edit-problems"></div>
+        <button class="add-btn" onclick="addProblem()">+ Добавить сделку</button>
+      </section>
+
+      <section class="modal-section">
+        <div class="modal-section-title">⑥ Приоритеты</div>
+        <div id="edit-priorities"></div>
+        <button class="add-btn" onclick="addPriority()">+ Добавить приоритет</button>
+      </section>
+
+      <section class="modal-section">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+          <div class="modal-section-title" style="margin-bottom:0;">⑦ Выводы</div>
+          <button id="ai-insights-btn" onclick="generateAIInsights()"
+            style="padding:4px 12px; font-size:10px; border-radius:20px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; letter-spacing:0.05em; white-space:nowrap;">✦ AI выводы</button>
+        </div>
+        <div id="edit-insights"></div>
+        <button class="add-btn" onclick="addInsight()">+ Добавить вывод</button>
+      </section>
+
+      <section class="modal-section" style="background:var(--surface-2,#f5f1e8); border-radius:10px; padding:14px 16px;">
+        <div style="font-size:13px; font-weight:600; color:var(--ink); margin-bottom:8px;">✦ Аналитика от AI</div>
+        <div style="display:flex; gap:8px; margin-bottom:10px;">
+          <input id="ai-key-input" type="password" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false"
+            style="flex:1; height:38px; padding:0 12px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font-size:13px; font-family:var(--mono);"
+            oninput="_aiOnKeyInput(this)">
+          <button id="ai-key-eye" onclick="_aiToggleKeyVis()" title="Показать ключ"
+            style="padding:0 10px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; font-size:12px;">👁</button>
+        </div>
+        <div class="small" style="opacity:0.55;">Ключ: console.anthropic.com → API Keys → формат sk-ant-api03-…</div>
+        <div id="ai-error-msg" style="margin-top:6px; font-size:11px; color:#c0392b; word-break:break-word;"></div>
+      </section>
+
+      <section class="modal-section">
+        <div class="modal-section-title">⑧ Комментарии</div>
+        <label style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span class="small" style="opacity:0.7;">Анализ периода (от руководителя)</span>
+            <button id="ai-manager-btn" onclick="generateAIManagerNote()"
+              style="padding:3px 10px; font-size:10px; border-radius:20px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; letter-spacing:0.05em; white-space:nowrap;">✦ AI анализ</button>
+          </div>
+          <textarea id="edit-commentary-manager" class="commentary-textarea" placeholder="Разбор ключевых цифр, тенденций и решений за период…" oninput="_editTarget.commentary = _editTarget.commentary || {}; _editTarget.commentary.managerNote = this.value"></textarea>
+        </label>
+        <label style="display:flex; flex-direction:column; gap:6px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span class="small" style="opacity:0.7;">Справка (контекст рынка ИЖС)</span>
+            <button id="ai-market-btn" onclick="generateAIMarketBrief()"
+              style="padding:3px 10px; font-size:10px; border-radius:20px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; letter-spacing:0.05em;">✦ Собрать с рынка</button>
+          </div>
+          <textarea id="edit-commentary-investor" class="commentary-textarea" placeholder="Актуальные тенденции рынка ИЖС Подмосковья: динамика спроса и цен, активность конкурентов, сезонность, внешние факторы влияющие на продажи…" oninput="_editTarget.commentary = _editTarget.commentary || {}; _editTarget.commentary.investorBrief = this.value"></textarea>
+          <span class="small" style="opacity:0.45; margin-top:2px;">AI собирает данные из интернета и пишет в контексте ваших цифр; можно дополнить вручную</span>
+        </label>
+      </section>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn btn-primary" style="flex:1; padding: 12px;" onclick="applyData(); toggleEdit();">Применить и обновить</button>
+      <button class="btn btn-outline" onclick="toggleEdit()">Отмена</button>
+      <button class="btn btn-outline admin-only" onclick="deleteCurrentWeek(); toggleEdit();" style="color: var(--neg); border-color: var(--neg);" title="Удалить неделю">🗑</button>
+    </div>
+  </div>
+</div>
+
+<div id="print-mode-bar">
+  <span class="pmb-title">Версия для совещания</span>
+  <button class="pmb-print" onclick="window.print()">Печать</button>
+  <button class="pmb-back" onclick="togglePrintMode()">Вернуться к дашборду</button>
+</div>
+
+<div id="print-summary" aria-hidden="true">
+  <div class="ps-header">
+    <div>
+      <div class="ps-brand">СИЛВА</div>
+      <div class="ps-title">Еженедельный отчёт отдела продаж</div>
+    </div>
+    <div class="ps-meta">
+      <div class="ps-period" id="ps-period-text">—</div>
+      <div class="ps-gen" id="ps-gen-text"></div>
+    </div>
+  </div>
+
+  <div class="ps-kpis" id="ps-kpis"></div>
+
+  <div class="ps-grid">
+    <div class="ps-left">
+      <div class="ps-narrative" id="ps-narrative"></div>
+
+      <div class="ps-sec">
+        <div class="ps-sec-title">Источники лидов</div>
+        <table class="ps-table">
+          <thead><tr><th class="ps-name">Источник</th><th class="ps-num">Лиды</th><th class="ps-num">Квал.</th><th class="ps-num">Качество</th></tr></thead>
+          <tbody id="ps-sources"></tbody>
+        </table>
+      </div>
+
+      <div class="ps-sec">
+        <div class="ps-sec-title">Кампании</div>
+        <table class="ps-table">
+          <thead><tr><th class="ps-name">Кампания</th><th class="ps-num">Расход</th><th class="ps-num">Показы</th><th class="ps-num">Лиды</th><th class="ps-num">Конв.%</th><th class="ps-num">₽/лид</th><th class="ps-num">Окупаем.</th></tr></thead>
+          <tbody id="ps-campaigns"></tbody>
+        </table>
+      </div>
+
+      <div class="ps-sec">
+        <div class="ps-sec-title">Выводы</div>
+        <ul class="ps-list" id="ps-insights"></ul>
+      </div>
+
+      <div class="ps-sec" id="ps-commentary-manager-sec" style="display:none">
+        <div class="ps-sec-title" style="margin-bottom:4px;">Анализ периода</div>
+        <div id="ps-commentary-manager" class="ps-commentary-text"></div>
+      </div>
+    </div>
+
+    <div class="ps-right">
+      <div class="ps-forecast">
+        <div class="ps-sec-title ps-fc-title">Прогноз закрытия</div>
+        <div class="ps-fc-val"><span id="ps-fc-value">—</span><span class="ps-fc-unit"> млн ₽</span></div>
+        <div class="ps-fc-sub"><span id="ps-fc-deals">—</span> сделок · средний чек <span id="ps-fc-avg">—</span> млн ₽</div>
+        <div class="ps-fc-note" id="ps-fc-note"></div>
+      </div>
+
+      <div class="ps-sec ps-chart-sec">
+        <div class="ps-sec-title">Воронка</div>
+        <svg id="ps-funnel-svg" viewBox="0 0 240 170" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+
+      <div class="ps-sec ps-chart-sec">
+        <div class="ps-sec-title">Распределение по источникам</div>
+        <div class="ps-donut-wrap">
+          <svg id="ps-donut-svg" viewBox="0 0 120 120"></svg>
+          <div class="ps-legend" id="ps-donut-legend"></div>
+        </div>
+      </div>
+
+      <div class="ps-sec" id="ps-commentary-investor-sec" style="display:none">
+        <div class="ps-sec-title" style="margin-bottom:4px;">Справка — контекст рынка ИЖС</div>
+        <div id="ps-commentary-investor" class="ps-commentary-text"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#fbf8ef"/>
+  <g transform="translate(60,60)">
+    <rect x="0" y="0" width="80" height="14" rx="2" fill="#3d6b53"/>
+    <rect x="0" y="22" width="56" height="8" rx="2" fill="#c79a52"/>
+    <rect x="0" y="40" width="80" height="40" rx="3" fill="none" stroke="#3d6b53" stroke-width="2"/>
+    <polyline points="6,72 22,58 38,64 54,46 74,52" fill="none" stroke="#c79a52" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
+</template>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>// =====
+// ============================================================
+// Поселок CRM Dashboard — application logic
+// ============================================================
+
+// --- Scenarios meta
+const SCENARIOS = [
+  { key: 'fact', label: 'Факт', color: '#c79a52', hint: 'Реальные данные за неделю' },
+  { key: 'pessimistic', label: 'Пессим.', color: '#b8654e', hint: 'Кризис рынка / эконом' },
+  { key: 'realistic', label: 'Медиана', color: '#6fa089', hint: 'Медиана рынка ИЖС Подмосковья' },
+  { key: 'optimistic', label: 'Оптим.', color: '#d4b366', hint: 'Топ-децили / премиум' },
+];
+
+// --- Benchmarks for ИЖС Подмосковье (открытые источники, апрель 2026)
+// convRates: вероятность перехода [—, lead→qual, qual→meet, meet→offer, offer→deal]
+// Editable in modal; persisted in localStorage.
+const DEFAULT_BENCHMARKS = {
+  pessimistic: {
+    convRates: [1.0, 0.50, 0.45, 0.60, 0.70],   // итог ~9.5% от лидов
+    avgDeal: 8.0,    // млн ₽ (эконом)
+    cpl: 2500,       // ₽
+    cycle: 90,       // дней
+    sources: [
+      'Медиана B2B 2,9% (First Page Sage, 2025) — нижняя граница для эконом-сегмента',
+      'rechka.ai: Лид→Квалиф 40–60%, Квалиф→КП 30–50%, КП→Сделка 15–30%',
+      'novostroev.ru: участки эконом-класса в Подмосковье от 1 млн ₽',
+    ],
+  },
+  realistic: {
+    convRates: [1.0, 0.70, 0.55, 0.70, 0.85],   // итог ~23%
+    avgDeal: 21.8,
+    cpl: 1500,
+    cycle: 60,
+    sources: [
+      'РБК (апр. 2026): средний дом комфорт-класса в Подмосковье — 21,8 млн ₽',
+      'Кейс vc.ru (КП под Челябинском): 379 квал. обращений за 4 мес., конверсия в показ 15% (пик 19%)',
+      'dm-marketing.pro: системная работа с лидами +20–30% к конверсии',
+    ],
+  },
+  optimistic: {
+    convRates: [1.0, 0.85, 0.70, 0.80, 0.90],   // итог ~43%
+    avgDeal: 35.0,
+    cpl: 800,
+    cycle: 45,
+    sources: [
+      'РБК / Всеостройке.рф: Новое-Глаголево от 35 млн ₽, бизнес-класс Подмосковья',
+      'Кейс vc.ru: CPL 769 ₽ при оптимизации; пиковая конверсия в показ 19%',
+      'Semantiqo (sostav.ru): ранняя квалификация → конверсия 5%→20%',
+    ],
+  },
+};
+
+function loadBenchmarks() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('poselok_benchmarks_v1'));
+    if (saved && saved.pessimistic && saved.realistic && saved.optimistic) return saved;
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_BENCHMARKS));
+}
+function saveBenchmarks() {
+  localStorage.setItem('poselok_benchmarks_v1', JSON.stringify(BENCHMARKS));
+}
+let BENCHMARKS = loadBenchmarks();
+
+// Avg cycle time per funnel stage (days) — used for stage velocity
+const DEFAULT_STAGE_DAYS = [0, 2, 4, 6, 8];
+
+// --- Demo archive
+const DEMO_ARCHIVE = [
+  {
+    id: 'w1', date: '2026-05-04', period: '4–10 мая',
+    sources: [
+      { name: 'Сайт', leads: 0, quality: 0 },
+      { name: 'Рефералы', leads: 0, quality: 0 },
+      { name: 'Контекст', leads: 0, quality: 0 },
+      { name: 'Соцсети', leads: 0, quality: 0 },
+    ],
+    campaigns: [
+      { name: 'Основная кампания', monthlyBudget: 0, leads: 0 },
+    ],
+    funnel: [
+      { stage: 'Новые лиды', count: 0, days: 0 },
+      { stage: 'Квалифицированы', count: 0, days: 2 },
+      { stage: 'Встречи', count: 0, days: 5 },
+      { stage: 'Предложения', count: 0, days: 7 },
+      { stage: 'Контракты', count: 0, days: 9 },
+    ],
+    avgDeal: 8,
+    problems: [],
+    priorities: [],
+    insights: [],
+  },
+];
+
+// --- State
+let archive = [];
+let currentIdx = 0;
+let dynMetric = 'leads';
+let activeScenario = 'fact';
+let periodYear = null;   // null = все годы
+let periodMonth = null;  // null = все месяцы
+let aggregateMode = false;
+let selectedWeeks = new Set([0]); // indices of selected weeks in archive
+let data = null;        // ALWAYS the fact data for current week
+let compareData = null; // scenario data when comparing, else null
+let compareMeta = null; // SCENARIOS entry for active comparison
+let charts = {};
+
+function isComparing() { return compareData !== null; }
+
+// --- Theme
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('theme', t);
+  const icon = document.getElementById('theme-icon-dark');
+  if (icon) {
+    icon.innerHTML = t === 'dark'
+      ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+      : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>';
+  }
+  // Re-render charts so colors update
+  if (data) renderCharts();
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+
+// --- CSS var reader
+function css(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// --- KPI calc
+const MONTH_NAMES_RU = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+
+function weekMonthSplit(dateStr) {
+  // Returns info about how the 7-day week starting on dateStr is split across months
+  const start = new Date(dateStr);
+  const end = new Date(start.getTime() + 6 * 86400000);
+  const m1 = start.getMonth(), y1 = start.getFullYear();
+  const m2 = end.getMonth(),   y2 = end.getFullYear();
+  const dim1 = new Date(y1, m1 + 1, 0).getDate();
+  if (m1 === m2 && y1 === y2) {
+    return { month1: { month: m1, year: y1, days: 7, dim: dim1, name: MONTH_NAMES_RU[m1] }, month2: null };
+  }
+  const daysM1 = dim1 - start.getDate() + 1;
+  const dim2 = new Date(y2, m2 + 1, 0).getDate();
+  return {
+    month1: { month: m1, year: y1, days: daysM1, dim: dim1, name: MONTH_NAMES_RU[m1] },
+    month2: { month: m2, year: y2, days: 7 - daysM1, dim: dim2, name: MONTH_NAMES_RU[m2] },
+  };
+}
+
+function campaignWeeklySpent(c, dateStr, aggMode) {
+  // In aggregate mode, _spent holds sum of weekly spends across selected weeks
+  if (aggMode) return +(c._spent != null ? c._spent : (c.monthlyBudget != null ? c.monthlyBudget : (c.spent || 0)));
+  if (!dateStr) return +(c.spent || 0);
+  const split = weekMonthSplit(dateStr);
+  const b1 = +(c.monthlyBudget != null ? c.monthlyBudget : (c.spent || 0));
+  const b2 = c.monthlyBudget2 != null ? +c.monthlyBudget2 : b1;
+  let weekly = b1 * split.month1.days / split.month1.dim;
+  if (split.month2) weekly += b2 * split.month2.days / split.month2.dim;
+  return Math.round(weekly);
+}
+
+// Returns funnel with stage-0 and stage-1 counts derived from sources
+function effectiveFunnel(w) {
+  if (!w.funnel || !w.funnel.length) return w.funnel;
+  const sourcesTotal = w.sources.reduce((s, x) => s + (+x.leads || 0), 0);
+  const qualifiedTotal = Math.round(
+    w.sources.reduce((s, x) => s + (+x.leads || 0) * (+x.quality || 0) / 100, 0)
+  );
+  const funnel = w.funnel.map(f => ({ ...f }));
+  funnel[0] = { ...funnel[0], count: sourcesTotal };
+  if (funnel.length > 1) funnel[1] = { ...funnel[1], count: qualifiedTotal };
+  return funnel;
+}
+
+function getKPIs(w) {
+  const leads = w.sources.reduce((s, x) => s + (+x.leads || 0), 0);
+  const spent = (w.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, w.date, w._isAggregate), 0);
+  const f = effectiveFunnel(w);
+  const conv = (f && f.length >= 2 && f[0].count > 0)
+    ? (f[f.length - 2].count / f[0].count * 100) : 0;
+  const rois = w.campaigns ? w.campaigns.map(c => computeCampaignROI(c, w)).filter(r => r != null) : [];
+  const roi = rois.length ? rois.reduce((s, r) => s + r, 0) / rois.length : 0;
+  return { leads, conv, spent, roi };
+}
+
+function pipelineValue(w) {
+  const avg = w.avgDeal || 8;
+  const f = w.funnel;
+  if (!f.length) return { value: 0, deals: 0, manual: false, note: '' };
+  const weights = [0.05, 0.15, 0.35, 0.60, 1.0]; // probability per stage
+  let v = 0;
+  for (let i = 0; i < f.length; i++) {
+    const probs = weights[Math.min(i, weights.length - 1)];
+    // count of deals currently sitting at this stage = count_i - count_(i+1)
+    const sitting = (i < f.length - 1) ? Math.max(0, f[i].count - f[i + 1].count) : f[i].count;
+    v += sitting * probs * avg;
+  }
+  const auto = { value: v, deals: f[f.length - 2].count };
+  // Manual override by РП
+  if (w.forecast && (w.forecast.value != null || w.forecast.deals != null)) {
+    return {
+      value: w.forecast.value != null ? +w.forecast.value : auto.value,
+      deals: w.forecast.deals != null ? +w.forecast.deals : auto.deals,
+      manual: true,
+      note: w.forecast.note || '',
+      auto,
+    };
+  }
+  return { ...auto, manual: false, note: '' };
+}
+
+function computeCampaignROI(c, w) {
+  const f = w.funnel;
+  const weekly = campaignWeeklySpent(c, w.date, w._isAggregate);
+  if (!c || !weekly || !c.leads || !f || !f.length) return null;
+  const conv = f[0].count > 0 ? f[f.length - 2].count / f[0].count : 0;
+  const avgRub = (w.avgDeal || 8) * 1_000_000;
+  const revenue = c.leads * conv * avgRub;
+  return weekly > 0 ? revenue / weekly : null;
+}
+
+function qualifiedLeadsForCampaign(c, w) {
+  const totalLeads = w.sources.reduce((s, x) => s + (+x.leads || 0), 0);
+  if (!totalLeads || !c.leads) return 0;
+  const qualRate = w.sources.reduce((s, x) => s + (+x.leads || 0) * (+x.quality || 0) / 100, 0) / totalLeads;
+  return Math.round(+c.leads * qualRate);
+}
+
+function formatMoney(n) {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + ' млн';
+  if (n >= 1_000) return Math.round(n / 1000) + 'K';
+  return Math.round(n).toString();
+}
+
+// --- Delta pill
+function deltaPill(prev, curr, opts = {}) {
+  const { isPP = false, isMoney = false } = opts;
+  if (prev === null || prev === undefined || prev === 0 || isNaN(prev)) {
+    return '<span class="delta neutral">— первая</span>';
+  }
+  const diff = curr - prev;
+  const pct = (diff / prev) * 100;
+  if (Math.abs(pct) < 0.5) return '<span class="delta neutral">≈ ровно</span>';
+  const isUp = diff > 0;
+  const isGood = isMoney ? !isUp : isUp;
+  const cls = isGood ? 'pos' : 'neg';
+  const arrow = isUp ? '↑' : '↓';
+  const txt = isPP ? Math.abs(diff).toFixed(1) + ' п.п.' : Math.abs(pct).toFixed(0) + '%';
+  return `<span class="delta ${cls}">${arrow} ${txt}</span>`;
+}
+
+// --- Sparkline (mini canvas)
+function drawSparkline(canvas, values, color) {
+  if (!canvas || !values.length) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+  if (values.length < 2) return;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const pad = 3;
+  const stepX = (w - pad * 2) / (values.length - 1);
+  const pts = values.map((v, i) => [pad + i * stepX, pad + (h - pad * 2) * (1 - (v - min) / range)]);
+
+  // area
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, color + '40');
+  grad.addColorStop(1, color + '00');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], h);
+  pts.forEach(p => ctx.lineTo(p[0], p[1]));
+  ctx.lineTo(pts[pts.length - 1][0], h);
+  ctx.closePath();
+  ctx.fill();
+
+  // line
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  pts.forEach((p, i) => i === 0 ? ctx.moveTo(p[0], p[1]) : ctx.lineTo(p[0], p[1]));
+  ctx.stroke();
+
+  // last dot
+  const last = pts[pts.length - 1];
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(last[0], last[1], 2.5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// =========================================================
+// RENDER
+// =========================================================
+function renderPrintSummary() {
+  try {
+    const w = data;
+    const k = getKPIs(w);
+    const _d = new Date(w.date);
+    const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+    const periodTxt = w.period + (isNaN(_d) ? '' : ' ' + _d.getFullYear());
+    document.getElementById('ps-period-text').textContent = periodTxt;
+    document.getElementById('ps-gen-text').textContent = 'сформировано ' + new Date().toLocaleDateString('ru-RU');
+
+    const totalLeads = w.sources.reduce((s, x) => s + x.leads, 0);
+    const totalQ = totalLeads > 0 ? Math.round(w.sources.reduce((s, x) => s + x.quality * x.leads, 0) / totalLeads) : 0;
+    const cycle = (w.funnel || []).reduce((a, b) => a + (b.days || 0), 0);
+    const kpis = [
+      { l: 'Лидов', e: 'новых обращений', v: k.leads, s: '' },
+      { l: 'Конверсия', e: 'доля доходящих до контракта', v: k.conv.toFixed(1) + '%', s: '' },
+      { l: 'Расход', e: 'на рекламу за период', v: (k.spent/1000).toFixed(0) + 'K ₽', s: '' },
+      { l: 'ROI', e: 'выручка на ₽ рекламы', v: k.roi.toFixed(1) + 'x', s: '' },
+      { l: 'Качество', e: 'доля целевых лидов', v: totalQ + '%', s: cycle + ' дн цикл' },
+    ];
+    document.getElementById('ps-kpis').innerHTML = kpis.map(x =>
+      `<div><div class="ps-kpi-label">${x.l}</div><div class="ps-kpi-expl">${x.e}</div><div class="ps-kpi-val">${x.v}</div><div class="ps-kpi-sub">${x.s}</div></div>`
+    ).join('');
+
+    const narEl = document.getElementById('narrative');
+    document.getElementById('ps-narrative').innerHTML = narEl ? narEl.innerHTML : '';
+
+    document.getElementById('ps-sources').innerHTML = w.sources.map(s =>
+      `<tr><td class="ps-name">${s.name}</td><td class="ps-num">${s.leads}</td><td class="ps-num">${s.qualified || 0}</td><td class="ps-num">${s.quality}%</td></tr>`
+    ).join('');
+
+    document.getElementById('ps-campaigns').innerHTML = (w.campaigns || []).map(c => {
+      const weekly = campaignWeeklySpent(c, w.date);
+      const cpl = c.leads > 0 ? Math.round(weekly / c.leads) : 0;
+      const roi = computeCampaignROI(c, w);
+      const imp = +(c.impressions || 0);
+      const ctr = imp > 0 && c.leads > 0 ? (c.leads / imp * 100).toFixed(2) + '%' : '—';
+      const impFmt = imp > 0 ? imp.toLocaleString('ru-RU') : '—';
+      return `<tr><td class="ps-name">${c.name}</td><td class="ps-num">${(weekly/1000).toFixed(0)}K</td><td class="ps-num">${impFmt}</td><td class="ps-num">${c.leads}</td><td class="ps-num">${ctr}</td><td class="ps-num">${(cpl/1000).toFixed(1)}K</td><td class="ps-num">${roi != null ? roi.toFixed(1) + 'x' : '—'}</td></tr>`;
+    }).join('');
+
+    const pv = pipelineValue(w);
+    document.getElementById('ps-fc-value').textContent = pv.value.toFixed(0);
+    document.getElementById('ps-fc-deals').textContent = pv.deals;
+    document.getElementById('ps-fc-avg').textContent = (w.avgDeal || 8).toFixed(1);
+    document.getElementById('ps-fc-note').textContent = pv.manual && pv.note ? '« ' + pv.note + ' »' : '';
+
+    // Funnel SVG (horizontal bars)
+    const psFunnel = effectiveFunnel(w);
+    const fmax = Math.max(...psFunnel.map(f => f.count), 1);
+    const fH = 16, fGap = 3, padL = 108, padR = 28, padT = 4;
+    const fSvg = document.getElementById('ps-funnel-svg');
+    const fWidth = 290, fHeight = psFunnel.length * (fH + fGap) + padT + 4;
+    fSvg.setAttribute('viewBox', `0 0 ${fWidth} ${fHeight}`);
+    const ff = "Inter,system-ui,sans-serif";
+    fSvg.innerHTML = psFunnel.map((f, i) => {
+      const y = padT + i * (fH + fGap);
+      const barW = (f.count / fmax) * (fWidth - padL - padR);
+      const bW = Math.max(barW, 1);
+      const prev = i > 0 ? psFunnel[i-1].count : f.count;
+      const conv = i > 0 ? (f.count === 0 ? 0 : prev > 0 ? Math.round(f.count/prev*100) : null) : null;
+      const opacity = 0.4 + (1 - i / Math.max(psFunnel.length - 1, 1)) * 0.6;
+      const label = f.stage.trim();
+      // % inside bar if wide enough; color: white on dark bars, dark green on light bars
+      const showInside = i > 0 && conv !== null && barW >= 26;
+      const inBarColor = opacity >= 0.68 ? '#fff' : '#2d5042';
+      const convEl = i > 0 && conv !== null
+        ? (showInside
+            ? `<text x="${padL + barW/2}" y="${y + fH/2 + 3}" font-size="6.5" font-weight="600" font-family="${ff}" text-anchor="middle" fill="${inBarColor}">${conv}%</text>`
+            : `<text x="${padL + bW + 22}" y="${y + fH/2 + 3}" font-size="6" font-family="${ff}" fill="#888">${conv}%</text>`)
+        : '';
+      return `
+        <text x="${padL - 5}" y="${y + fH/2 + 3}" font-size="7.5" font-family="${ff}" text-anchor="end" fill="#555">${label}</text>
+        <rect x="${padL}" y="${y}" width="${bW}" height="${fH}" fill="#3d6b53" opacity="${opacity}"/>
+        <text x="${padL + bW + 4}" y="${y + fH/2 + 3}" font-size="8" font-weight="600" font-family="${ff}" fill="#1a1a17">${f.count}</text>
+        ${convEl}
+      `;
+    }).join('');
+
+    // Donut SVG for sources
+    const totalLeads2 = w.sources.reduce((s, x) => s + x.leads, 0) || 1;
+    const palette = ['#3d6b53', '#c79a52', '#8a6d3b', '#5a8a72', '#b53a2b', '#6b7280', '#9ca3af'];
+    let cum = 0;
+    const cx = 60, cy = 60, rOut = 50, rIn = 32;
+    const arcs = w.sources.map((s, i) => {
+      const frac = s.leads / totalLeads2;
+      const start = cum * Math.PI * 2 - Math.PI / 2;
+      cum += frac;
+      const end = cum * Math.PI * 2 - Math.PI / 2;
+      const large = frac > 0.5 ? 1 : 0;
+      const x1 = cx + rOut * Math.cos(start), y1 = cy + rOut * Math.sin(start);
+      const x2 = cx + rOut * Math.cos(end),   y2 = cy + rOut * Math.sin(end);
+      const xi1 = cx + rIn * Math.cos(end),   yi1 = cy + rIn * Math.sin(end);
+      const xi2 = cx + rIn * Math.cos(start), yi2 = cy + rIn * Math.sin(start);
+      const d = `M ${x1} ${y1} A ${rOut} ${rOut} 0 ${large} 1 ${x2} ${y2} L ${xi1} ${yi1} A ${rIn} ${rIn} 0 ${large} 0 ${xi2} ${yi2} Z`;
+      return `<path d="${d}" fill="${palette[i % palette.length]}"/>`;
+    }).join('');
+    document.getElementById('ps-donut-svg').innerHTML = arcs +
+      `<text x="${cx}" y="${cy - 2}" font-size="18" font-family="Georgia, serif" text-anchor="middle" fill="#1a1a17" font-weight="500">${totalLeads2}</text>` +
+      `<text x="${cx}" y="${cy + 12}" font-size="7" text-anchor="middle" fill="#888" letter-spacing="0.1em">ЛИДОВ</text>`;
+    document.getElementById('ps-donut-legend').innerHTML = w.sources.map((s, i) =>
+      `<div class="ps-leg-row"><span class="ps-leg-dot" style="background:${palette[i % palette.length]}"></span><span class="ps-leg-name">${s.name}</span><span class="ps-leg-count">${s.leads}</span><span class="ps-leg-pct">${Math.round(s.leads/totalLeads2*100)}%</span></div>`
+    ).join('');
+
+    const psInsightsEl = document.getElementById('ps-insights');
+    if (psInsightsEl) {
+      psInsightsEl.innerHTML = (w.insights || []).slice(0, 6).map(ins =>
+        `<li>${ins}</li>`
+      ).join('') || '<li class="ps-li-meta">Выводы не записаны</li>';
+    }
+  } catch (e) { /* silent */ }
+}
+
+function render() {
+  renderPrintSummary();
+  const periodEl = document.getElementById('period');
+  if (periodEl) { periodEl.value = data.period; periodEl.disabled = aggregateMode; }
+  document.getElementById('gen-date').textContent = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+  const _d = new Date(data.date);
+  if (!isNaN(_d)) {
+    const months = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+    const wLabel = document.getElementById('hero-week-label');
+    if (aggregateMode) {
+      if (wLabel) wLabel.textContent = 'Недель';
+      document.getElementById('hero-week-no').textContent = data._weekCount;
+      document.getElementById('hero-month').textContent = data.period;
+      document.getElementById('hero-year').textContent = '';
+    } else {
+      if (wLabel) wLabel.textContent = 'Неделя';
+      document.getElementById('hero-month').textContent = months[_d.getMonth()];
+      document.getElementById('hero-year').textContent = _d.getFullYear();
+      const sameMonth = archive
+        .map((w, i) => ({ i, d: new Date(w.date) }))
+        .filter(x => !isNaN(x.d) && x.d.getMonth() === _d.getMonth() && x.d.getFullYear() === _d.getFullYear())
+        .sort((a, b) => a.d - b.d);
+      const weekN = sameMonth.findIndex(x => x.i === currentIdx) + 1;
+      document.getElementById('hero-week-no').textContent = weekN > 0 ? weekN : currentIdx + 1;
+    }
+  } else {
+    document.getElementById('hero-week-no').textContent = aggregateMode ? data._weekCount : currentIdx + 1;
+  }
+
+  renderScenarioPills();
+  renderHero();
+  renderKPI();
+  renderNarrative();
+  renderSources();
+  renderCampaigns();
+  renderFunnel();
+  renderPipeline();
+  renderProblems();
+  renderPriorities();
+  renderInsights();
+  renderCommentary();
+  renderCharts();
+}
+
+function renderHero() {
+  const kpi = getKPIs(data);
+  const prev = (!aggregateMode && currentIdx > 0) ? getKPIs(archive[currentIdx - 1]) : null;
+  const h1 = document.querySelector('.hero h1');
+  if (data.commentary?.heroText) {
+    h1.innerHTML = data.commentary.heroText;
+  } else if (aggregateMode) {
+    h1.innerHTML = `${kpi.leads} лидов<br><em>за ${data.period}.</em>`;
+  } else if (prev && prev.leads > 0) {
+    const diff = ((kpi.leads - prev.leads) / prev.leads) * 100;
+    const verb = diff > 5 ? 'усилился' : diff < -5 ? 'ослаб' : 'удержался';
+    const sign = diff > 0 ? '+' : '';
+    h1.innerHTML = `Поток лидов<br><em>${verb}</em> на ${sign}${diff.toFixed(0)}%.`;
+  } else {
+    h1.innerHTML = `${kpi.leads} новых лидов<br><em>за неделю.</em>`;
+  }
+}
+
+function renderKPI() {
+  const kpi = getKPIs(data);
+  const cKpi = isComparing() ? getKPIs(compareData) : null;
+  const prevK = (!aggregateMode && currentIdx > 0) ? getKPIs(archive[currentIdx - 1]) : null;
+  const sparkRange = aggregateMode
+    ? [getKPIs(data)]
+    : archive.slice(Math.max(0, currentIdx - 5), currentIdx + 1).map(getKPIs);
+  const scColor = compareMeta?.color || css('--accent');
+
+  const cards = [
+    { label: 'Новые лиды', expl: 'Сколько новых обращений пришло за период', fact: kpi.leads, scen: cKpi?.leads, fmt: v => v, unit: '', sparkVals: sparkRange.map(k => k.leads), sparkColor: css('--accent'), delta: deltaPill(prevK?.leads, kpi.leads) },
+    { label: 'Конверсия', expl: 'Доля лидов, дошедших до контракта', fact: kpi.conv, scen: cKpi?.conv, fmt: v => v.toFixed(0), unit: '%', sparkVals: sparkRange.map(k => k.conv), sparkColor: css('--pos'), delta: deltaPill(prevK?.conv, kpi.conv, { isPP: true }) },
+    { label: 'Расходы', expl: 'Сколько потратили на рекламу', fact: kpi.spent, scen: cKpi?.spent, fmt: v => formatMoney(v), unit: '₽', sparkVals: sparkRange.map(k => k.spent), sparkColor: css('--ink-mid'), delta: deltaPill(prevK?.spent, kpi.spent, { isMoney: true }) },
+    { label: 'ROI', expl: 'Сколько рублей выручки на рубль рекламы', fact: kpi.roi, scen: cKpi?.roi, fmt: v => v.toFixed(1), unit: 'x', sparkVals: sparkRange.map(k => k.roi), sparkColor: css('--accent'), delta: deltaPill(prevK?.roi, kpi.roi) },
+  ];
+
+  document.getElementById('kpi-grid').innerHTML = cards.map((c, i) => {
+    const scenRow = isComparing() ? `
+      <div class="kpi-compare" style="--sc:${scColor}">
+        <span class="kpi-cmp-dot"></span>
+        <span class="kpi-cmp-label">${compareMeta.label}</span>
+        <span class="kpi-cmp-val num">${c.fmt(c.scen)}${c.unit}</span>
+        <span class="kpi-cmp-delta num">${kpiCmpDelta(c.fact, c.scen, c.unit === '%')}</span>
+      </div>` : '';
+    return `
+    <div class="kpi">
+      <div class="kpi-label">${c.label}</div>
+      <div class="kpi-expl">${c.expl}</div>
+      <div class="kpi-value num">${c.fmt(c.fact)}${c.unit ? `<span class="kpi-unit">${c.unit}</span>` : ''}</div>
+      ${scenRow}
+      <div class="kpi-foot">
+        ${c.delta}
+        <canvas class="kpi-spark" data-spark="${i}"></canvas>
+      </div>
+    </div>
+    `;
+  }).join('');
+
+  // Draw sparklines after DOM update
+  requestAnimationFrame(() => {
+    cards.forEach((c, i) => {
+      const cv = document.querySelector(`canvas[data-spark="${i}"]`);
+      drawSparkline(cv, c.sparkVals, c.sparkColor);
+    });
+  });
+
+  document.getElementById('src-total').textContent = kpi.leads;
+}
+
+function renderNarrative() {
+  if (data.commentary?.narrativeText) {
+    document.getElementById('narrative').innerHTML = data.commentary.narrativeText;
+    return;
+  }
+  const kpi = getKPIs(data);
+  const prev = (!aggregateMode && currentIdx > 0) ? getKPIs(archive[currentIdx - 1]) : null;
+
+  const parts = [];
+  if (prev && prev.leads > 0) {
+    const diff = kpi.leads - prev.leads;
+    const pct = ((diff) / prev.leads * 100);
+    if (Math.abs(pct) >= 5) {
+      const cls = diff > 0 ? 'up' : 'down';
+      const sign = diff > 0 ? '+' : '';
+      parts.push(`Поток лидов <span class="${cls}">${sign}${pct.toFixed(0)}%</span> к прошлой неделе`);
+    }
+  }
+
+  // top source
+  const topSrc = [...data.sources].sort((a, b) => b.leads - a.leads)[0];
+  if (topSrc) parts.push(`главный канал — <strong>${topSrc.name}</strong> (${topSrc.leads} лидов)`);
+
+  // funnel weak link
+  const _ef = effectiveFunnel(data);
+  let weakStage = null, weakConv = 100;
+  for (let i = 1; i < _ef.length; i++) {
+    const c = _ef[i - 1].count > 0 ? _ef[i].count / _ef[i - 1].count * 100 : 0;
+    if (c < weakConv) { weakConv = c; weakStage = _ef[i].stage; }
+  }
+  if (weakStage && weakConv < 80) parts.push(`слабое звено воронки — <strong>${weakStage}</strong> (${weakConv.toFixed(0)}%)`);
+
+  // stuck deals
+  if (data.problems && data.problems.length > 0) {
+    const maxStuck = Math.max(...data.problems.map(p => +p.days || 0));
+    parts.push(`в работе <strong>${data.problems.length} застрявших ${declension(data.problems.length, ['сделка', 'сделки', 'сделок'])}</strong> (до ${maxStuck} дней)`);
+  }
+
+  // ROI verdict
+  if (kpi.roi >= 2.5) parts.push(`средний ROI <span class="up">${kpi.roi.toFixed(1)}x</span> — кампании окупаются`);
+  else if (kpi.roi > 0 && kpi.roi < 2) parts.push(`ROI <span class="down">${kpi.roi.toFixed(1)}x</span> — нужно оптимизировать расходы`);
+
+  document.getElementById('narrative').innerHTML = parts.length
+    ? parts.join('; ') + '.'
+    : 'Данных за неделю пока недостаточно для выводов.';
+}
+
+function declension(n, forms) {
+  const m = Math.abs(n) % 100;
+  const m10 = m % 10;
+  if (m > 10 && m < 20) return forms[2];
+  if (m10 > 1 && m10 < 5) return forms[1];
+  if (m10 === 1) return forms[0];
+  return forms[2];
+}
+
+function renderSources() {
+  const maxLeadsF = Math.max(...data.sources.map(s => s.leads), 1);
+  const maxLeadsC = isComparing() ? Math.max(...compareData.sources.map(s => s.leads), 1) : 0;
+  const maxLeads = Math.max(maxLeadsF, maxLeadsC);
+  const scColor = compareMeta?.color || css('--accent');
+  document.getElementById('sources-list').innerHTML = data.sources.map((s, i) => {
+    const qCls = s.quality >= 80 ? 'q-hi' : s.quality < 70 ? 'q-lo' : '';
+    const cs = isComparing() ? compareData.sources[i] : null;
+    const cmpBar = cs ? `<div class="src-bar src-bar-compare" style="--sc:${scColor}"><div class="src-bar-fill src-bar-fill-cmp" style="width:${(cs.leads / maxLeads * 100)}%"></div></div>` : '';
+    const cmpLeads = cs ? `<div class="src-leads-cmp num" style="color:${scColor}">${cs.leads}</div>` : '';
+    return `
+      <div class="src-row ${isComparing() ? 'src-row-cmp' : ''}">
+        <div class="src-name">${s.name}</div>
+        <div class="src-bars">
+          <div class="src-bar"><div class="src-bar-fill" style="width:${(s.leads / maxLeads * 100)}%"></div></div>
+          ${cmpBar}
+        </div>
+        <div class="src-quality ${qCls}">${s.quality}%</div>
+        <div class="src-nums">
+          <div class="src-leads num">${s.leads}</div>
+          ${cmpLeads}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderCampaigns() {
+  const scColor = compareMeta?.color || css('--accent');
+  document.getElementById('campaigns-list').innerHTML = data.campaigns.map((c, i) => {
+    const weekly = campaignWeeklySpent(c, data.date, data._isAggregate);
+    const cpl = c.leads > 0 ? Math.round(weekly / c.leads) : 0;
+    const roi = computeCampaignROI(c, data);
+    const roiStr = roi != null ? roi.toFixed(1) + 'x' : '—';
+    const roiCls = roi != null && roi >= 2.5 ? '' : 'lo';
+    const impressions = +(c.impressions || 0);
+    const ctr = impressions > 0 && c.leads > 0 ? (c.leads / impressions * 100).toFixed(2) + '%' : '—';
+    const cc = isComparing() ? compareData.campaigns[i] : null;
+    const ccWeekly = cc ? campaignWeeklySpent(cc, compareData.date) : 0;
+    const ccCpl = cc && cc.leads > 0 ? Math.round(ccWeekly / cc.leads) : 0;
+    const ccRoi = cc ? computeCampaignROI(cc, compareData) : null;
+    const cmp = cc ? `
+      <div class="camp-compare" style="--sc:${scColor}">
+        <span class="camp-cmp-tag">${compareMeta.label}</span>
+        <div class="camp-stats">
+          <div><div class="camp-stat-label">Расход</div><div class="camp-stat-val" style="color:${scColor}">${ccWeekly.toLocaleString('ru-RU')} ₽</div></div>
+          <div><div class="camp-stat-label">Лиды</div><div class="camp-stat-val" style="color:${scColor}">${cc.leads}</div></div>
+          <div><div class="camp-stat-label">₽/лид</div><div class="camp-stat-val" style="color:${scColor}">${ccCpl.toLocaleString('ru-RU')} ₽</div></div>
+          <div><div class="camp-stat-label">Окупаемость</div><div class="camp-stat-val" style="color:${scColor}">${ccRoi != null ? ccRoi.toFixed(1) + 'x' : '—'}</div></div>
+        </div>
+      </div>` : '';
+    return `
+      <div class="camp-row">
+        <div class="camp-head">
+          <div class="camp-name">${c.name}</div>
+          <div class="camp-roi ${roiCls} num">${roiStr}</div>
+        </div>
+        <div class="camp-stats">
+          <div><div class="camp-stat-label">Расход</div><div class="camp-stat-val">${weekly.toLocaleString('ru-RU')} ₽</div></div>
+          <div><div class="camp-stat-label">Бюджет/мес</div><div class="camp-stat-val" style="opacity:.7">${(+(c.monthlyBudget != null ? c.monthlyBudget : (c.spent || 0))).toLocaleString('ru-RU')} ₽</div></div>
+          <div><div class="camp-stat-label">Показы</div><div class="camp-stat-val">${impressions > 0 ? impressions.toLocaleString('ru-RU') : '—'}</div></div>
+          <div><div class="camp-stat-label">Лиды</div><div class="camp-stat-val">${c.leads}</div></div>
+          <div><div class="camp-stat-label">Конв.%</div><div class="camp-stat-val">${ctr}</div></div>
+          <div><div class="camp-stat-label">₽/лид</div><div class="camp-stat-val">${cpl.toLocaleString('ru-RU')} ₽</div></div>
+        </div>
+        ${cmp}
+      </div>
+    `;
+  }).join('') || '<div class="empty-state">Нет активных кампаний</div>';
+}
+
+function renderFunnel() {
+  const ef = effectiveFunnel(data);
+  const maxFunnel = Math.max(ef[0]?.count || 1, isComparing() ? (effectiveFunnel(compareData)[0]?.count || 0) : 0);
+  const scColor = compareMeta?.color || css('--accent');
+  document.getElementById('funnel-list').innerHTML = ef.map((f, i) => {
+    const pct = (f.count / maxFunnel * 100);
+    const stageConv = i === 0 ? 100 : (ef[i - 1].count > 0 ? (f.count / ef[i - 1].count * 100) : 0);
+    const convCls = stageConv >= 70 ? 'hi' : stageConv >= 50 ? 'mid' : 'lo';
+    const days = f.days != null ? f.days : DEFAULT_STAGE_DAYS[i] || 0;
+    const cf = isComparing() ? compareData.funnel[i] : null;
+    const cmpBar = cf ? `<div class="funnel-bar-cmp" style="width:${cf.count / maxFunnel * 100}%; background:${scColor};"><span class="funnel-cmp-count num">${cf.count}</span></div>` : '';
+    return `
+      <div class="funnel-row ${isComparing() ? 'with-cmp' : ''}">
+        <span class="funnel-stage">${f.stage}</span>
+        <div class="funnel-bars-col">
+          <div class="funnel-bar-wrap">
+            <div class="funnel-bar" style="width:${pct}%"></div>
+            <div class="funnel-meta">
+              ${i > 0 ? `<span class="funnel-conv ${convCls}">${stageConv.toFixed(0)}%</span>` : ''}
+              ${days > 0 ? `<span class="funnel-days">⏱ ${days}д</span>` : ''}
+              <span class="num" style="font-family: var(--serif); font-size: 24px; color: var(--ink);">${f.count}</span>
+            </div>
+          </div>
+          ${cmpBar}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Summary
+  const cycle = data.funnel.reduce((s, f) => s + (+f.days || 0), 0);
+  const totalConv = ef[0].count > 0 ? (ef[ef.length - 2].count / ef[0].count * 100) : 0;
+  const baseForWork = ef.length >= 2 ? ef[1].count : ef[0].count;
+  const inWork = baseForWork - (ef[ef.length - 2]?.count || 0) - (ef[ef.length - 1]?.count || 0);
+  document.getElementById('funnel-summary').innerHTML = `
+    <div><div class="fs-label">Полный цикл</div><div class="fs-val num">${cycle}<span class="small"> дн</span></div></div>
+    <div><div class="fs-label">Сквозная конверсия</div><div class="fs-val num">${totalConv.toFixed(0)}<span class="small">%</span></div></div>
+    <div><div class="fs-label">В работе</div><div class="fs-val num">${inWork}</div></div>
+  `;
+
+  // Avg quality
+  const totalLeads = data.sources.reduce((s, x) => s + x.leads, 0);
+  const avgQ = totalLeads > 0 ? (data.sources.reduce((s, x) => s + x.quality * x.leads, 0) / totalLeads).toFixed(0) : '0';
+  document.getElementById('avg-quality').textContent = avgQ + '%';
+}
+
+function renderPipeline() {
+  const pv = pipelineValue(data);
+  const heroEl = document.getElementById('pipeline-value').closest('.pipeline-hero');
+  document.getElementById('pipeline-value').textContent = pv.value.toFixed(0);
+  document.getElementById('pipeline-deals').textContent = pv.deals;
+  // manual badge
+  heroEl.querySelectorAll('.pipeline-manual-badge, .pipeline-manual-note').forEach(n => n.remove());
+  if (pv.manual) {
+    const b = document.createElement('div');
+    b.className = 'pipeline-manual-badge';
+    b.textContent = 'Оценка РП';
+    heroEl.appendChild(b);
+    if (pv.note) {
+      const n = document.createElement('div');
+      n.className = 'pipeline-manual-note';
+      n.textContent = '« ' + pv.note + ' »';
+      heroEl.appendChild(n);
+    }
+  }
+  // remove old compare badge if any
+  heroEl.querySelectorAll('.pipeline-cmp').forEach(n => n.remove());
+  if (isComparing()) {
+    const cpv = pipelineValue(compareData);
+    const diff = cpv.value - pv.value;
+    const sign = diff > 0 ? '+' : '';
+    const badge = document.createElement('div');
+    badge.className = 'pipeline-cmp';
+    badge.style.cssText = `--sc:${compareMeta.color}`;
+    badge.innerHTML = `<span class="pipeline-cmp-tag">${compareMeta.label}</span><span class="pipeline-cmp-val num">${cpv.value.toFixed(0)} млн ₽</span><span class="pipeline-cmp-delta num">${sign}${diff.toFixed(0)}</span>`;
+    heroEl.appendChild(badge);
+  }
+  const cycle = data.funnel.reduce((s, f) => s + (+f.days || 0), 0);
+  document.getElementById('ps-cycle').textContent = cycle + ' дн';
+  document.getElementById('ps-avg').textContent = (data.avgDeal || 8).toFixed(1) + ' млн ₽';
+  const stuckEl = document.getElementById('ps-stuck');
+  if (stuckEl) stuckEl.textContent = (data.problems?.length || 0) + ' ' + declension(data.problems?.length || 0, ['сделка', 'сделки', 'сделок']);
+}
+
+function kpiCmpDelta(factVal, scenVal, isPct) {
+  if (factVal === 0 || factVal === undefined) return '';
+  const diff = scenVal - factVal;
+  const pct = factVal !== 0 ? (diff / Math.abs(factVal)) * 100 : 0;
+  const sign = diff > 0 ? '+' : '';
+  return `${sign}${pct.toFixed(0)}%`;
+}
+
+function renderProblems() {
+  const list = data.problems || [];
+  const countEl = document.getElementById('problems-count');
+  const listEl = document.getElementById('problems-list');
+  if (!listEl) return;
+  if (countEl) countEl.textContent = list.length + ' ' + declension(list.length, ['активная', 'активных', 'активных']);
+  listEl.innerHTML = list.length ? list.map(p => `
+    <div class="problem">
+      <div class="problem-head">
+        <div>
+          <div class="problem-client">${p.client}</div>
+          <div class="problem-deal">${p.deal}</div>
+        </div>
+        <span class="problem-days">${p.days} дн</span>
+      </div>
+      <div class="problem-issue">${p.issue}</div>
+    </div>
+  `).join('') : '<div class="empty-state">Нет проблемных сделок</div>';
+}
+
+function renderPriorities() {
+  const list = data.priorities || [];
+  const countEl = document.getElementById('priorities-count');
+  const listEl = document.getElementById('priorities-list');
+  if (!listEl) return;
+  if (countEl) countEl.textContent = list.length + ' ' + declension(list.length, ['задача', 'задачи', 'задач']);
+  listEl.innerHTML = list.length ? list.map((p, i) => `
+    <div class="priority">
+      <div class="priority-num">${String(i + 1).padStart(2, '0')}</div>
+      <div>
+        <div class="priority-task">${p.task}</div>
+        <div class="priority-meta">${p.owner}</div>
+      </div>
+      <div class="priority-due">${p.due}</div>
+    </div>
+  `).join('') : '<div class="empty-state">Приоритеты не заданы</div>';
+}
+
+function renderInsights() {
+  const list = data.insights || [];
+  document.getElementById('insights').innerHTML = list.length ? list.map((ins, i) => `
+    <div style="display: grid; grid-template-columns: 40px 1fr; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--line-soft); align-items: baseline;">
+      <div style="font-family: var(--serif); font-style: italic; font-size: 22px; color: var(--accent); line-height: 1;">${String(i + 1).padStart(2, '0')}</div>
+      <div style="font-family: var(--serif); font-size: 22px; line-height: 1.4; color: var(--ink); letter-spacing: -0.005em;">${ins}</div>
+    </div>
+  `).join('') : '<div class="empty-state">Выводы не записаны</div>';
+}
+
+function renderCommentary() {
+  const c = data.commentary || {};
+  const mEl = document.getElementById('commentary-manager');
+  const iEl = document.getElementById('commentary-investor');
+  const sec = document.getElementById('commentary-section');
+  const hasAnyMain = c.managerNote || c.investorBrief;
+  if (sec) sec.style.display = hasAnyMain ? '' : 'none';
+  if (mEl) mEl.innerHTML = c.managerNote
+    ? `<div class="commentary-text">${c.managerNote.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
+    : `<div class="commentary-text empty">Анализ не заполнен</div>`;
+  if (iEl) iEl.innerHTML = c.investorBrief
+    ? `<div class="commentary-text">${c.investorBrief.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
+    : `<div class="commentary-text empty">Справка не заполнена</div>`;
+
+  // Print summary — Анализ периода (левая колонка)
+  const psMSec = document.getElementById('ps-commentary-manager-sec');
+  const psM = document.getElementById('ps-commentary-manager');
+  if (psMSec) psMSec.style.display = c.managerNote ? '' : 'none';
+  if (psM) psM.innerHTML = c.managerNote
+    ? c.managerNote.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    : '';
+  // Print summary — Справка (правая колонка, под распределением)
+  const psISec = document.getElementById('ps-commentary-investor-sec');
+  const psI = document.getElementById('ps-commentary-investor');
+  if (psISec) psISec.style.display = c.investorBrief ? '' : 'none';
+  if (psI) psI.innerHTML = c.investorBrief
+    ? c.investorBrief.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    : '';
+}
+
+// =========================================================
+// CHARTS
+// =========================================================
+function renderCharts() {
+  const ink = css('--ink');
+  const inkMute = css('--ink-mute');
+  const line = css('--line');
+  const accent = css('--accent');
+
+  Chart.defaults.color = inkMute;
+  Chart.defaults.borderColor = line;
+  Chart.defaults.font.family = "'Inter', sans-serif";
+
+  // --- Dynamics
+  const labels = archive.map(w => w.period);
+  const allKpis = archive.map(getKPIs);
+  const metricFn = { leads: k => k.leads, conv: k => k.conv, spent: k => k.spent, roi: k => k.roi };
+  const metricLabel = { leads: 'Лиды', conv: 'Конверсия %', spent: 'Расходы ₽', roi: 'ROI' };
+  const metricColor = { leads: accent, conv: css('--pos'), spent: ink, roi: accent };
+  const get = metricFn[dynMetric];
+  const factSeries = allKpis.map(get);
+  const color = metricColor[dynMetric];
+
+  const datasets = [{
+    label: metricLabel[dynMetric],
+    data: factSeries,
+    borderColor: color,
+    backgroundColor: color + '20',
+    fill: true,
+    tension: 0.35,
+    borderWidth: 2.5,
+    pointRadius: factSeries.map((_, i) => i === currentIdx ? 7 : 4),
+    pointHoverRadius: 8,
+    pointBackgroundColor: factSeries.map((_, i) => i === currentIdx ? color : css('--surface')),
+    pointBorderColor: color,
+    pointBorderWidth: 2,
+  }];
+
+  const currentWeek = archive[currentIdx];
+  if (currentWeek.scenarios) {
+    SCENARIOS.filter(s => s.key !== 'fact').forEach(s => {
+      const sc = currentWeek.scenarios[s.key];
+      if (!sc) return;
+      const value = get(getKPIs(sc));
+      datasets.push({
+        label: s.label,
+        data: archive.map((_, i) => i === currentIdx ? value : null),
+        borderColor: s.color,
+        backgroundColor: s.color,
+        pointRadius: 8,
+        pointStyle: s.key === 'pessimistic' ? 'triangle' : s.key === 'optimistic' ? 'rectRot' : 'circle',
+        pointBackgroundColor: s.color,
+        pointBorderColor: css('--surface'),
+        pointBorderWidth: 2,
+        showLine: false,
+      });
+    });
+  }
+
+  // If comparing a scenario, draw scenario as a horizontal reference line on chart
+  if (isComparing()) {
+    const scVal = get(getKPIs(compareData));
+    datasets.push({
+      label: compareMeta.label + ' (сценарий)',
+      data: archive.map(() => scVal),
+      borderColor: compareMeta.color,
+      backgroundColor: 'transparent',
+      borderWidth: 1.5,
+      borderDash: [5, 4],
+      pointRadius: 0,
+      pointHoverRadius: 0,
+      tension: 0,
+      fill: false,
+    });
+  }
+
+  if (charts.dynamics) charts.dynamics.destroy();
+  charts.dynamics = new Chart(document.getElementById('dynamicsChart'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      onClick: (e, els) => { if (els.length && els[0].datasetIndex === 0) selectWeek(els[0].index); },
+      plugins: {
+        legend: { display: !!currentWeek.scenarios, position: 'bottom', labels: { padding: 14, font: { size: 11 }, usePointStyle: true } },
+        tooltip: {
+          backgroundColor: css('--ink'), titleColor: css('--bg'), bodyColor: css('--bg'),
+          padding: 12, displayColors: false, cornerRadius: 6,
+          callbacks: { label: ctx => `${ctx.dataset.label}: ${typeof ctx.parsed.y === 'number' ? ctx.parsed.y.toLocaleString('ru-RU') : ctx.parsed.y}` }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, border: { color: line } },
+        y: { beginAtZero: true, grid: { color: line }, border: { display: false } }
+      }
+    }
+  });
+
+  // --- Quality donut
+  if (charts.quality) charts.quality.destroy();
+  const palette = ['#fbbf24', '#84cc16', '#60a5fa', '#a78bfa', '#f87171', '#06b6d4', '#ec4899'];
+  charts.quality = new Chart(document.getElementById('qualityChart'), {
+    type: 'doughnut',
+    data: {
+      labels: data.sources.map(s => s.name),
+      datasets: [{
+        data: data.sources.map(s => s.leads),
+        backgroundColor: palette.slice(0, data.sources.length),
+        borderColor: css('--surface'),
+        borderWidth: 3,
+        hoverOffset: 6,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '70%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: css('--ink'), titleColor: css('--bg'), bodyColor: css('--bg'),
+          padding: 10, cornerRadius: 6,
+        }
+      }
+    }
+  });
+
+  // Manual legend for donut
+  const totalLeads = data.sources.reduce((s, x) => s + x.leads, 0);
+  document.getElementById('quality-legend').innerHTML = data.sources.map((s, i) => `
+    <div class="ql-row">
+      <span class="ql-dot" style="background:${palette[i]}"></span>
+      <span class="ql-name">${s.name}</span>
+      <span class="ql-val">${totalLeads > 0 ? Math.round(s.leads / totalLeads * 100) : 0}%</span>
+    </div>
+  `).join('');
+}
+
+function setDynMetric(m) {
+  dynMetric = m;
+  document.querySelectorAll('.metric-tab').forEach(t => t.classList.toggle('active', t.dataset.metric === m));
+  renderCharts();
+}
+
+// =========================================================
+// WEEK + SCENARIO PILLS
+// =========================================================
+const MONTHS_SHORT_RU = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+
+function renderWeekPills() {
+  // ── Уникальные годы из архива ──
+  const years = [...new Set(archive.map(w => new Date(w.date).getFullYear()))].sort((a,b)=>a-b);
+  const multiYear = years.length > 1;
+
+  // ── Фильтр годов ──
+  const pfEl = document.getElementById('period-filter');
+  const yrSep = document.getElementById('pf-year-sep');
+  if (pfEl) {
+    if (multiYear) {
+      pfEl.style.display = '';
+      if (yrSep) yrSep.style.display = '';
+      pfEl.innerHTML =
+        `<button class="pf-pill ${periodYear === null ? 'active' : ''}" onclick="setPeriodYear(null)">Все</button>` +
+        years.map(y => `<button class="pf-pill ${periodYear === y ? 'active' : ''}" onclick="setPeriodYear(${y})">${y}</button>`).join('');
+    } else {
+      pfEl.style.display = 'none';
+      if (yrSep) yrSep.style.display = 'none';
+    }
+  }
+
+  // ── Месячные пилюли (всегда, когда в архиве >1 месяца) ──
+  const pmEl = document.getElementById('period-months');
+  const moSep = document.getElementById('pf-month-sep');
+  if (pmEl) {
+    // Collect unique year+month combos from all visible weeks
+    const monthKeys = [...new Set(
+      archive.map(w => { const d = new Date(w.date); return d.getFullYear() + '-' + d.getMonth(); })
+    )].sort().map(k => { const [y, m] = k.split('-'); return { year: +y, month: +m }; });
+
+    if (monthKeys.length > 1) {
+      pmEl.style.display = '';
+      if (moSep) moSep.style.display = '';
+      pmEl.innerHTML = monthKeys.map(({ year, month }) => {
+        const isActive = periodMonth === month && periodYear === year;
+        return `<button class="pf-pill ${isActive ? 'active' : ''}" onclick="selectMonth(${month}, ${year})">${MONTHS_SHORT_RU[month]} ${year}</button>`;
+      }).join('');
+    } else {
+      pmEl.style.display = 'none';
+      if (moSep) moSep.style.display = 'none';
+    }
+  }
+
+  // ── Отфильтрованные недели ──
+  const visible = archive.map((w, i) => ({ w, i })).filter(({ w }) => {
+    const d = new Date(w.date);
+    if (periodYear !== null && d.getFullYear() !== periodYear) return false;
+    if (periodMonth !== null && d.getMonth() !== periodMonth) return false;
+    return true;
+  });
+
+  document.getElementById('week-pills').innerHTML =
+    visible.map(({ w, i }) => {
+      const sel = selectedWeeks.has(i);
+      return `
+      <span class="pill-wrap ${sel ? 'active' : ''}">
+        <button class="pill ${sel ? 'active' : ''}" onclick="selectWeek(${i}, event)" title="⌘/Ctrl+клик — добавить к выборке">${w.period}</button>
+        <button class="pill-x admin-only" onclick="deleteWeek(${i}, event)" title="Удалить неделю">×</button>
+      </span>
+    `;}).join('') +
+    `<button class="pill pill-add admin-only" onclick="openWeekPicker()" title="Добавить период из календаря">+ из календаря</button>`;
+}
+
+function setPeriodYear(year) {
+  periodYear = year;
+  periodMonth = null;
+  if (year !== null) {
+    const idxs = archive.map((w, i) => ({ w, i })).filter(({ w }) => new Date(w.date).getFullYear() === year).map(({ i }) => i);
+    selectedWeeks = new Set(idxs);
+    currentIdx = idxs[idxs.length - 1] ?? currentIdx;
+    const weeks = idxs.map(i => archive[i]);
+    activateAggregate(weeks, String(year));
+  } else {
+    selectedWeeks = new Set([currentIdx]);
+    deactivateAggregate();
+  }
+  renderWeekPills();
+}
+
+function setPeriodMonth(month) {
+  periodMonth = month;
+  if (periodYear !== null) {
+    const weeks = archive.filter(w => {
+      const d = new Date(w.date);
+      return d.getFullYear() === periodYear && (month === null || d.getMonth() === month);
+    });
+    const label = month !== null
+      ? MONTHS_SHORT_RU[month] + ' ' + periodYear
+      : String(periodYear);
+    activateAggregate(weeks, label);
+  }
+  renderWeekPills();
+}
+
+function buildAggregate(weeks, label) {
+  if (!weeks.length) return null;
+  const srcMap = {};
+  weeks.forEach(w => {
+    (w.sources || []).forEach(s => {
+      if (!srcMap[s.name]) srcMap[s.name] = { name: s.name, leads: 0, qualWsum: 0 };
+      srcMap[s.name].leads += +s.leads;
+      srcMap[s.name].qualWsum += (s.quality || 0) * s.leads;
+    });
+  });
+  const sources = Object.values(srcMap).map(s => ({
+    name: s.name, leads: s.leads,
+    quality: s.leads > 0 ? Math.round(s.qualWsum / s.leads) : 0,
+  }));
+
+  const campMap = {};
+  weeks.forEach(w => {
+    (w.campaigns || []).forEach(c => {
+      if (!campMap[c.name]) campMap[c.name] = { name: c.name, monthlyBudget: 0, _spent: 0, leads: 0, impressions: 0 };
+      campMap[c.name]._spent += campaignWeeklySpent(c, w.date);
+      // Keep the monthly budget as-is (same value across weeks — not cumulative)
+      campMap[c.name].monthlyBudget = +(c.monthlyBudget != null ? c.monthlyBudget : (c.spent || 0));
+      campMap[c.name].leads += +c.leads;
+      campMap[c.name].impressions += +(c.impressions || 0);
+    });
+  });
+  const campaigns = Object.values(campMap).map(c => ({
+    name: c.name, monthlyBudget: c.monthlyBudget, _spent: c._spent, leads: c.leads, impressions: c.impressions,
+  }));
+
+  const stageRef = weeks[0].funnel || [];
+  const funnel = stageRef.map((f, i) => ({
+    stage: f.stage,
+    count: weeks.reduce((s, w) => s + ((w.funnel && w.funnel[i]) ? +w.funnel[i].count : 0), 0),
+    days: f.days || 0,
+  }));
+
+  const sortedDates = weeks.map(w => w.date).filter(Boolean).sort();
+  const avgDeal = weeks.reduce((s, w) => s + (w.avgDeal || 8), 0) / weeks.length;
+
+  return {
+    id: 'aggregate', date: sortedDates[0] || weeks[0].date, period: label,
+    sources, campaigns, funnel, avgDeal,
+    problems: weeks.flatMap(w => w.problems || []),
+    priorities: weeks.flatMap(w => w.priorities || []),
+    insights: [...new Map(weeks.flatMap(w => w.insights || []).map(s => [s.trim(), s])).values()],
+    commentary: {
+      managerNote: [...new Set(weeks.map(w => w.commentary?.managerNote).filter(Boolean).map(s => s.trim()))].join('\n\n'),
+      investorBrief: [...new Set(weeks.map(w => w.commentary?.investorBrief).filter(Boolean).map(s => s.trim()))].join('\n\n'),
+    },
+    _isAggregate: true, _weekCount: weeks.length,
+  };
+}
+
+function activateAggregate(weeks, label) {
+  const agg = buildAggregate(weeks, label);
+  if (!agg) return;
+  aggregateMode = true;
+  data = agg;
+  compareData = null;
+  compareMeta = null;
+  render();
+}
+
+function deactivateAggregate() {
+  aggregateMode = false;
+  selectedWeeks = new Set([currentIdx]);
+  data = archive[currentIdx];
+  render();
+}
+
+function fmtPeriodRu(fromStr, toStr) {
+  const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  const a = new Date(fromStr), b = new Date(toStr);
+  if (isNaN(a) || isNaN(b)) return '';
+  if (a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()) {
+    return `${a.getDate()}–${b.getDate()} ${months[a.getMonth()]}`;
+  }
+  return `${a.getDate()} ${months[a.getMonth()]} – ${b.getDate()} ${months[b.getMonth()]}`;
+}
+
+function openWeekPicker(editIdx) {
+  const existing = document.getElementById('wpModal');
+  if (existing) existing.remove();
+  const isEdit = typeof editIdx === 'number';
+  const w = isEdit ? archive[editIdx] : null;
+  const today = new Date().toISOString().split('T')[0];
+  const defFrom = w?.date || today;
+  const defTo = w ? new Date(new Date(w.date).getTime() + 6*86400000).toISOString().split('T')[0] : today;
+  const wrap = document.createElement('div');
+  wrap.id = 'wpModal';
+  wrap.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;';
+  wrap.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;max-width:440px;width:100%;padding:28px;box-shadow:0 30px 60px -20px rgba(0,0,0,0.5);">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+        <h2 style="margin:0;font-family:var(--serif);font-size:26px;font-weight:400;letter-spacing:-0.02em;">${isEdit ? 'Изменить период' : 'Новый период'}</h2>
+        <button onclick="document.getElementById('wpModal').remove()" style="background:none;border:none;color:var(--ink-mute);font-size:22px;cursor:pointer;">×</button>
+      </div>
+      <p style="color:var(--ink-mute);font-size:12.5px;margin:0 0 20px;">Выберите даты из календаря.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <label style="font-size:11px;color:var(--ink-mute);display:flex;flex-direction:column;gap:6px;">С
+          <input type="date" id="wp-from" value="${defFrom}" style="font-family:var(--mono);background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:10px 12px;border-radius:8px;width:100%;font-size:13px;">
+        </label>
+        <label style="font-size:11px;color:var(--ink-mute);display:flex;flex-direction:column;gap:6px;">По
+          <input type="date" id="wp-to" value="${defTo}" style="font-family:var(--mono);background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:10px 12px;border-radius:8px;width:100%;font-size:13px;">
+        </label>
+      </div>
+      <div id="wp-preview" style="font-family:var(--serif);font-size:20px;color:var(--ink);padding:10px 0 18px;font-style:italic;"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="document.getElementById('wpModal').remove()" style="padding:10px 16px;background:transparent;color:var(--ink-mute);border:1px solid var(--line);border-radius:8px;cursor:pointer;font-size:13px;">Отмена</button>
+        <button id="wp-save" style="padding:10px 18px;background:var(--accent);color:#0d1612;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;">${isEdit ? 'Сохранить' : 'Создать неделю'}</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(wrap);
+  const upd = () => {
+    const f = document.getElementById('wp-from').value, t = document.getElementById('wp-to').value;
+    document.getElementById('wp-preview').textContent = fmtPeriodRu(f, t) || '—';
+  };
+  document.getElementById('wp-from').oninput = upd;
+  document.getElementById('wp-to').oninput = upd;
+  upd();
+  document.getElementById('wp-save').onclick = () => {
+    const f = document.getElementById('wp-from').value, t = document.getElementById('wp-to').value;
+    if (!f || !t) return;
+    const period = fmtPeriodRu(f, t);
+    if (isEdit) {
+      archive[editIdx].date = f;
+      archive[editIdx].period = period;
+    } else {
+      const last = archive[archive.length - 1];
+      const clone = last ? JSON.parse(JSON.stringify(last)) : null;
+      const fresh = clone ? { ...clone, id: 'w' + Date.now(), date: f, period, scenarios: undefined }
+        : { id: 'w' + Date.now(), date: f, period, sources: [{ name: 'Сайт', leads: 0, quality: 0 }], campaigns: [], funnel: [{ stage: 'Новые лиды', count: 0 }], avgDeal: 8, problems: [], priorities: [], insights: [], commentary: {} };
+      archive.push(fresh);
+      archive.sort((a, b) => new Date(a.date) - new Date(b.date));
+      currentIdx = archive.findIndex(x => x.id === fresh.id);
+      data = archive[currentIdx];
+    }
+    saveArchive();
+    renderWeekPills();
+    render();
+    wrap.remove();
+  };
+  wrap.onclick = e => { if (e.target === wrap) wrap.remove(); };
+}
+
+function deleteWeek(i, e) {
+  if (e) e.stopPropagation();
+  if (archive.length <= 1) { alert('Нельзя удалить последнюю неделю.'); return; }
+  if (!confirm(`Удалить период «${archive[i].period}»?`)) return;
+  archive.splice(i, 1);
+  if (currentIdx >= archive.length) currentIdx = archive.length - 1;
+  if (currentIdx < 0) currentIdx = 0;
+  aggregateMode = false;
+  data = archive[currentIdx];
+  compareData = null; compareMeta = null; activeScenario = 'fact';
+  saveArchive();
+  renderWeekPills();
+  render();
+}
+
+function selectWeek(i, evt) {
+  if (i < 0 || i >= archive.length) return;
+  activeScenario = 'fact';
+  compareData = null;
+  compareMeta = null;
+
+  if (evt && (evt.ctrlKey || evt.metaKey)) {
+    if (selectedWeeks.has(i)) {
+      selectedWeeks.delete(i);
+      if (selectedWeeks.size === 0) selectedWeeks.add(i);
+    } else {
+      selectedWeeks.add(i);
+    }
+  } else {
+    selectedWeeks = new Set([i]);
+  }
+
+  const selArr = [...selectedWeeks].sort((a, b) => a - b);
+  currentIdx = selArr[selArr.length - 1];
+
+  if (selectedWeeks.size > 1) {
+    const weeks = selArr.map(idx => archive[idx]);
+    const first = weeks[0].period.split('–')[0].trim();
+    const last = (weeks[weeks.length - 1].period.split('–')[1] || '').trim();
+    activateAggregate(weeks, first + '–' + last);
+  } else {
+    aggregateMode = false;
+    data = archive[currentIdx];
+    render();
+  }
+  renderWeekPills();
+}
+
+function selectMonth(month, year) {
+  const indices = archive
+    .map((w, i) => ({ w, i }))
+    .filter(({ w }) => { const d = new Date(w.date); return d.getFullYear() === year && d.getMonth() === month; })
+    .map(({ i }) => i);
+  if (!indices.length) return;
+  selectedWeeks = new Set(indices);
+  currentIdx = indices[indices.length - 1];
+  const weeks = indices.map(i => archive[i]);
+  activateAggregate(weeks, MONTHS_SHORT_RU[month] + ' ' + year);
+  renderWeekPills();
+}
+
+function renderScenarioPills() {
+  if (aggregateMode) return;
+  const week = archive[currentIdx];
+  const hasS = !!week.scenarios;
+  renderTopbarScenarios();
+  // Keep the old block hidden in HTML; nothing else to do
+  return;
+}
+
+function renderTopbarScenarios() {
+  if (aggregateMode) { const w = document.getElementById('topbar-scenarios'); if (w) w.innerHTML = ''; return; }
+  const week = archive[currentIdx];
+  const hasS = !!week.scenarios;
+  const wrap = document.getElementById('topbar-scenarios');
+  if (!wrap) return;
+  if (!hasS) {
+    wrap.innerHTML = `
+      <span class="topbar-scenarios-label">Сценарии</span>
+      <button class="scn-pill active"><span class="scn-pill-dot"></span>Факт</button>
+      <button class="scn-pill" onclick="createScenarios()" title="Создать сценарии по бенчмаркам ИЖС">＋ создать</button>
+    `;
+    return;
+  }
+  const pills = SCENARIOS.map(s => {
+    const isActive = activeScenario === s.key;
+    let cls = 'scn-pill';
+    let style = '';
+    if (isActive && s.key !== 'fact') { cls += ' scn-active-color'; style = `background:${s.color};`; }
+    else if (isActive) { cls += ' active'; }
+    const dotStyle = (!isActive && s.key !== 'fact') ? `color:${s.color};` : '';
+    return `<button class="${cls}" style="${style}" onclick="selectScenario('${s.key}')" title="${s.hint}">
+      <span class="scn-pill-dot" style="${dotStyle}"></span>${s.label}
+    </button>`;
+  }).join('');
+  const showSource = activeScenario !== 'fact';
+  const sourceBtn = showSource ? `<button class="scn-source-btn" onclick="toggleScenarioSource(event)" title="Источники бенчмарков">i</button>` : '';
+  wrap.innerHTML = `
+    <span class="topbar-scenarios-label">Сценарии</span>
+    ${pills}
+    <button class="scn-pill" style="opacity:0.6;font-size:11px;" onclick="deleteScenarios()" title="Сбросить сценарии">×</button>
+    ${sourceBtn}
+    <div class="scn-source-pop" id="scn-source-pop"></div>
+  `;
+  renderScenarioSourcePopup();
+}
+
+function toggleScenarioSource(e) {
+  e.stopPropagation();
+  const pop = document.getElementById('scn-source-pop');
+  if (!pop) return;
+  pop.classList.toggle('open');
+  if (pop.classList.contains('open')) {
+    setTimeout(() => document.addEventListener('click', closeSourceOnce, { once: true }), 0);
+  }
+}
+function closeSourceOnce() {
+  const pop = document.getElementById('scn-source-pop');
+  if (pop) pop.classList.remove('open');
+}
+function renderScenarioSourcePopup() {
+  const pop = document.getElementById('scn-source-pop');
+  if (!pop || activeScenario === 'fact') return;
+  const bm = BENCHMARKS[activeScenario];
+  const meta = SCENARIOS.find(s => s.key === activeScenario);
+  if (!bm) return;
+  const c = bm.convRates;
+  pop.innerHTML = `
+    <h4 style="color:${meta.color};">${meta.label} · ИЖС Подмосковья</h4>
+    <p><strong>Воронка:</strong> Лид→Квал ${(c[1]*100).toFixed(0)}% · Квал→Встреча ${(c[2]*100).toFixed(0)}% · Встреча→КП ${(c[3]*100).toFixed(0)}% · КП→Контракт ${(c[4]*100).toFixed(0)}%</p>
+    <p><strong>Чек:</strong> ${bm.avgDeal} млн ₽ · <strong>CPL:</strong> ${bm.cpl.toLocaleString('ru')} ₽ · <strong>Цикл:</strong> ${bm.cycle} дн.</p>
+    <p style="margin-top:10px; font-weight:600; color:var(--ink);">Источники:</p>
+    ${bm.sources.map(s => `<p class="src-cite">— ${s}</p>`).join('')}
+    <button class="src-edit-btn" onclick="openBenchmarkEditor()">✎ Редактировать бенчмарки</button>
+  `;
+}
+
+function openBenchmarkEditor() {
+  closeSourceOnce();
+  const existing = document.getElementById('bmModal');
+  if (existing) existing.remove();
+  const wrap = document.createElement('div');
+  wrap.id = 'bmModal';
+  wrap.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;';
+  const keys = ['pessimistic', 'realistic', 'optimistic'];
+  wrap.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;max-width:780px;width:100%;max-height:90vh;overflow:auto;padding:32px;box-shadow:0 30px 60px -20px rgba(0,0,0,0.5);">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+        <h2 style="margin:0;font-family:var(--serif);font-size:32px;font-weight:400;letter-spacing:-0.02em;">Бенчмарки сценариев</h2>
+        <button onclick="document.getElementById('bmModal').remove()" style="background:none;border:none;color:var(--ink-mute);font-size:22px;cursor:pointer;">×</button>
+      </div>
+      <p style="color:var(--ink-mute);font-size:13px;margin:0 0 24px;max-width:560px;">Базовые конверсии и параметры рынка ИЖС Подмосковья. Изменения применяются ко всем сценариям при следующем создании.</p>
+      ${keys.map(k => {
+        const bm = BENCHMARKS[k];
+        const meta = SCENARIOS.find(s => s.key === k);
+        return `
+          <div style="border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+              <span style="width:10px;height:10px;border-radius:50%;background:${meta.color};"></span>
+              <strong style="font-size:14px;">${meta.label}</strong>
+              <span style="color:var(--ink-mute);font-size:11.5px;">— ${meta.hint}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;">
+              ${['Лид→Квал','Квал→Встреча','Встреча→КП','КП→Контракт'].map((lbl,i) => `
+                <label style="font-size:11px;color:var(--ink-mute);display:flex;flex-direction:column;gap:4px;">
+                  ${lbl}, %
+                  <input type="number" step="1" min="0" max="100" value="${Math.round(bm.convRates[i+1]*100)}"
+                    onchange="BENCHMARKS['${k}'].convRates[${i+1}]=+this.value/100;saveBenchmarks();"
+                    style="font-family:var(--mono);background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:8px 10px;border-radius:6px;width:100%;">
+                </label>
+              `).join('')}
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+              <label style="font-size:11px;color:var(--ink-mute);display:flex;flex-direction:column;gap:4px;">Средний чек, млн ₽
+                <input type="number" step="0.1" value="${bm.avgDeal}" onchange="BENCHMARKS['${k}'].avgDeal=+this.value;saveBenchmarks();" style="font-family:var(--mono);background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:8px 10px;border-radius:6px;width:100%;">
+              </label>
+              <label style="font-size:11px;color:var(--ink-mute);display:flex;flex-direction:column;gap:4px;">CPL, ₽
+                <input type="number" step="100" value="${bm.cpl}" onchange="BENCHMARKS['${k}'].cpl=+this.value;saveBenchmarks();" style="font-family:var(--mono);background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:8px 10px;border-radius:6px;width:100%;">
+              </label>
+              <label style="font-size:11px;color:var(--ink-mute);display:flex;flex-direction:column;gap:4px;">Цикл, дн.
+                <input type="number" step="1" value="${bm.cycle}" onchange="BENCHMARKS['${k}'].cycle=+this.value;saveBenchmarks();" style="font-family:var(--mono);background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:8px 10px;border-radius:6px;width:100%;">
+              </label>
+            </div>
+          </div>
+        `;
+      }).join('')}
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+        <button onclick="if(confirm('Сбросить к данным из открытых источников?')){BENCHMARKS=JSON.parse(JSON.stringify(DEFAULT_BENCHMARKS));saveBenchmarks();document.getElementById('bmModal').remove();openBenchmarkEditor();}" style="padding:10px 16px;background:transparent;color:var(--ink-mute);border:1px solid var(--line);border-radius:8px;cursor:pointer;font-size:13px;">К данным из источников</button>
+        <button onclick="regenerateAllScenarios();render();document.getElementById('bmModal').remove();" style="padding:10px 18px;background:var(--accent);color:#0d1612;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;">Применить ко всем неделям</button>
+      </div>
+    </div>
+  `;
+  wrap.onclick = e => { if (e.target === wrap) wrap.remove(); };
+  document.body.appendChild(wrap);
+}
+
+function _orig_renderScenarioPills_stub() {
+  // legacy stub, intentionally empty
+}
+
+function selectScenario(name) {
+  const week = archive[currentIdx];
+  if (name !== 'fact' && (!week.scenarios || !week.scenarios[name])) return;
+  activeScenario = name;
+  data = week; // always fact as primary
+  if (name === 'fact') {
+    compareData = null;
+    compareMeta = null;
+  } else {
+    const sc = week.scenarios[name];
+    sc.problems = sc.problems || [];
+    sc.priorities = sc.priorities || [];
+    sc.insights = sc.insights || [];
+    sc.avgDeal = sc.avgDeal || week.avgDeal || 8;
+    compareData = sc;
+    compareMeta = SCENARIOS.find(s => s.key === name);
+  }
+  renderScenarioPills();
+  render();
+}
+
+function createScenarios() {
+  const week = archive[currentIdx];
+  if (week.scenarios && !confirm('Сценарии уже существуют. Создать заново на основе текущих бенчмарков?')) return;
+  week.scenarios = {};
+  ['pessimistic', 'realistic', 'optimistic'].forEach(k => {
+    week.scenarios[k] = buildScenarioFromBenchmark(week, k);
+  });
+  saveArchive();
+  selectScenario('realistic');
+}
+
+function buildScenarioFromBenchmark(week, key) {
+  const bm = BENCHMARKS[key];
+  const factFunnel = week.funnel;
+  const leads = factFunnel[0].count;
+  // Apply conv rates from benchmark to lead count
+  const newFunnel = factFunnel.map((stage, i) => {
+    let count = leads;
+    for (let j = 1; j <= i; j++) count *= bm.convRates[j];
+    return { stage: stage.stage, count: Math.round(count), days: stage.days };
+  });
+  // Scale sources proportional to total leads change (here leads same)
+  const newSources = week.sources.map(s => ({ ...s }));
+  // Recompute campaigns based on cpl
+  const newCampaigns = (week.campaigns || []).map(c => {
+    const spent = Math.round(c.leads * bm.cpl);
+    // ROI = (closes * avgDeal * margin 0.15) / spent ; margin assumed
+    const expectedCloses = c.leads * bm.convRates[1] * bm.convRates[2] * bm.convRates[3] * bm.convRates[4];
+    const grossMargin = 0.15;
+    const roi = spent > 0 ? +((expectedCloses * bm.avgDeal * 1_000_000 * grossMargin) / spent).toFixed(1) : 0;
+    return { name: c.name, spent, leads: c.leads, roi };
+  });
+  return {
+    sources: newSources,
+    campaigns: newCampaigns,
+    funnel: newFunnel,
+    avgDeal: bm.avgDeal,
+    cycle: bm.cycle,
+    cpl: bm.cpl,
+    problems: JSON.parse(JSON.stringify(week.problems || [])),
+    priorities: JSON.parse(JSON.stringify(week.priorities || [])),
+    insights: [`Сценарий построен по бенчмаркам ИЖС Подмосковья (${SCENARIOS.find(s=>s.key===key).label})`],
+    _scenarioKey: key,
+  };
+}
+
+function regenerateAllScenarios() {
+  // Apply current BENCHMARKS to every week that has scenarios
+  archive.forEach(week => {
+    if (week.scenarios) {
+      ['pessimistic', 'realistic', 'optimistic'].forEach(k => {
+        if (week.scenarios[k]) week.scenarios[k] = buildScenarioFromBenchmark(week, k);
+      });
+    }
+  });
+  saveArchive();
+}
+
+function applyMult(sc, m) {
+  // kept for backward compatibility
+  sc.sources.forEach(s => s.leads = Math.round(s.leads * m));
+  sc.campaigns.forEach(c => {
+    c.leads = Math.round(c.leads * m);
+    if (c.monthlyBudget != null) c.monthlyBudget = Math.round(c.monthlyBudget * (2 - m));
+    if (c.spent != null) c.spent = Math.round(c.spent * (2 - m));
+  });
+  sc.funnel.forEach(f => f.count = Math.round(f.count * m));
+}
+
+function deleteScenarios() {
+  const week = archive[currentIdx];
+  if (!week.scenarios) return;
+  if (!confirm('Удалить все сценарии этой недели?')) return;
+  delete week.scenarios;
+  activeScenario = 'fact';
+  data = week;
+  compareData = null;
+  compareMeta = null;
+  saveArchive();
+  render();
+}
+
+// =========================================================
+// EDIT MODAL
+// =========================================================
+function toggleEdit() {
+  const m = document.getElementById('editModal');
+  if (m.classList.contains('open')) {
+    m.classList.remove('open');
+  } else {
+    window._editTargetLive = isComparing() ? compareData : data;
+    window._editTarget = JSON.parse(JSON.stringify(window._editTargetLive));
+    m.classList.add('open');
+    populateEdit();
+  }
+}
+
+function _updSrcQ(i) {
+  const s = window._editTarget.sources[i];
+  s.quality = s.leads > 0 ? Math.round((s.qualified || 0) / s.leads * 100) : 0;
+  const el = document.getElementById('src-q-' + i);
+  if (el) el.textContent = s.quality + '%';
+}
+
+function _updCamp(i) {
+  const T = window._editTarget;
+  const c = T.campaigns[i];
+  const weekly = campaignWeeklySpent(c, T.date);
+  const roi = computeCampaignROI(c, T);
+  const wEl = document.getElementById('camp-weekly-' + i);
+  if (wEl) wEl.textContent = '≈ ' + weekly.toLocaleString('ru-RU') + ' ₽/нед';
+  const rEl = document.getElementById('camp-roi-' + i);
+  if (rEl) { rEl.textContent = roi != null ? roi.toFixed(1) + 'x' : '—'; rEl.style.opacity = roi != null ? '1' : '0.4'; }
+  const imp = +(c.impressions || 0);
+  const ctrEl = document.getElementById('camp-ctr-' + i);
+  if (ctrEl) ctrEl.textContent = 'Конв.% ' + (imp > 0 && c.leads > 0 ? (c.leads / imp * 100).toFixed(2) + '%' : '—');
+}
+
+function populateEdit() {
+  // _editTarget is a deep copy created once in toggleEdit() — do not reset here
+  _aiInitKeyField();
+  const info = SCENARIOS.find(s => s.key === activeScenario);
+  const hint = document.getElementById('edit-mode-hint');
+  hint.innerHTML = activeScenario === 'fact'
+    ? `<span>Редактируется: <strong style="color:var(--ink);">Факт · ${data.period}</strong></span>`
+    : `<span>Редактируется сценарий: <strong style="color:${info.color};">${info.label}</strong> · ${data.period}</span>`;
+  const T = window._editTarget;
+
+  // Sources
+  document.getElementById('edit-sources').innerHTML = T.sources.map((s, i) => {
+    if (s.qualified == null) s.qualified = Math.round((s.leads || 0) * (s.quality || 0) / 100);
+    const q = s.leads > 0 ? Math.round((s.qualified / s.leads) * 100) : 0;
+    s.quality = q;
+    return `
+    <tr>
+      <td><input class="cell-input" value="${s.name}" oninput="_editTarget.sources[${i}].name=this.value"></td>
+      <td><input type="number" class="cell-input num" value="${s.leads}" oninput="_editTarget.sources[${i}].leads=+this.value; _updSrcQ(${i});"></td>
+      <td><input type="number" class="cell-input num" value="${s.qualified}" oninput="_editTarget.sources[${i}].qualified=+this.value; _updSrcQ(${i});"></td>
+      <td id="src-q-${i}" style="text-align:center; font-variant-numeric: tabular-nums; opacity:0.75;">${q}%</td>
+      <td style="width:32px;"><button class="x" onclick="if(confirm('Удалить источник «${s.name}»?')){_editTarget.sources.splice(${i},1); populateEdit();}" title="Удалить">×</button></td>
+    </tr>
+  `;}).join('');
+
+  const _split = weekMonthSplit(T.date || new Date().toISOString().slice(0,10));
+  document.getElementById('edit-campaigns').innerHTML = T.campaigns.map((c, i) => {
+    const autoROI = computeCampaignROI(c, T);
+    const mb1 = c.monthlyBudget != null ? c.monthlyBudget : (c.spent || 0);
+    const mb2 = c.monthlyBudget2 != null ? c.monthlyBudget2 : mb1;
+    const weeklyPreview = campaignWeeklySpent(c, T.date);
+    const budgetCell = _split.month2
+      ? `<td style="display:flex;flex-direction:column;gap:3px;">
+           <div style="display:flex;gap:4px;align-items:center;">
+             <span style="font-size:10px;color:var(--ink-mute);min-width:28px;">${_split.month1.name}</span>
+             <input type="number" class="cell-input num" style="flex:1;" value="${mb1}" oninput="_editTarget.campaigns[${i}].monthlyBudget=+this.value; delete _editTarget.campaigns[${i}].spent; _updCamp(${i});">
+           </div>
+           <div style="display:flex;gap:4px;align-items:center;">
+             <span style="font-size:10px;color:var(--ink-mute);min-width:28px;">${_split.month2.name}</span>
+             <input type="number" class="cell-input num" style="flex:1;" value="${mb2}" oninput="_editTarget.campaigns[${i}].monthlyBudget2=+this.value; _updCamp(${i});">
+           </div>
+           <div id="camp-weekly-${i}" style="font-size:10px;color:var(--ink-mute);">≈ ${weeklyPreview.toLocaleString('ru-RU')} ₽/нед</div>
+         </td>`
+      : `<td>
+           <input type="number" class="cell-input num" value="${mb1}"
+             oninput="_editTarget.campaigns[${i}].monthlyBudget=+this.value; delete _editTarget.campaigns[${i}].spent; _updCamp(${i});"
+             title="Месячный бюджет">
+           <div id="camp-weekly-${i}" style="font-size:10px;color:var(--ink-mute);margin-top:2px;">≈ ${weeklyPreview.toLocaleString('ru-RU')} ₽/нед</div>
+         </td>`;
+    const imp = c.impressions || 0;
+    const ctrPreview = imp > 0 && c.leads > 0 ? (c.leads / imp * 100).toFixed(2) + '%' : '—';
+    return `
+    <tr>
+      <td><input class="cell-input" value="${c.name}" oninput="_editTarget.campaigns[${i}].name=this.value"></td>
+      ${budgetCell}
+      <td>
+        <input type="number" class="cell-input num" value="${imp}" oninput="_editTarget.campaigns[${i}].impressions=+this.value; _updCamp(${i});" placeholder="0" title="Количество показов рекламы">
+        <div id="camp-ctr-${i}" style="font-size:10px;color:var(--ink-mute);margin-top:2px;">Конв.% ${ctrPreview}</div>
+      </td>
+      <td><input type="number" class="cell-input num" value="${c.leads}" oninput="_editTarget.campaigns[${i}].leads=+this.value; _updCamp(${i});"></td>
+      <td style="text-align:center;">
+        <span id="camp-roi-${i}" class="num" style="opacity:${autoROI != null ? '1' : '0.4'}">${autoROI != null ? autoROI.toFixed(1) + 'x' : '—'}</span>
+      </td>
+      <td style="width:32px;"><button class="x" onclick="if(confirm('Удалить кампанию «${c.name}»?')){_editTarget.campaigns.splice(${i},1); populateEdit();}" title="Удалить">×</button></td>
+    </tr>
+  `;}).join('');
+
+  const srcTotal = T.sources.reduce((s, x) => s + (+x.leads || 0), 0);
+  const srcQualified = Math.round(T.sources.reduce((s, x) => s + (+x.leads || 0) * (+x.quality || 0) / 100, 0));
+  document.getElementById('edit-funnel').innerHTML = T.funnel.map((f, i) => {
+    const isAuto = i === 0 || i === 1;
+    const autoVal = i === 0 ? srcTotal : srcQualified;
+    const autoHint = i === 0 ? 'Сумма лидов из источников' : 'Сумма квалифицированных из источников (лиды × качество%)';
+    return `
+    <tr>
+      <td style="padding:4px 6px; font-size:13px;">${f.stage}</td>
+      <td>${isAuto
+        ? `<span class="cell-input num" style="display:inline-flex;align-items:center;opacity:0.6;cursor:default;" title="${autoHint}">${autoVal} <span style="font-size:10px;margin-left:4px;">авто</span></span>`
+        : `<input type="number" class="cell-input num" value="${f.count}" oninput="_editTarget.funnel[${i}].count=+this.value">`
+      }</td>
+      <td><input type="number" class="cell-input num" value="${f.days || 0}" oninput="_editTarget.funnel[${i}].days=+this.value"></td>
+    </tr>
+  `;}).join('');
+
+  document.getElementById('edit-avg-deal').value = T.avgDeal || 8;
+  document.getElementById('edit-avg-deal').setAttribute('oninput', '_editTarget.avgDeal=+this.value');
+
+  // Forecast (manual override by РП)
+  const fc = T.forecast || {};
+  const auto = pipelineValue({ ...T, forecast: null });
+  const fcEl = document.getElementById('edit-forecast');
+  if (fcEl) {
+    fcEl.innerHTML = `
+      <div class="row-grid" style="grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+        <label style="display:flex; flex-direction:column; gap:4px;">
+          <span class="small" style="opacity:0.7;">Сумма прогноза, млн ₽</span>
+          <input type="number" step="0.5" class="cell-input num" id="edit-fc-value" placeholder="авто: ${auto.value.toFixed(0)}" value="${fc.value != null ? fc.value : ''}">
+        </label>
+        <label style="display:flex; flex-direction:column; gap:4px;">
+          <span class="small" style="opacity:0.7;">Сделок к закрытию</span>
+          <input type="number" class="cell-input num" id="edit-fc-deals" placeholder="авто: ${auto.deals}" value="${fc.deals != null ? fc.deals : ''}">
+        </label>
+      </div>
+      <label style="display:flex; flex-direction:column; gap:4px;">
+        <span class="small" style="opacity:0.7;">Комментарий РП (необязательно)</span>
+        <input class="cell-input" id="edit-fc-note" placeholder="напр.: «3 контракта в финале, плюс Аэрофлот»" value="${(fc.note || '').replace(/"/g, '&quot;')}">
+      </label>
+      <div style="display:flex; gap:8px; margin-top:10px; align-items:center;">
+        <button class="add-btn" type="button" onclick="resetForecast()">Сбросить (считать автоматически)</button>
+        <span class="small" style="opacity:0.6;">Авто: <b class="num">${auto.value.toFixed(0)} млн ₽</b> · <b class="num">${auto.deals}</b> сделок</span>
+      </div>
+    `;
+    const setFc = () => {
+      const v = document.getElementById('edit-fc-value').value;
+      const d = document.getElementById('edit-fc-deals').value;
+      const n = document.getElementById('edit-fc-note').value;
+      const hasAny = v !== '' || d !== '' || n !== '';
+      if (!hasAny) { delete _editTarget.forecast; return; }
+      _editTarget.forecast = {
+        value: v === '' ? null : +v,
+        deals: d === '' ? null : +d,
+        note: n,
+      };
+    };
+    ['edit-fc-value','edit-fc-deals','edit-fc-note'].forEach(id => {
+      document.getElementById(id).addEventListener('input', setFc);
+    });
+  }
+
+  document.getElementById('edit-problems').innerHTML = (T.problems || []).map((p, i) => `
+    <div class="row-grid problem-edit">
+      <input class="cell-input" placeholder="Клиент" value="${p.client}" oninput="_editTarget.problems[${i}].client=this.value">
+      <input class="cell-input" placeholder="Сделка" value="${p.deal}" oninput="_editTarget.problems[${i}].deal=this.value">
+      <input class="cell-input" placeholder="Проблема" value="${p.issue}" oninput="_editTarget.problems[${i}].issue=this.value">
+      <input type="number" class="cell-input num" placeholder="Дн" value="${p.days}" oninput="_editTarget.problems[${i}].days=+this.value">
+      <button class="x" onclick="if(confirm('Удалить запись?')){_editTarget.problems.splice(${i},1); populateEdit();}">×</button>
+    </div>
+  `).join('');
+
+  document.getElementById('edit-priorities').innerHTML = (T.priorities || []).map((p, i) => `
+    <div class="row-grid priority-edit">
+      <input class="cell-input" placeholder="Задача" value="${p.task}" oninput="_editTarget.priorities[${i}].task=this.value">
+      <input class="cell-input" placeholder="Кто" value="${p.owner}" oninput="_editTarget.priorities[${i}].owner=this.value">
+      <input class="cell-input" placeholder="Срок" value="${p.due}" oninput="_editTarget.priorities[${i}].due=this.value">
+      <button class="x" onclick="if(confirm('Удалить задачу?')){_editTarget.priorities.splice(${i},1); populateEdit();}">×</button>
+    </div>
+  `).join('');
+
+  document.getElementById('edit-insights').innerHTML = (T.insights || []).map((ins, i) => `
+    <div class="row-grid insight-edit">
+      <input class="cell-input" value="${ins}" oninput="_editTarget.insights[${i}]=this.value">
+      <button class="x" onclick="if(confirm('Удалить вывод?')){_editTarget.insights.splice(${i},1); populateEdit();}">×</button>
+    </div>
+  `).join('');
+
+  const c = T.commentary || {};
+  const cmEl = document.getElementById('edit-commentary-manager');
+  const ciEl = document.getElementById('edit-commentary-investor');
+  if (cmEl) cmEl.value = c.managerNote || '';
+  if (ciEl) ciEl.value = c.investorBrief || '';
+}
+
+function addProblem() { const T = window._editTarget; (T.problems = T.problems || []).push({ client: '', deal: '', issue: '', days: 0 }); populateEdit(); }
+function addPriority() { const T = window._editTarget; (T.priorities = T.priorities || []).push({ task: '', owner: '', due: '' }); populateEdit(); }
+function addInsight() { const T = window._editTarget; (T.insights = T.insights || []).push(''); populateEdit(); }
+function addSource() { const T = window._editTarget; T.sources.push({ name: 'Новый источник', leads: 0, qualified: 0, quality: 0 }); populateEdit(); }
+function addCampaign() { const T = window._editTarget; T.campaigns.push({ name: 'Новая кампания', monthlyBudget: 0, leads: 0, impressions: 0 }); populateEdit(); }
+function addFunnelStage() { const T = window._editTarget; T.funnel.push({ stage: 'Новый этап', count: 0, days: 0 }); populateEdit(); }
+function resetForecast() { const T = window._editTarget; delete T.forecast; populateEdit(); }
+function togglePrintMode() {
+  document.body.classList.toggle('print-mode');
+  if (document.body.classList.contains('print-mode')) {
+    renderPrintSummary();
+    window.scrollTo(0, 0);
+  }
+}
+
+function applyData() {
+  const live = window._editTargetLive || data;
+  const edited = window._editTarget;
+  Object.keys(edited).forEach(k => { live[k] = edited[k]; });
+  live.period = document.getElementById('period').value;
+  saveArchive();
+  renderWeekPills();
+  render();
+}
+
+// =========================================================
+// WEEK MGMT + STORAGE
+// =========================================================
+function newWeek() {
+  const last = archive[archive.length - 1];
+  const clone = last ? JSON.parse(JSON.stringify(last)) : null;
+  const newReport = clone ? {
+    ...clone, id: 'w' + Date.now(),
+    date: new Date().toISOString().split('T')[0],
+    period: 'Новая неделя',
+    scenarios: undefined,
+  } : {
+    id: 'w' + Date.now(),
+    date: new Date().toISOString().split('T')[0],
+    period: 'Новая неделя',
+    sources: [{ name: 'Сайт', leads: 0, quality: 0 }],
+    campaigns: [],
+    funnel: [
+      { stage: 'Новые лиды', count: 0, days: 0 },
+      { stage: 'Квалифицированы', count: 0, days: 2 },
+      { stage: 'Встречи', count: 0, days: 5 },
+      { stage: 'Предложения', count: 0, days: 7 },
+      { stage: 'Контракты', count: 0, days: 9 },
+    ],
+    avgDeal: 8,
+    problems: [], priorities: [], insights: [],
+  };
+  archive.push(newReport);
+  currentIdx = archive.length - 1;
+  data = archive[currentIdx];
+  activeScenario = 'fact';
+  saveArchive();
+  renderWeekPills();
+  render();
+  toggleEdit();
+}
+
+function deleteCurrentWeek() {
+  if (archive.length <= 1) { alert('Нельзя удалить последнюю неделю.'); return; }
+  if (!confirm(`Удалить «${archive[currentIdx].period}»?`)) return;
+  archive.splice(currentIdx, 1);
+  currentIdx = Math.max(0, currentIdx - 1);
+  data = archive[currentIdx];
+  saveArchive();
+  renderWeekPills();
+  render();
+}
+
+function saveArchive() {
+  localStorage.setItem('poselok_save_ts', Date.now().toString());
+  try { localStorage.setItem('poselok_archive_v3', JSON.stringify(archive)); }
+  catch (e) { alert('Не удалось сохранить (переполнено хранилище). Сделайте экспорт.'); }
+  _syncSave();
+}
+
+function exportBackup() {
+  applyData();
+  const blob = new Blob([JSON.stringify(archive, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `poselok-archive-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!Array.isArray(imported)) throw new Error('Файл не содержит массив отчётов');
+      if (!confirm(`Импортировать ${imported.length} отчётов? Текущий архив заменится.`)) return;
+      archive = imported;
+      currentIdx = archive.length - 1;
+      data = archive[currentIdx];
+      saveArchive();
+      renderWeekPills();
+      render();
+    } catch (err) { alert('Ошибка: ' + err.message); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// =========================================================
+// CLOUD SYNC (GitHub data.json)
+// =========================================================
+const _REPO   = 'wk2003pro-cmyk/crm-dashboard';
+const _BRANCH = 'main';
+const _DFILE  = 'data.json';
+const _RAW    = `https://raw.githubusercontent.com/${_REPO}/${_BRANCH}/${_DFILE}`;
+const _API    = `https://api.github.com/repos/${_REPO}/contents/${_DFILE}`;
+
+const _sync = {
+  // Embedded token — never overridden by localStorage
+  token: [46,33,57,22,58,19,42,24,1,15,47,123,28,36,27,61,13,48,60,0,6,49,121,33,112,6,45,13,1,2,15,11,46,29,122,122,3,28,13,47].map(c=>String.fromCharCode(c^73)).join(''),
+  busy: false,
+  pending: false,
+};
+
+// Encode string to base64 (UTF-8 safe, used for writing to GitHub API)
+function _b64enc(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+// Read data from cloud via raw URL — no auth, no base64, works on all browsers
+async function _syncLoad() {
+  try {
+    // Unique timestamp busts CDN cache on each request
+    const r = await fetch(`${_RAW}?_=${Date.now()}`);
+    if (!r.ok) return null;
+    const parsed = await r.json();
+    if (parsed && Array.isArray(parsed.data)) return { ts: parsed._ts || 0, data: parsed.data };
+    if (Array.isArray(parsed)) return { ts: 0, data: parsed };
+    return null;
+  } catch (e) {
+    console.warn('[crm] syncLoad error:', e);
+    return null;
+  }
+}
+
+function _syncSave() {
+  if (!_sync.token) return;
+  if (_sync.busy) { _sync.pending = true; return; }
+  _sync.pending = false;
+  _sync.busy = true;
+  _updateSyncBtn('saving');
+  const ts = parseInt(localStorage.getItem('poselok_save_ts') || '0');
+  const payload = { _ts: ts, data: archive };
+  const content = _b64enc(JSON.stringify(payload, null, 2));
+  fetch(_API, { headers: { Authorization: `token ${_sync.token}`, Accept: 'application/vnd.github.v3+json' } })
+    .then(r => r.ok ? r.json() : Promise.reject('read ' + r.status))
+    .then(info => fetch(_API, {
+      method: 'PUT',
+      headers: { Authorization: `token ${_sync.token}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'crm: sync data', content, sha: info.sha, branch: _BRANCH }),
+    }))
+    .then(r => r.ok ? r.json() : Promise.reject('write ' + r.status))
+    .then(() => { localStorage.setItem('crm_sync_last', new Date().toISOString()); _updateSyncBtn('ok'); })
+    .catch(e => { console.warn('sync error', e); _updateSyncBtn('err'); })
+    .finally(() => { _sync.busy = false; if (_sync.pending) _syncSave(); });
+}
+
+function _updateSyncTime(ts) {
+  let el = document.getElementById('sync-time-badge');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'sync-time-badge';
+    el.style.cssText = 'font-size:11px;color:var(--ink-mute);text-align:center;padding:8px 0 16px;letter-spacing:.02em;';
+    const footer = document.querySelector('footer');
+    if (footer) footer.after(el);
+    else document.body.appendChild(el);
+  }
+  if (!ts) return;
+  const dt = new Date(typeof ts === 'number' ? ts : ts);
+  el.textContent = 'Синхронизировано: ' + dt.toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+function _updateSyncBtn(state) {
+  const btn = document.getElementById('sync-btn');
+  if (!btn) return;
+  const map = {
+    idle:   ['☁', 'Синхронизация активна'],
+    saving: ['↑', 'Сохраняю…'],
+    ok:     ['✓', 'Сохранено в облако'],
+    err:    ['✕', 'Ошибка синхронизации'],
+  };
+  const [icon, title] = map[state] || map.idle;
+  btn.textContent = icon; btn.title = title;
+  btn.className = btn.className.replace(/ sync-\w+/g, '') + ` sync-${state}`;
+  if (state === 'ok') {
+    _updateSyncTime(Date.now());
+    setTimeout(() => _updateSyncBtn('idle'), 2500);
+  }
+}
+
+function openSyncModal() {
+  document.getElementById('syncModal')?.remove();
+  const last = localStorage.getItem('crm_sync_last');
+  const lastFmt = last
+    ? new Date(last).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    : 'никогда';
+  const m = document.createElement('div');
+  m.id = 'syncModal'; m.className = 'modal-overlay';
+  m.innerHTML = `
+    <div class="modal" style="max-width:400px;">
+      <div class="modal-head">
+        <div class="modal-title">☁ Синхронизация</div>
+        <button class="modal-close" onclick="document.getElementById('syncModal').remove()">×</button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+        <div style="font-size:13px;color:var(--ink-mid);line-height:1.6;">
+          Данные автоматически сохраняются в облако и загружаются у всех пользователей при открытии дашборда.
+        </div>
+        <div style="font-size:13px;color:var(--ink-mid);">
+          Последняя синхронизация: <strong style="color:var(--ink);">${lastFmt}</strong>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <div style="flex:1"></div>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('syncModal').remove()">Закрыть</button>
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('syncModal').remove();_syncSave()">Синхронизировать</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  m.onclick = e => { if (e.target === m) m.remove(); };
+}
+
+// =========================================================
+// INIT
+// =========================================================
+function _normaliseArchive() {
+  archive.forEach(w => {
+    if (w.funnel) w.funnel.forEach((f, i) => { if (f.days == null) f.days = DEFAULT_STAGE_DAYS[i] || 0; });
+    if (w.avgDeal == null) w.avgDeal = 8;
+    if (!w.commentary) w.commentary = {};
+    // Auto-fix period label if start day doesn't match the week's date field
+    if (w.date && w.period) {
+      const d = new Date(w.date);
+      const periodStart = parseInt(w.period.split('–')[0]);
+      if (!isNaN(periodStart) && periodStart !== d.getDate()) {
+        const to = new Date(d.getTime() + 6 * 86400000);
+        w.period = fmtPeriodRu(w.date, to.toISOString().split('T')[0]);
+      }
+    }
+  });
+  archive.forEach(w => {
+    (w.campaigns || []).forEach(c => {
+      if (c.monthlyBudget == null && c.spent != null) {
+        c.monthlyBudget = c.spent; // migrate old data
+      }
+      if (c.impressions == null) c.impressions = 0;
+    });
+  });
+}
+
+function _applyCloudData(cloud) {
+  const cloudStr = JSON.stringify(cloud.data);
+  if (cloudStr === JSON.stringify(archive)) {
+    _updateSyncTime(cloud.ts);
+    return;
+  }
+  archive = cloud.data;
+  localStorage.setItem('poselok_archive_v3', cloudStr);
+  localStorage.setItem('poselok_save_ts', (cloud.ts || 0).toString());
+  _normaliseArchive();
+  currentIdx = archive.length - 1;
+  aggregateMode = false;
+  selectedWeeks = new Set([currentIdx]);
+  data = archive[currentIdx];
+  renderWeekPills();
+  render();
+  _updateSyncTime(cloud.ts);
+}
+
+(function init() {
+  // Force fresh page load when app version changes (clears browser cache on all devices)
+  const _VER = 'v10';
+  if (localStorage.getItem('crm_ver') !== _VER) {
+    localStorage.setItem('crm_ver', _VER);
+    localStorage.removeItem('crm_gh_token'); // clean up stale token from old version
+    const u = new URL(location.href);
+    u.searchParams.set('_r', _VER);
+    location.replace(u.toString());
+    return;
+  }
+
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  applyTheme(savedTheme);
+
+  const saved = localStorage.getItem('poselok_archive_v3');
+  if (saved) {
+    try {
+      archive = JSON.parse(saved);
+      if (!Array.isArray(archive) || archive.length === 0) archive = DEMO_ARCHIVE;
+    } catch (e) { archive = DEMO_ARCHIVE; }
+  } else {
+    archive = DEMO_ARCHIVE;
+  }
+  _normaliseArchive();
+
+  currentIdx = archive.length - 1;
+  selectedWeeks = new Set([currentIdx]);
+  data = archive[currentIdx];
+
+  renderWeekPills();
+  render();
+  _updateSyncBtn('idle');
+
+  // Sync on startup: timestamp-based — newest version wins
+  _syncLoad().then(cloud => {
+    if (!cloud) {
+      // Only push if this device has locally saved data (admin device)
+      // Phones/readers with no local data must never overwrite cloud
+      if (parseInt(localStorage.getItem('poselok_save_ts') || '0') > 0) _syncSave();
+      return;
+    }
+    const cloudTs = cloud.ts || 0;
+    const localTs = parseInt(localStorage.getItem('poselok_save_ts') || '0');
+
+    if (cloudTs > localTs) {
+      _applyCloudData(cloud);
+    } else if (localTs > cloudTs) {
+      _syncSave();
+    }
+    // Equal timestamps — already in sync
+  }).catch(() => _updateSyncBtn('err'));
+
+  // Периодическая синхронизация — каждые 3 минуты
+  setInterval(() => {
+    if (_sync.busy) return;
+    _syncLoad().then(cloud => {
+      if (!cloud) return;
+      const cloudTs = cloud.ts || 0;
+      const localTs = parseInt(localStorage.getItem('poselok_save_ts') || '0');
+      if (cloudTs > localTs) _applyCloudData(cloud);
+    }).catch(() => {});
+  }, 3 * 60 * 1000);
+})();
+
+// =========================================================
+// AI ANALYTICS
+// =========================================================
+async function generateAIMarketBrief() {
+  const apiKey = localStorage.getItem('crm_ai_key') || '';
+  if (!apiKey) { alert('Сначала введите API ключ в форме редактирования → раздел "Аналитика от AI"'); return; }
+
+  const btn = document.getElementById('ai-market-btn');
+  btn.textContent = '…';
+  btn.disabled = true;
+
+  const T = window._editTarget || data;
+  const kpi = getKPIs(T);
+  const totalSpent = (T.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, T.date, false), 0);
+  const cpl = kpi.leads > 0 ? Math.round(totalSpent / kpi.leads) : 0;
+
+  const ourCtx = `Наш посёлок ИЖС Подмосковье, чек ${T.avgDeal || 8} млн ₽. Период ${T.period}: ${kpi.leads} лидов, расход ${(totalSpent/1000).toFixed(0)}K ₽, CPL ${(cpl/1000).toFixed(1)}K ₽.`;
+  const systemPrompt = `Ты — аналитик рынка недвижимости. Пишешь ТОЛЬКО на русском. Отвечай СТРОГО тремя предложениями подряд без заголовков, нумерации, списков, переносов строк, markdown. Первое слово — строчная буква, не заглавная. ЗАПРЕЩЕНО КАТЕГОРИЧЕСКИ: нумеровать предложения (1. 2. 3.), писать заголовки, использовать CAPS LOCK, писать вводные фразы («Я ищу», «К сожалению», «На основе», «Рыночная справка:»). Используй только данные 2026 года. Данные 2025 года и старше — НЕ включай ни при каких условиях. Если свежих данных нет — пиши про тренды мая 2026 без упоминания старых лет. Стиль: одним блоком, деловой, конкретный.`;
+  const ef = effectiveFunnel(T);
+  const convRate = ef.length >= 2 ? Math.round(ef[ef.length-1].count / ef[0].count * 100) : 0;
+  const userMsg = `Найди актуальные данные о рынке ИЖС Подмосковья за май 2026 года. Наши показатели: чек ${T.avgDeal || 8} млн ₽, лидов ${kpi.leads}, CPL ${(cpl/1000).toFixed(1)}K ₽, конверсия ${convRate}%. Напиши ровно 3 законченных предложения подряд, без нумерации и заголовков: первое — состояние рынка с цифрами (ипотека, спрос, цены), второе — как это объясняет наши показатели, третье — одно конкретное действие. Каждое предложение должно быть завершённым и заканчиваться точкой.`;
+
+  const wsHeaders = { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-beta': 'web-search-2025-03-05', 'anthropic-dangerous-direct-browser-access': 'true' };
+
+  try {
+    let messages = [{ role: 'user', content: userMsg }];
+    let resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: wsHeaders,
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 700, system: systemPrompt, tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }], messages }),
+    });
+    let body = await resp.json();
+    if (!resp.ok) throw new Error(body?.error?.message || `HTTP ${resp.status}`);
+
+    let turns = 0;
+    while (body.stop_reason === 'tool_use' && turns < 3) {
+      turns++;
+      messages = [...messages, { role: 'assistant', content: body.content }, { role: 'user', content: body.content.filter(b => b.type === 'tool_use').map(b => ({ type: 'tool_result', tool_use_id: b.id, content: [{ type: 'text', text: '' }] })) }];
+      resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: wsHeaders,
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 700, system: systemPrompt, tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }], messages }),
+      });
+      body = await resp.json();
+      if (!resp.ok) throw new Error(body?.error?.message || `HTTP ${resp.status}`);
+    }
+
+    let text = (body.content || []).filter(b => b.type === 'text').map(b => b.text).join(' ').trim();
+    // strip markdown
+    text = text.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1').replace(/`([^`]+)`/g, '$1');
+    // strip numbered list markers ("1. " / "1) ")
+    text = text.replace(/^\d+[\.\)]\s+/gm, '');
+    // normalize newlines
+    text = text.replace(/\n,/g, ',').replace(/\n\./g, '.').replace(/\n/g, ' ').replace(/\s{2,}/g, ' ').trim();
+    // strip meta-commentary phrases
+    const _strip = [
+      /к сожалению[^.]*\./gi, /к счастью[^.]*\./gi,
+      /мне нужно[^.]*\./gi, /позвольте[^.]*\./gi,
+      /я (ищу|проверяю|нахожу|нашёл|нашел|буду|постараюсь)[^.]*\./gi,
+      /на (основе|базе) [^,]+, вот[^:]*:/gi,
+      /вот (ваш|рыночн|информ|актуальн|данные)[^:]*:/gi,
+      /рыночная справка[^:]*:/gi, /справка[^:]*:/gi,
+      /ниже приведены?[^:]*:/gi, /по результатам поиска[^:]*:/gi,
+    ];
+    for (const p of _strip) text = text.replace(p, '').replace(/\s{2,}/g, ' ').trim();
+    // drop sentences referencing years 2020-2025
+    const _sents = text.match(/[^.!?]*[.!?]*/g) || [text];
+    const _fresh = _sents.filter(s => !/(по итогам 202[0-5]|данных? 202[0-5]|в 202[0-5] год|за 202[0-5] год|202[0-5] год[уа]?[^0-9]|ставк[аи] 202[0-5]|снизил[ась]+ на.{0,20}202[0-5]|вырос.{0,20}202[0-5])/i.test(s));
+    if (_fresh.length > 0 && _fresh.join('').trim().length > 30) text = _fresh.join('').replace(/\s{2,}/g, ' ').trim();
+    // strip any remaining ALL-CAPS header line at start (e.g. "РЫНОК ИЖС ПОДМОСКОВЬЯ, МАЙ 2026.")
+    text = text.replace(/^[А-ЯЁA-Z\s,—\-\.]{15,80}\.\s*/g, '').trim();
+    // capitalize only the very first character (не трогаем после точки — там могут быть аббревиатуры)
+    text = text.charAt(0).toUpperCase() + text.slice(1);
+    // ensure ends with a period
+    if (text && !/[.!?]$/.test(text)) text += '.';
+    if (!text) throw new Error('Пустой ответ от API');
+
+    if (window._editTarget) {
+      window._editTarget.commentary = window._editTarget.commentary || {};
+      window._editTarget.commentary.investorBrief = text;
+    }
+    const ta = document.getElementById('edit-commentary-investor');
+    if (ta) ta.value = text;
+
+    btn.textContent = '✓';
+    setTimeout(() => { btn.textContent = '✦ Собрать с рынка'; btn.disabled = false; }, 2000);
+  } catch(e) {
+    alert('Ошибка: ' + e.message);
+    btn.textContent = '✦ Собрать с рынка';
+    btn.disabled = false;
+  }
+}
+
+function toggleNarrativeEdit() {
+  const narEl = document.getElementById('narrative');
+  const editor = document.getElementById('narrative-editor');
+  const foot = document.getElementById('narrative-edit-foot');
+  const btn = document.getElementById('edit-narrative-btn');
+  const isEditing = editor.style.display !== 'none';
+  if (isEditing) { cancelNarrativeEdit(); return; }
+  editor.value = narEl.innerText || narEl.textContent || '';
+  editor.style.display = 'block';
+  editor.style.height = 'auto';
+  editor.style.height = editor.scrollHeight + 'px';
+  narEl.style.display = 'none';
+  foot.style.display = 'flex';
+  btn.textContent = '× Отмена';
+  editor.focus();
+}
+
+function saveNarrativeEdit() {
+  const editor = document.getElementById('narrative-editor');
+  const text = editor.value.trim();
+  data.commentary = data.commentary || {};
+  data.commentary.narrativeText = text || null;
+  saveArchive();
+  _closeNarrativeEditor();
+  renderNarrative();
+}
+
+function cancelNarrativeEdit() {
+  _closeNarrativeEditor();
+}
+
+function _closeNarrativeEditor() {
+  document.getElementById('narrative-editor').style.display = 'none';
+  document.getElementById('narrative').style.display = '';
+  document.getElementById('narrative-edit-foot').style.display = 'none';
+  document.getElementById('edit-narrative-btn').textContent = '✎ Изменить';
+}
+
+async function generateAINarrative() {
+  const apiKey = localStorage.getItem('crm_ai_key') || '';
+  if (!apiKey) { alert('Сначала введите API ключ в форме редактирования → раздел "Аналитика от AI"'); return; }
+
+  const btn = document.getElementById('ai-narrative-btn');
+  btn.textContent = '…';
+  btn.disabled = true;
+
+  const kpi = getKPIs(data);
+  const prev = (!aggregateMode && currentIdx > 0) ? getKPIs(archive[currentIdx - 1]) : null;
+  const topSrc = [...data.sources].sort((a, b) => b.leads - a.leads)[0];
+  const totalSpent = (data.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, data.date, false), 0);
+  const _ef = effectiveFunnel(data);
+
+  const context = [
+    `Период: ${data.period}`,
+    `Лидов: ${kpi.leads}${prev ? `, прошлая неделя: ${prev.leads} (${((kpi.leads-prev.leads)/prev.leads*100).toFixed(0)}%)` : ''}`,
+    `Главный канал: ${topSrc?.name} (${topSrc?.leads} лидов)`,
+    `Расход: ${(totalSpent/1000).toFixed(0)}K ₽, ROI: ${kpi.roi.toFixed(1)}x`,
+    `Воронка: ${_ef.map(f=>f.stage.trim()+' '+f.count).join(' → ')}`,
+    data.problems?.length ? `Застрявших сделок: ${data.problems.length}` : '',
+  ].filter(Boolean).join('\n');
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001', max_tokens: 220,
+        messages: [{ role: 'user', content: `Напиши одно предложение-сводку для еженедельного отчёта отдела продаж посёлка ИЖС (Подмосковье). Краткое резюме через точку с запятой. Только HTML без пояснений, используй: <strong>для названий</strong>, <span class="up">для позитивных чисел</span>, <span class="down">для негативных чисел</span>.\n\nДанные:\n${context}\n\nПример формата: "Поток лидов <span class=\\"down\\">-71%</span> к прошлой неделе; главный канал — <strong>Сайт</strong> (2 лидов); слабое звено воронки — <strong>Бронь/Резерв</strong> (0%)."\n\nВерни только HTML фрагмент.` }],
+      }),
+    });
+    const body = await resp.json();
+    if (!resp.ok) throw new Error(body?.error?.message || `HTTP ${resp.status}`);
+    const narrativeText = body.content[0].text.trim();
+    data.commentary = data.commentary || {};
+    data.commentary.narrativeText = narrativeText;
+    saveArchive();
+    renderNarrative();
+    btn.textContent = '✓';
+    setTimeout(() => { btn.textContent = '✦ AI'; btn.disabled = false; }, 2000);
+  } catch(e) {
+    alert('Ошибка: ' + e.message);
+    btn.textContent = '✦ AI';
+    btn.disabled = false;
+  }
+}
+
+async function generateAIHero() {
+  const apiKey = localStorage.getItem('crm_ai_key') || '';
+  if (!apiKey) { alert('Сначала введите API ключ в форме редактирования → раздел "Аналитика от AI"'); return; }
+
+  const btn = document.getElementById('ai-hero-btn');
+  btn.textContent = '…';
+  btn.disabled = true;
+
+  const kpi = getKPIs(data);
+  const prev = (!aggregateMode && currentIdx > 0) ? getKPIs(archive[currentIdx - 1]) : null;
+  const topSrc = [...data.sources].sort((a, b) => b.leads - a.leads)[0];
+  const totalSpent = (data.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, data.date, false), 0);
+
+  const context = [
+    `Период: ${data.period}`,
+    `Лидов: ${kpi.leads}${prev ? `, прошлая неделя: ${prev.leads} (${((kpi.leads-prev.leads)/prev.leads*100).toFixed(0)}%)` : ''}`,
+    `Главный канал: ${topSrc?.name} (${topSrc?.leads} лидов)`,
+    `Расход: ${(totalSpent/1000).toFixed(0)}K ₽, ROI: ${kpi.roi.toFixed(1)}x`,
+    `Воронка: ${data.funnel.map(f=>f.stage.trim()+' '+f.count).join(' → ')}`,
+  ].join('\n');
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001', max_tokens: 120,
+        messages: [{ role: 'user', content: `Напиши заголовок для еженедельного отчёта отдела продаж посёлка ИЖС. Формат строго: две строки HTML — первая строка обычный текст (3-4 слова), вторая строка в тегах <em> (1-2 слова курсивом — ключевое слово) + краткое число/факт. Пример: "Поток лидов<br><em>ослаб</em> на -71%."\n\nДанные:\n${context}\n\nВерни только HTML без пояснений.` }],
+      }),
+    });
+    const body = await resp.json();
+    if (!resp.ok) throw new Error(body?.error?.message || `HTTP ${resp.status}`);
+    const heroText = body.content[0].text.trim();
+    data.commentary = data.commentary || {};
+    data.commentary.heroText = heroText;
+    saveArchive();
+    renderHero();
+    btn.textContent = '✓';
+    setTimeout(() => { btn.textContent = '✦ AI заголовок'; btn.disabled = false; }, 2000);
+  } catch(e) {
+    alert('Ошибка: ' + e.message);
+    btn.textContent = '✦ AI заголовок';
+    btn.disabled = false;
+  }
+}
+function _aiResetKey() {
+  localStorage.removeItem('crm_ai_key');
+  const inp = document.getElementById('ai-key-input');
+  if (inp) { inp.value = ''; inp.placeholder = 'sk-ant-api03-...'; inp.type = 'password'; }
+  const eye = document.getElementById('ai-key-eye');
+  if (eye) eye.style.display = '';
+}
+
+function _aiInitKeyField() {
+  const inp = document.getElementById('ai-key-input');
+  const eye = document.getElementById('ai-key-eye');
+  if (!inp) return;
+  if (localStorage.getItem('crm_ai_key')) {
+    inp.value = '';
+    inp.type = 'password';
+    inp.placeholder = 'Ключ сохранён ✓ — введите новый чтобы заменить';
+    if (eye) eye.style.display = 'none';
+  } else {
+    inp.placeholder = 'sk-ant-api03-...';
+    if (eye) eye.style.display = '';
+  }
+}
+
+function _aiOnKeyInput(inp) {
+  const val = inp.value.trim();
+  if (val) localStorage.setItem('crm_ai_key', val);
+  const eye = document.getElementById('ai-key-eye');
+  if (eye) eye.style.display = val ? '' : (localStorage.getItem('crm_ai_key') ? 'none' : '');
+}
+
+function _aiToggleKeyVis() {
+  const inp = document.getElementById('ai-key-input');
+  if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function _aiGetKey() {
+  const inp = document.getElementById('ai-key-input');
+  const key = (inp ? inp.value.trim() : '') || localStorage.getItem('crm_ai_key') || '';
+  if (!key) { alert('Введите API ключ Anthropic в разделе "Аналитика от AI"'); }
+  return key;
+}
+
+function _aiDataContext(T) {
+  const totalLeads = (T.sources || []).reduce((s, x) => s + (+x.leads || 0), 0);
+  const totalSpent = (T.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, T.date, false), 0);
+  const cpl = totalLeads > 0 ? Math.round(totalSpent / totalLeads) : 0;
+  return {
+    totalLeads, totalSpent, cpl,
+    text: [
+      `Период: ${T.period}`,
+      `Источники: ${(T.sources||[]).map(s=>`${s.name} ${s.leads}лид кач.${s.quality}%`).join(', ')}`,
+      `Кампании: ${(T.campaigns||[]).map(c=>{const w=campaignWeeklySpent(c,T.date,false);return `${c.name} ${(w/1000).toFixed(0)}K ₽ показы:${c.impressions||0} лиды:${c.leads}`;}).join('; ')}`,
+      `Воронка: ${(T.funnel||[]).map(f=>`${f.stage.trim()} ${f.count}`).join(' → ')}`,
+      `Итого: ${totalLeads} лидов, расход ${(totalSpent/1000).toFixed(0)}K ₽, CPL ${(cpl/1000).toFixed(1)}K ₽, чек ${T.avgDeal||8} млн ₽`,
+    ].join('\n'),
+  };
+}
+
+async function _aiCall(prompt, maxTokens = 600) {
+  const apiKey = _aiGetKey();
+  if (!apiKey) return null;
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
+  });
+  const body = await resp.json().catch(() => null);
+  if (!resp.ok) {
+    if (resp.status === 401) localStorage.removeItem('crm_ai_key');
+    const errEl = document.getElementById('ai-error-msg');
+    if (errEl) errEl.textContent = `Ошибка ${resp.status}: ${body?.error?.message || ''}`;
+    throw new Error(body?.error?.message || `HTTP ${resp.status}`);
+  }
+  return body?.content?.[0]?.text || '';
+}
+
+async function generateAIInsights() {
+  const apiKey = _aiGetKey(); if (!apiKey) return;
+  const btn = document.getElementById('ai-insights-btn');
+  const errEl = document.getElementById('ai-error-msg');
+  btn.textContent = '…'; btn.disabled = true;
+  if (errEl) errEl.textContent = '';
+  const T = window._editTarget;
+  const ctx = _aiDataContext(T);
+  try {
+    const text = await _aiCall(
+      `Ты — аналитик отдела продаж посёлка ИЖС Подмосковье. Дай ровно 3 вывода по данным недели. Каждый — одно предложение с конкретной цифрой, максимум 18 слов.\n\n${ctx.text}\n\nОтветь ровно тремя строками, каждая начинается с числа и точки:\n1. ...\n2. ...\n3. ...`,
+      400
+    );
+    const lines = text.split('\n')
+      .map(l => l.replace(/^\d+[\.\)]\s*/, '').trim())
+      .filter(l => l.length > 8);
+    if (!lines.length) throw new Error('Пустой ответ — попробуйте ещё раз');
+    T.insights = lines.slice(0, 3);
+    populateEdit();
+    btn.textContent = '✓'; setTimeout(() => { btn.textContent = '✦ AI выводы'; btn.disabled = false; }, 2000);
+  } catch(e) {
+    if (errEl) errEl.textContent = e.message;
+    btn.textContent = '✦ AI выводы'; btn.disabled = false;
+  }
+}
+
+async function generateAIManagerNote() {
+  const apiKey = _aiGetKey(); if (!apiKey) return;
+  const btn = document.getElementById('ai-manager-btn');
+  btn.textContent = '…'; btn.disabled = true;
+  const T = window._editTarget;
+  const ctx = _aiDataContext(T);
+
+  // Добавляем данные прошлой недели для сравнения
+  const prevIdx = archive.indexOf(data) - 1;
+  const prevW = prevIdx >= 0 ? archive[prevIdx] : null;
+  let prevLine = '';
+  if (prevW) {
+    const pLeads = (prevW.sources || []).reduce((s, x) => s + (+x.leads || 0), 0);
+    const pSpent = (prevW.campaigns || []).reduce((s, c) => s + campaignWeeklySpent(c, prevW.date, false), 0);
+    prevLine = `\nПРОШЛАЯ НЕДЕЛЯ (${prevW.period}): лидов ${pLeads}, расход ${(pSpent/1000).toFixed(0)}K ₽`;
+  }
+
+  try {
+    const text = await _aiCall(
+      `Ты — аналитик отдела продаж посёлка ИЖС Подмосковье. Напиши анализ для руководителя: 2 коротких предложения. (1) Ключевая тенденция недели относительно прошлой с конкретными цифрами. (2) Одно действие на следующую неделю.\n\n${ctx.text}${prevLine}\n\nТолько текст, без заголовков. Максимум 50 слов.`,
+      250
+    );
+    T.commentary = T.commentary || {};
+    T.commentary.managerNote = text.trim();
+    const ta = document.getElementById('edit-commentary-manager');
+    if (ta) ta.value = text.trim();
+    btn.textContent = '✓'; setTimeout(() => { btn.textContent = '✦ AI анализ'; btn.disabled = false; }, 2000);
+  } catch(e) {
+    btn.textContent = '✦ AI анализ'; btn.disabled = false;
+  }
+}
+
+</script>
+<script>
+// Патч для роли читателя: скрываем кнопки создания/удаления сценариев
+// которые рендерятся динамически через JS (CSS .admin-only их не ловит)
+(function() {
+  const _orig = window.renderTopbarScenarios;
+  if (typeof _orig !== 'function') return;
+  window.renderTopbarScenarios = function() {
+    _orig.apply(this, arguments);
+    if (window.__crmRole !== 'reader') return;
+    const wrap = document.getElementById('topbar-scenarios');
+    if (!wrap) return;
+    // Убираем «＋ создать» и «×» кнопки — оставляем только пилюли выбора
+    wrap.querySelectorAll('button').forEach(btn => {
+      const txt = btn.textContent.trim();
+      if (txt === '＋ создать' || txt === '×') btn.remove();
+    });
+  };
+})();
+</script>
+</body>
+</html>
