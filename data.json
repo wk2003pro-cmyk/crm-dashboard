@@ -1,5 +1,5 @@
 {
-  "_ts": 1779688674261,
+  "_ts": 1779691689968,
   "data": [
     {
       "id": "w1",
@@ -601,9 +601,9 @@
       "sources": [
         {
           "name": "Сайт",
-          "leads": 2,
-          "quality": 100,
-          "qualified": 2
+          "leads": 6,
+          "quality": 17,
+          "qualified": 1
         },
         {
           "name": "Наружная реклама ",
@@ -613,9 +613,9 @@
         },
         {
           "name": "Яндекс ",
-          "leads": 1,
-          "quality": 100,
-          "qualified": 1
+          "leads": 3,
+          "quality": 0,
+          "qualified": 0
         },
         {
           "name": "Програматик (Таргетная реклама)",
@@ -641,7 +641,7 @@
           "name": "Джейкет (Авито, ЦИАН, ДОМ.КЛИК и пр.)",
           "monthlyBudget": 162608,
           "leads": 0,
-          "impressions": 215
+          "impressions": 207
         },
         {
           "name": "Яндекс",
