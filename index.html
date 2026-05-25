@@ -2179,8 +2179,8 @@ function renderPrintSummary() {
             const srcSpend = matchC ? campaignWeeklySpent(matchC, w.date, false) : 0;
             const srcCpl = matchC && s.leads > 0 ? Math.round(srcSpend / s.leads) : 0;
             const cplStr = srcCpl > 0 ? (srcCpl / 1000).toFixed(1) + 'K ₽' : '';
-            // % inside bar (like funnel), outside if bar too narrow
-            const showInside = bW >= 28;
+            // % inside bar always (outside only if bar is truly tiny < 14px)
+            const showInside = bW >= 14;
             const inBarColor = opacity >= 0.68 ? '#fff' : '#2d5042';
             const pctEl = showInside
               ? `<text x="${bPadL + bW / 2}" y="${y + bH / 2 + 3}" font-size="6.5" font-weight="600" font-family="${bFF}" text-anchor="middle" fill="${inBarColor}">${pct}%</text>`
