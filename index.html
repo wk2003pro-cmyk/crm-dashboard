@@ -2157,13 +2157,13 @@ function renderPrintSummary() {
       `;
     }).join('');
 
-    // Horizontal bar chart for sources (replaces donut)
+    // Horizontal bar chart for sources — same style as funnel
     const activeSrc = w.sources.filter(s => s.leads > 0).sort((a, b) => b.leads - a.leads);
     const totSrcL = activeSrc.reduce((s, x) => s + x.leads, 0) || 1;
     const maxSrcL = activeSrc[0]?.leads || 1;
     const bSvg = document.getElementById('ps-sources-bar-svg');
     if (bSvg) {
-      const bH = 13, bGap = 5, bPadL = 94, barMaxW = 100, bPadT = 2, bFF = "Inter,system-ui,sans-serif";
+      const bH = 16, bGap = 3, bPadL = 94, barMaxW = 88, bPadT = 4, bFF = "Inter,system-ui,sans-serif";
       const svgH = Math.max(activeSrc.length * (bH + bGap) + bPadT, 20);
       bSvg.setAttribute('viewBox', `0 0 240 ${svgH}`);
       bSvg.innerHTML = activeSrc.length === 0
@@ -2172,11 +2172,25 @@ function renderPrintSummary() {
             const pct = Math.round(s.leads / totSrcL * 100);
             const bW = Math.round((s.leads / maxSrcL) * barMaxW);
             const op = (1 - (i / Math.max(activeSrc.length - 1, 1)) * 0.55).toFixed(2);
+            const opacity = parseFloat(op);
             const y = bPadT + i * (bH + bGap);
-            const countX = bPadL + Math.max(bW, 2) + 5;
-            return `<text x="${bPadL - 4}" y="${y + bH - 2}" font-size="7.5" font-family="${bFF}" text-anchor="end" fill="#555">${s.name}</text>` +
+            // CPL: match source name to campaign name
+            const matchC = (w.campaigns || []).find(c => c.name === s.name);
+            const srcSpend = matchC ? campaignWeeklySpent(matchC, w.date, false) : 0;
+            const srcCpl = matchC && s.leads > 0 ? Math.round(srcSpend / s.leads) : 0;
+            const cplStr = srcCpl > 0 ? (srcCpl / 1000).toFixed(1) + 'K ₽' : '';
+            // % inside bar (like funnel), outside if bar too narrow
+            const showInside = bW >= 28;
+            const inBarColor = opacity >= 0.68 ? '#fff' : '#2d5042';
+            const pctEl = showInside
+              ? `<text x="${bPadL + bW / 2}" y="${y + bH / 2 + 3}" font-size="6.5" font-weight="600" font-family="${bFF}" text-anchor="middle" fill="${inBarColor}">${pct}%</text>`
+              : `<text x="${Math.min(bPadL + Math.max(bW, 2) + 18, 232)}" y="${y + bH / 2 + 3}" font-size="6.5" font-weight="600" font-family="${bFF}" text-anchor="middle" fill="#888">${pct}%</text>`;
+            const countX = bPadL + Math.max(bW, 2) + (showInside ? 5 : 37);
+            return `<text x="${bPadL - 4}" y="${y + bH - 3}" font-size="7.5" font-family="${bFF}" text-anchor="end" fill="#555">${s.name}</text>` +
               `<rect x="${bPadL}" y="${y}" width="${Math.max(bW, 2)}" height="${bH}" fill="#3d6b53" opacity="${op}" rx="1"/>` +
-              `<text x="${countX}" y="${y + bH - 2}" font-size="8" font-weight="600" font-family="${bFF}" fill="#1a1a17">${s.leads} <tspan font-size="7" font-weight="400" fill="#999">(${pct}%)</tspan></text>`;
+              pctEl +
+              `<text x="${countX}" y="${y + bH - 3}" font-size="8" font-weight="600" font-family="${bFF}" fill="#1a1a17">${s.leads}</text>` +
+              (cplStr ? `<text x="${countX + 14}" y="${y + bH - 3}" font-size="7" font-family="${bFF}" fill="#888">${cplStr}</text>` : '');
           }).join('');
     }
 
