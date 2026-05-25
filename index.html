@@ -992,6 +992,11 @@ if ('serviceWorker' in navigator) {
   #print-summary .ps-kpi-expl { font-size: 8px; color: #999; font-style: italic; line-height: 1.25; margin-top: 1px; }
   #print-summary .ps-kpi-val { font-family: var(--serif, Georgia); font-size: 22px; line-height: 1.1; font-weight: 500; margin-top: 2px; }
   #print-summary .ps-kpi-sub { font-size: 8px; color: #888; }
+  #print-summary .ps-kpi-delta { margin-top: 3px; }
+  #print-summary .ps-kpi-delta .delta { font-size: 7px; padding: 1px 4px; border-radius: 3px; font-weight: 600; }
+  #print-summary .ps-kpi-delta .delta.pos { background: #e8f4ec; color: #2c7a4b; }
+  #print-summary .ps-kpi-delta .delta.neg { background: #fdecea; color: #b53a2b; }
+  #print-summary .ps-kpi-delta .delta.neutral { background: #f0ede4; color: #888; }
 
   #print-summary .ps-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 12px; }
   #print-summary .ps-left, #print-summary .ps-right { display: flex; flex-direction: column; gap: 8px; }
@@ -1639,6 +1644,14 @@ if ('serviceWorker' in navigator) {
           </div>
           <textarea id="edit-commentary-manager" class="commentary-textarea" placeholder="Разбор ключевых цифр, тенденций и решений за период…" oninput="_editTarget.commentary = _editTarget.commentary || {}; _editTarget.commentary.managerNote = this.value"></textarea>
         </label>
+        <label style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span class="small" style="opacity:0.7;">Приоритет недели (одно действие)</span>
+            <button id="ai-focus-btn" onclick="generateAIFocusNote()"
+              style="padding:3px 10px; font-size:10px; border-radius:20px; border:1px solid var(--line); background:transparent; color:var(--ink-mute); cursor:pointer; letter-spacing:0.05em; white-space:nowrap;">✦ AI приоритет</button>
+          </div>
+          <textarea id="edit-commentary-focus" class="commentary-textarea" rows="2" placeholder="Одно конкретное действие на эту неделю…" oninput="_editTarget.commentary = _editTarget.commentary || {}; _editTarget.commentary.focusNote = this.value"></textarea>
+        </label>
         <label style="display:flex; flex-direction:column; gap:6px;">
           <div style="display:flex; align-items:center; justify-content:space-between;">
             <span class="small" style="opacity:0.7;">Справка (контекст рынка ИЖС)</span>
@@ -1704,6 +1717,11 @@ if ('serviceWorker' in navigator) {
         <ul class="ps-list" id="ps-insights"></ul>
       </div>
 
+      <div class="ps-sec" id="ps-focus-sec" style="display:none; border-left:2px solid #3d6b53; padding-left:9px;">
+        <div class="ps-sec-title" style="color:#3d6b53; border-color:#c8ddd2;">Приоритет недели</div>
+        <div id="ps-focus" style="font-size:9.5px; font-weight:600; line-height:1.45; color:#1a1a17;"></div>
+      </div>
+
       <div class="ps-sec" id="ps-commentary-manager-sec" style="display:none">
         <div class="ps-sec-title" style="margin-bottom:4px;">Анализ периода</div>
         <div id="ps-commentary-manager" class="ps-commentary-text"></div>
@@ -1725,15 +1743,20 @@ if ('serviceWorker' in navigator) {
 
       <div class="ps-sec ps-chart-sec">
         <div class="ps-sec-title">Распределение по источникам</div>
-        <div class="ps-donut-wrap">
-          <svg id="ps-donut-svg" viewBox="0 0 120 120"></svg>
-          <div class="ps-legend" id="ps-donut-legend"></div>
-        </div>
+        <svg id="ps-sources-bar-svg" viewBox="0 0 240 80" style="width:100%;display:block;"></svg>
       </div>
 
       <div class="ps-sec" id="ps-commentary-investor-sec" style="display:none">
         <div class="ps-sec-title" style="margin-bottom:4px;">Справка — контекст рынка ИЖС</div>
         <div id="ps-commentary-investor" class="ps-commentary-text"></div>
+      </div>
+
+      <div class="ps-sec" id="ps-history-sec" style="display:none">
+        <div class="ps-sec-title">Динамика — последние недели</div>
+        <table class="ps-table">
+          <thead><tr><th class="ps-name">Период</th><th class="ps-num">Лиды</th><th class="ps-num">Расход</th><th class="ps-num">CPL</th><th class="ps-num">Конв.</th></tr></thead>
+          <tbody id="ps-history-body"></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -1938,7 +1961,8 @@ function getKPIs(w) {
     ? (f[f.length - 2].count / f[0].count * 100) : 0;
   const rois = w.campaigns ? w.campaigns.map(c => computeCampaignROI(c, w)).filter(r => r != null) : [];
   const roi = rois.length ? rois.reduce((s, r) => s + r, 0) / rois.length : 0;
-  return { leads, conv, spent, roi };
+  const cpl = leads > 0 ? Math.round(spent / leads) : 0;
+  return { leads, conv, spent, roi, cpl };
 }
 
 function pipelineValue(w) {
@@ -2064,18 +2088,17 @@ function renderPrintSummary() {
     document.getElementById('ps-period-text').textContent = periodTxt;
     document.getElementById('ps-gen-text').textContent = 'сформировано ' + new Date().toLocaleDateString('ru-RU');
 
-    const totalLeads = w.sources.reduce((s, x) => s + x.leads, 0);
-    const totalQ = totalLeads > 0 ? Math.round(w.sources.reduce((s, x) => s + x.quality * x.leads, 0) / totalLeads) : 0;
-    const cycle = (w.funnel || []).reduce((a, b) => a + (b.days || 0), 0);
+    const prevW = (!aggregateMode && currentIdx > 0) ? archive[currentIdx - 1] : null;
+    const prevK = prevW ? getKPIs(prevW) : null;
     const kpis = [
-      { l: 'Лидов', e: 'новых обращений', v: k.leads, s: '' },
-      { l: 'Конверсия', e: 'доля доходящих до контракта', v: k.conv.toFixed(1) + '%', s: '' },
-      { l: 'Расход', e: 'на рекламу за период', v: (k.spent/1000).toFixed(0) + 'K ₽', s: '' },
-      { l: 'ROI', e: 'выручка на ₽ рекламы', v: k.roi.toFixed(1) + 'x', s: '' },
-      { l: 'Качество', e: 'доля целевых лидов', v: totalQ + '%', s: cycle + ' дн цикл' },
+      { l: 'Лидов',     e: 'новых обращений',             v: k.leads,                         d: deltaPill(prevK?.leads, k.leads) },
+      { l: 'Конверсия', e: 'доля доходящих до контракта', v: k.conv.toFixed(1) + '%',          d: deltaPill(prevK?.conv, k.conv, { isPP: true }) },
+      { l: 'Расход',    e: 'на рекламу за период',         v: (k.spent/1000).toFixed(0)+'K ₽', d: deltaPill(prevK?.spent, k.spent, { isMoney: true }) },
+      { l: 'ROI',       e: 'выручка на ₽ рекламы',        v: k.roi.toFixed(1) + 'x',           d: deltaPill(prevK?.roi, k.roi) },
+      { l: 'CPL',       e: 'стоимость лида',               v: (k.cpl/1000).toFixed(1) + 'K ₽', d: deltaPill(prevK?.cpl, k.cpl, { isMoney: true }) },
     ];
     document.getElementById('ps-kpis').innerHTML = kpis.map(x =>
-      `<div><div class="ps-kpi-label">${x.l}</div><div class="ps-kpi-expl">${x.e}</div><div class="ps-kpi-val">${x.v}</div><div class="ps-kpi-sub">${x.s}</div></div>`
+      `<div><div class="ps-kpi-label">${x.l}</div><div class="ps-kpi-expl">${x.e}</div><div class="ps-kpi-val">${x.v}</div><div class="ps-kpi-delta">${x.d}</div></div>`
     ).join('');
 
     const narEl = document.getElementById('narrative');
@@ -2117,13 +2140,14 @@ function renderPrintSummary() {
       const conv = i > 0 ? (f.count === 0 ? 0 : prev > 0 ? Math.round(f.count/prev*100) : null) : null;
       const opacity = 0.4 + (1 - i / Math.max(psFunnel.length - 1, 1)) * 0.6;
       const label = f.stage.trim();
-      // % inside bar if wide enough; color: white on dark bars, dark green on light bars
-      const showInside = i > 0 && conv !== null && barW >= 26;
+      // % inside bar if wide enough; if narrow — show left of bar
+      const showInside = i > 0 && conv !== null && barW >= 28;
       const inBarColor = opacity >= 0.68 ? '#fff' : '#2d5042';
+      const outsideX = Math.min(padL + bW + 22, fWidth - 18);
       const convEl = i > 0 && conv !== null
         ? (showInside
             ? `<text x="${padL + barW/2}" y="${y + fH/2 + 3}" font-size="6.5" font-weight="600" font-family="${ff}" text-anchor="middle" fill="${inBarColor}">${conv}%</text>`
-            : `<text x="${padL + bW + 22}" y="${y + fH/2 + 3}" font-size="6" font-family="${ff}" fill="#888">${conv}%</text>`)
+            : `<text x="${outsideX}" y="${y + fH/2 + 3}" font-size="6.5" font-weight="600" font-family="${ff}" text-anchor="middle" fill="#888">${conv}%</text>`)
         : '';
       return `
         <text x="${padL - 5}" y="${y + fH/2 + 3}" font-size="7.5" font-family="${ff}" text-anchor="end" fill="#555">${label}</text>
@@ -2133,30 +2157,46 @@ function renderPrintSummary() {
       `;
     }).join('');
 
-    // Donut SVG for sources
-    const totalLeads2 = w.sources.reduce((s, x) => s + x.leads, 0) || 1;
-    const palette = ['#3d6b53', '#c79a52', '#8a6d3b', '#5a8a72', '#b53a2b', '#6b7280', '#9ca3af'];
-    let cum = 0;
-    const cx = 60, cy = 60, rOut = 50, rIn = 32;
-    const arcs = w.sources.map((s, i) => {
-      const frac = s.leads / totalLeads2;
-      const start = cum * Math.PI * 2 - Math.PI / 2;
-      cum += frac;
-      const end = cum * Math.PI * 2 - Math.PI / 2;
-      const large = frac > 0.5 ? 1 : 0;
-      const x1 = cx + rOut * Math.cos(start), y1 = cy + rOut * Math.sin(start);
-      const x2 = cx + rOut * Math.cos(end),   y2 = cy + rOut * Math.sin(end);
-      const xi1 = cx + rIn * Math.cos(end),   yi1 = cy + rIn * Math.sin(end);
-      const xi2 = cx + rIn * Math.cos(start), yi2 = cy + rIn * Math.sin(start);
-      const d = `M ${x1} ${y1} A ${rOut} ${rOut} 0 ${large} 1 ${x2} ${y2} L ${xi1} ${yi1} A ${rIn} ${rIn} 0 ${large} 0 ${xi2} ${yi2} Z`;
-      return `<path d="${d}" fill="${palette[i % palette.length]}"/>`;
-    }).join('');
-    document.getElementById('ps-donut-svg').innerHTML = arcs +
-      `<text x="${cx}" y="${cy - 2}" font-size="18" font-family="Georgia, serif" text-anchor="middle" fill="#1a1a17" font-weight="500">${totalLeads2}</text>` +
-      `<text x="${cx}" y="${cy + 12}" font-size="7" text-anchor="middle" fill="#888" letter-spacing="0.1em">ЛИДОВ</text>`;
-    document.getElementById('ps-donut-legend').innerHTML = w.sources.map((s, i) =>
-      `<div class="ps-leg-row"><span class="ps-leg-dot" style="background:${palette[i % palette.length]}"></span><span class="ps-leg-name">${s.name}</span><span class="ps-leg-count">${s.leads}</span><span class="ps-leg-pct">${Math.round(s.leads/totalLeads2*100)}%</span></div>`
-    ).join('');
+    // Horizontal bar chart for sources (replaces donut)
+    const activeSrc = w.sources.filter(s => s.leads > 0).sort((a, b) => b.leads - a.leads);
+    const totSrcL = activeSrc.reduce((s, x) => s + x.leads, 0) || 1;
+    const maxSrcL = activeSrc[0]?.leads || 1;
+    const bSvg = document.getElementById('ps-sources-bar-svg');
+    if (bSvg) {
+      const bH = 13, bGap = 5, bPadL = 94, barMaxW = 100, bPadT = 2, bFF = "Inter,system-ui,sans-serif";
+      const svgH = Math.max(activeSrc.length * (bH + bGap) + bPadT, 20);
+      bSvg.setAttribute('viewBox', `0 0 240 ${svgH}`);
+      bSvg.innerHTML = activeSrc.length === 0
+        ? `<text x="4" y="14" font-size="9" fill="#aaa" font-family="${bFF}">Нет данных</text>`
+        : activeSrc.map((s, i) => {
+            const pct = Math.round(s.leads / totSrcL * 100);
+            const bW = Math.round((s.leads / maxSrcL) * barMaxW);
+            const op = (1 - (i / Math.max(activeSrc.length - 1, 1)) * 0.55).toFixed(2);
+            const y = bPadT + i * (bH + bGap);
+            const countX = bPadL + Math.max(bW, 2) + 5;
+            return `<text x="${bPadL - 4}" y="${y + bH - 2}" font-size="7.5" font-family="${bFF}" text-anchor="end" fill="#555">${s.name}</text>` +
+              `<rect x="${bPadL}" y="${y}" width="${Math.max(bW, 2)}" height="${bH}" fill="#3d6b53" opacity="${op}" rx="1"/>` +
+              `<text x="${countX}" y="${y + bH - 2}" font-size="8" font-weight="600" font-family="${bFF}" fill="#1a1a17">${s.leads} <tspan font-size="7" font-weight="400" fill="#999">(${pct}%)</tspan></text>`;
+          }).join('');
+    }
+
+    // History table (last 4 weeks)
+    const histSec = document.getElementById('ps-history-sec');
+    const histBody = document.getElementById('ps-history-body');
+    if (histSec && histBody) {
+      const histWeeks = archive.slice(Math.max(0, currentIdx - 3), currentIdx + 1);
+      if (histWeeks.length > 1) {
+        histSec.style.display = '';
+        histBody.innerHTML = [...histWeeks].reverse().map(hw => {
+          const hk = getKPIs(hw);
+          const isCur = hw === w;
+          const st = isCur ? ' style="font-weight:700"' : '';
+          return `<tr${st}><td class="ps-name">${hw.period}</td><td class="ps-num">${hk.leads}</td><td class="ps-num">${(hk.spent/1000).toFixed(0)}K</td><td class="ps-num">${hk.cpl > 0 ? (hk.cpl/1000).toFixed(1)+'K' : '—'}</td><td class="ps-num">${hk.conv.toFixed(0)}%</td></tr>`;
+        }).join('');
+      } else {
+        histSec.style.display = 'none';
+      }
+    }
 
     const psInsightsEl = document.getElementById('ps-insights');
     if (psInsightsEl) {
@@ -2243,6 +2283,7 @@ function renderKPI() {
     { label: 'Конверсия', expl: 'Доля лидов, дошедших до контракта', fact: kpi.conv, scen: cKpi?.conv, fmt: v => v.toFixed(0), unit: '%', sparkVals: sparkRange.map(k => k.conv), sparkColor: css('--pos'), delta: deltaPill(prevK?.conv, kpi.conv, { isPP: true }) },
     { label: 'Расходы', expl: 'Сколько потратили на рекламу', fact: kpi.spent, scen: cKpi?.spent, fmt: v => formatMoney(v), unit: '₽', sparkVals: sparkRange.map(k => k.spent), sparkColor: css('--ink-mid'), delta: deltaPill(prevK?.spent, kpi.spent, { isMoney: true }) },
     { label: 'ROI', expl: 'Сколько рублей выручки на рубль рекламы', fact: kpi.roi, scen: cKpi?.roi, fmt: v => v.toFixed(1), unit: 'x', sparkVals: sparkRange.map(k => k.roi), sparkColor: css('--accent'), delta: deltaPill(prevK?.roi, kpi.roi) },
+    { label: 'CPL', expl: 'Стоимость одного лида', fact: kpi.cpl, scen: cKpi?.cpl, fmt: v => (v/1000).toFixed(1) + 'K', unit: '₽', sparkVals: sparkRange.map(k => k.cpl), sparkColor: css('--ink-mid'), delta: deltaPill(prevK?.cpl, kpi.cpl, { isMoney: true }) },
   ];
 
   document.getElementById('kpi-grid').innerHTML = cards.map((c, i) => {
@@ -2547,32 +2588,36 @@ function renderInsights() {
 
 function renderCommentary() {
   const c = data.commentary || {};
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const mEl = document.getElementById('commentary-manager');
   const iEl = document.getElementById('commentary-investor');
   const sec = document.getElementById('commentary-section');
-  const hasAnyMain = c.managerNote || c.investorBrief;
+  const hasAnyMain = c.managerNote || c.investorBrief || c.focusNote;
   if (sec) sec.style.display = hasAnyMain ? '' : 'none';
   if (mEl) mEl.innerHTML = c.managerNote
-    ? `<div class="commentary-text">${c.managerNote.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
+    ? `<div class="commentary-text">${esc(c.managerNote)}</div>`
     : `<div class="commentary-text empty">Анализ не заполнен</div>`;
   if (iEl) iEl.innerHTML = c.investorBrief
-    ? `<div class="commentary-text">${c.investorBrief.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
+    ? `<div class="commentary-text">${esc(c.investorBrief)}</div>`
     : `<div class="commentary-text empty">Справка не заполнена</div>`;
 
   // Print summary — Анализ периода (левая колонка)
   const psMSec = document.getElementById('ps-commentary-manager-sec');
   const psM = document.getElementById('ps-commentary-manager');
   if (psMSec) psMSec.style.display = c.managerNote ? '' : 'none';
-  if (psM) psM.innerHTML = c.managerNote
-    ? c.managerNote.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    : '';
-  // Print summary — Справка (правая колонка, под распределением)
+  if (psM) psM.innerHTML = c.managerNote ? esc(c.managerNote) : '';
+
+  // Print summary — Справка (правая колонка)
   const psISec = document.getElementById('ps-commentary-investor-sec');
   const psI = document.getElementById('ps-commentary-investor');
   if (psISec) psISec.style.display = c.investorBrief ? '' : 'none';
-  if (psI) psI.innerHTML = c.investorBrief
-    ? c.investorBrief.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    : '';
+  if (psI) psI.innerHTML = c.investorBrief ? esc(c.investorBrief) : '';
+
+  // Print summary — Приоритет недели (левая колонка, над анализом)
+  const psFocusSec = document.getElementById('ps-focus-sec');
+  const psFocusEl = document.getElementById('ps-focus');
+  if (psFocusSec) psFocusSec.style.display = c.focusNote ? '' : 'none';
+  if (psFocusEl) psFocusEl.textContent = c.focusNote || '';
 }
 
 // =========================================================
@@ -3461,8 +3506,10 @@ function populateEdit() {
   const c = T.commentary || {};
   const cmEl = document.getElementById('edit-commentary-manager');
   const ciEl = document.getElementById('edit-commentary-investor');
+  const cfEl = document.getElementById('edit-commentary-focus');
   if (cmEl) cmEl.value = c.managerNote || '';
   if (ciEl) ciEl.value = c.investorBrief || '';
+  if (cfEl) cfEl.value = c.focusNote || '';
 }
 
 function addProblem() { const T = window._editTarget; (T.problems = T.problems || []).push({ client: '', deal: '', issue: '', days: 0 }); populateEdit(); }
@@ -4140,6 +4187,25 @@ async function generateAIInsights() {
     if (errEl) errEl.textContent = e.message;
     btn.textContent = '✦ AI выводы'; btn.disabled = false;
   }
+}
+
+async function generateAIFocusNote() {
+  const apiKey = _aiGetKey(); if (!apiKey) return;
+  const btn = document.getElementById('ai-focus-btn');
+  btn.textContent = '…'; btn.disabled = true;
+  const T = window._editTarget || data;
+  const ctx = _aiDataContext(T);
+  const text = await _aiCall(
+    `Ты — директор по маркетингу. На основе данных недели сформулируй ОДНО конкретное действие на следующую неделю. Без вводных слов, только само действие. Максимум 20 слов.\n\n${ctx.text}`,
+    100
+  );
+  if (text) {
+    T.commentary = T.commentary || {};
+    T.commentary.focusNote = text.trim();
+    const cfEl = document.getElementById('edit-commentary-focus');
+    if (cfEl) cfEl.value = text.trim();
+  }
+  btn.textContent = '✦ AI приоритет'; btn.disabled = false;
 }
 
 async function generateAIManagerNote() {
