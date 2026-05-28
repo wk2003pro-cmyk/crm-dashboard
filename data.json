@@ -1,5 +1,5 @@
 {
-  "_ts": 1779970087990,
+  "_ts": 1779970128671,
   "data": [
     {
       "id": "w1",
@@ -766,13 +766,7 @@
           }
         ]
       },
-      "kpiTargets": {
-        "leads": 16,
-        "cpl": 10000,
-        "conv": 1,
-        "spent": 159555,
-        "quality": 70
-      }
+      "kpiTargets": {}
     }
   ],
   "campaignBudget": {
