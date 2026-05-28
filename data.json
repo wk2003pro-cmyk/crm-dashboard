@@ -1,5 +1,5 @@
 {
-  "_ts": 1779974292177,
+  "_ts": 1779974378621,
   "data": [
     {
       "id": "w1",
@@ -762,9 +762,7 @@
           }
         ]
       },
-      "kpiTargets": {
-        "spent": 159831
-      }
+      "kpiTargets": {}
     }
   ],
   "campaignBudget": {
@@ -774,7 +772,7 @@
   },
   "funnelBaselines": {},
   "bizPlan": {
-    "savedAt": "2026-05-28T13:18:02.362Z",
+    "savedAt": "2026-05-28T13:09:57.960Z",
     "startMonth": "2026-05",
     "scenarios": {
       "pessimistic": [
