@@ -1,5 +1,5 @@
 {
-  "_ts": 1779971069644,
+  "_ts": 1779971194294,
   "data": [
     {
       "id": "w1",
@@ -776,7 +776,7 @@
   },
   "funnelBaselines": {},
   "bizPlan": {
-    "savedAt": "2026-05-28T12:24:29.643Z",
+    "savedAt": "2026-05-28T12:26:34.293Z",
     "startMonth": "2026-05",
     "scenarios": {
       "pessimistic": [
