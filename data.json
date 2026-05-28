@@ -1,5 +1,5 @@
 {
-  "_ts": 1779980784996,
+  "_ts": 1779980865602,
   "data": [
     {
       "id": "w1",
@@ -785,7 +785,7 @@
   },
   "funnelBaselines": {},
   "bizPlan": {
-    "savedAt": "2026-05-28T15:03:49.004Z",
+    "savedAt": "2026-05-28T15:07:45.601Z",
     "startMonth": "2026-05",
     "funnelConv": [
       20,
@@ -1279,7 +1279,7 @@
           "cpl": 9191,
           "deals": 1.4,
           "revenue": 23789063,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 37.1,
           "sourceLeads": {
@@ -1298,7 +1298,7 @@
           "cpl": 9615,
           "deals": 1.4,
           "revenue": 31718750,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 49.8,
           "sourceLeads": {
@@ -1317,7 +1317,7 @@
           "cpl": 9921,
           "deals": 1.3,
           "revenue": 31718750,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 49.8,
           "sourceLeads": {
@@ -1336,7 +1336,7 @@
           "cpl": 10965,
           "deals": 1.2,
           "revenue": 41234375,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 65,
           "sourceLeads": {
@@ -1355,7 +1355,7 @@
           "cpl": 11364,
           "deals": 1.1,
           "revenue": 41234375,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 65,
           "sourceLeads": {
@@ -1374,7 +1374,7 @@
           "cpl": 12755,
           "deals": 1,
           "revenue": 39648438,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 62.4,
           "sourceLeads": {
@@ -1393,7 +1393,7 @@
           "cpl": 14881,
           "deals": 0.9,
           "revenue": 38062500,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 59.9,
           "sourceLeads": {
@@ -1412,7 +1412,7 @@
           "cpl": 17361,
           "deals": 0.8,
           "revenue": 34890625,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 54.8,
           "sourceLeads": {
@@ -1431,7 +1431,7 @@
           "cpl": 16026,
           "deals": 0.8,
           "revenue": 33304688,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 52.3,
           "sourceLeads": {
@@ -1450,7 +1450,7 @@
           "cpl": 12019,
           "deals": 1.1,
           "revenue": 30132813,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 47.2,
           "sourceLeads": {
@@ -1469,7 +1469,7 @@
           "cpl": 12019,
           "deals": 1.1,
           "revenue": 25375000,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 39.6,
           "sourceLeads": {
@@ -1488,7 +1488,7 @@
           "cpl": 9191,
           "deals": 1.4,
           "revenue": 22203125,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 34.5,
           "sourceLeads": {
@@ -1507,7 +1507,7 @@
           "cpl": 9191,
           "deals": 1.4,
           "revenue": 23789063,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 37.1,
           "sourceLeads": {
@@ -1526,7 +1526,7 @@
           "cpl": 9615,
           "deals": 1.4,
           "revenue": 31718750,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 49.8,
           "sourceLeads": {
@@ -1545,7 +1545,7 @@
           "cpl": 9921,
           "deals": 1.3,
           "revenue": 31718750,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 49.8,
           "sourceLeads": {
@@ -1564,7 +1564,7 @@
           "cpl": 10965,
           "deals": 1.2,
           "revenue": 41234375,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 65,
           "sourceLeads": {
@@ -1583,7 +1583,7 @@
           "cpl": 11364,
           "deals": 1.1,
           "revenue": 41234375,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 65,
           "sourceLeads": {
@@ -1602,7 +1602,7 @@
           "cpl": 12755,
           "deals": 1,
           "revenue": 39648438,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 62.4,
           "sourceLeads": {
@@ -1621,7 +1621,7 @@
           "cpl": 14881,
           "deals": 0.9,
           "revenue": 38062500,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 59.9,
           "sourceLeads": {
@@ -1640,7 +1640,7 @@
           "cpl": 17361,
           "deals": 0.8,
           "revenue": 34890625,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 54.8,
           "sourceLeads": {
@@ -1659,7 +1659,7 @@
           "cpl": 16026,
           "deals": 0.8,
           "revenue": 33304688,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 52.3,
           "sourceLeads": {
@@ -1678,7 +1678,7 @@
           "cpl": 12019,
           "deals": 1.1,
           "revenue": 30132813,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 47.2,
           "sourceLeads": {
@@ -1697,7 +1697,7 @@
           "cpl": 12019,
           "deals": 1.1,
           "revenue": 25375000,
-          "quality": 25,
+          "quality": 40,
           "conv": 2.1,
           "roi": 39.6,
           "sourceLeads": {
@@ -1718,7 +1718,7 @@
           "cpl": 6868,
           "deals": 9.5,
           "revenue": 157007813,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 250.2,
           "sourceLeads": {
@@ -1737,7 +1737,7 @@
           "cpl": 7102,
           "deals": 9.1,
           "revenue": 166820801,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 265.9,
           "sourceLeads": {
@@ -1756,7 +1756,7 @@
           "cpl": 7102,
           "deals": 9.1,
           "revenue": 206072754,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 328.7,
           "sourceLeads": {
@@ -1775,7 +1775,7 @@
           "cpl": 7353,
           "deals": 8.8,
           "revenue": 215885742,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 344.4,
           "sourceLeads": {
@@ -1794,7 +1794,7 @@
           "cpl": 8333,
           "deals": 7.8,
           "revenue": 274763672,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 438.6,
           "sourceLeads": {
@@ -1813,7 +1813,7 @@
           "cpl": 8681,
           "deals": 7.4,
           "revenue": 264950684,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 422.9,
           "sourceLeads": {
@@ -1832,7 +1832,7 @@
           "cpl": 9191,
           "deals": 7.1,
           "revenue": 264950684,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 422.9,
           "sourceLeads": {
@@ -1851,7 +1851,7 @@
           "cpl": 10593,
           "deals": 6.1,
           "revenue": 255137695,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 407.2,
           "sourceLeads": {
@@ -1870,7 +1870,7 @@
           "cpl": 12019,
           "deals": 5.4,
           "revenue": 225698730,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 360.1,
           "sourceLeads": {
@@ -1889,7 +1889,7 @@
           "cpl": 11364,
           "deals": 5.8,
           "revenue": 215885742,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 344.4,
           "sourceLeads": {
@@ -1908,7 +1908,7 @@
           "cpl": 9191,
           "deals": 7.1,
           "revenue": 206072754,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 328.7,
           "sourceLeads": {
@@ -1927,7 +1927,7 @@
           "cpl": 8681,
           "deals": 7.4,
           "revenue": 176633789,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 281.6,
           "sourceLeads": {
@@ -1946,7 +1946,7 @@
           "cpl": 6868,
           "deals": 9.5,
           "revenue": 157007813,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 250.2,
           "sourceLeads": {
@@ -1965,7 +1965,7 @@
           "cpl": 7102,
           "deals": 9.1,
           "revenue": 166820801,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 265.9,
           "sourceLeads": {
@@ -1984,7 +1984,7 @@
           "cpl": 7102,
           "deals": 9.1,
           "revenue": 206072754,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 328.7,
           "sourceLeads": {
@@ -2003,7 +2003,7 @@
           "cpl": 7353,
           "deals": 8.8,
           "revenue": 215885742,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 344.4,
           "sourceLeads": {
@@ -2022,7 +2022,7 @@
           "cpl": 8333,
           "deals": 7.8,
           "revenue": 274763672,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 438.6,
           "sourceLeads": {
@@ -2041,7 +2041,7 @@
           "cpl": 8681,
           "deals": 7.4,
           "revenue": 264950684,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 422.9,
           "sourceLeads": {
@@ -2060,7 +2060,7 @@
           "cpl": 9191,
           "deals": 7.1,
           "revenue": 264950684,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 422.9,
           "sourceLeads": {
@@ -2079,7 +2079,7 @@
           "cpl": 10593,
           "deals": 6.1,
           "revenue": 255137695,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 407.2,
           "sourceLeads": {
@@ -2098,7 +2098,7 @@
           "cpl": 12019,
           "deals": 5.4,
           "revenue": 225698730,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 360.1,
           "sourceLeads": {
@@ -2117,7 +2117,7 @@
           "cpl": 11364,
           "deals": 5.8,
           "revenue": 215885742,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 344.4,
           "sourceLeads": {
@@ -2136,7 +2136,7 @@
           "cpl": 9191,
           "deals": 7.1,
           "revenue": 206072754,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 328.7,
           "sourceLeads": {
@@ -2155,7 +2155,7 @@
           "cpl": 8681,
           "deals": 7.4,
           "revenue": 176633789,
-          "quality": 35,
+          "quality": 70,
           "conv": 10.4,
           "roi": 281.6,
           "sourceLeads": {
