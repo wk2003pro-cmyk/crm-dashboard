@@ -1,5 +1,5 @@
 {
-  "_ts": 1779970392687,
+  "_ts": 1779970408703,
   "data": [
     {
       "id": "w1",
@@ -781,589 +781,589 @@
     "Успешно реализованы ": 70
   },
   "bizPlan": {
-    "savedAt": "2026-05-28T12:13:12.686Z",
+    "savedAt": "2026-05-28T12:13:28.703Z",
     "startMonth": "2026-05",
     "scenarios": {
       "pessimistic": [
         {
           "month": "2026-05",
-          "leads": 461,
-          "spent": 6250000,
-          "cpl": 13557,
-          "deals": 1.9,
-          "revenue": 26838942
+          "leads": 46,
+          "spent": 625000,
+          "cpl": 13587,
+          "deals": 0.2,
+          "revenue": 2683894
         },
         {
           "month": "2026-06",
-          "leads": 481,
-          "spent": 6250000,
-          "cpl": 12994,
-          "deals": 2,
-          "revenue": 29278846
+          "leads": 48,
+          "spent": 625000,
+          "cpl": 13021,
+          "deals": 0.2,
+          "revenue": 2927885
         },
         {
           "month": "2026-07",
-          "leads": 461,
-          "spent": 6250000,
-          "cpl": 13557,
-          "deals": 1.9,
-          "revenue": 41478365
+          "leads": 46,
+          "spent": 625000,
+          "cpl": 13587,
+          "deals": 0.2,
+          "revenue": 4147837
         },
         {
           "month": "2026-08",
-          "leads": 441,
-          "spent": 6250000,
-          "cpl": 14172,
-          "deals": 1.9,
-          "revenue": 43918269
+          "leads": 44,
+          "spent": 625000,
+          "cpl": 14205,
+          "deals": 0.2,
+          "revenue": 4391827
         },
         {
           "month": "2026-09",
-          "leads": 401,
-          "spent": 6250000,
-          "cpl": 15586,
-          "deals": 1.7,
-          "revenue": 56117788
+          "leads": 40,
+          "spent": 625000,
+          "cpl": 15625,
+          "deals": 0.2,
+          "revenue": 5611779
         },
         {
           "month": "2026-10",
-          "leads": 381,
-          "spent": 6250000,
-          "cpl": 16404,
-          "deals": 1.6,
-          "revenue": 58557692
+          "leads": 38,
+          "spent": 625000,
+          "cpl": 16447,
+          "deals": 0.2,
+          "revenue": 5855769
         },
         {
           "month": "2026-11",
-          "leads": 341,
-          "spent": 6250000,
-          "cpl": 18328,
-          "deals": 1.4,
-          "revenue": 56117788
+          "leads": 34,
+          "spent": 625000,
+          "cpl": 18382,
+          "deals": 0.1,
+          "revenue": 5611779
         },
         {
           "month": "2026-12",
-          "leads": 260,
-          "spent": 6250000,
+          "leads": 26,
+          "spent": 625000,
           "cpl": 24038,
-          "deals": 1.1,
-          "revenue": 53677885
+          "deals": 0.1,
+          "revenue": 5367788
         },
         {
           "month": "2027-01",
-          "leads": 220,
-          "spent": 6250000,
+          "leads": 22,
+          "spent": 625000,
           "cpl": 28409,
-          "deals": 0.9,
-          "revenue": 48798077
+          "deals": 0.1,
+          "revenue": 4879808
         },
         {
           "month": "2027-02",
-          "leads": 240,
-          "spent": 6250000,
+          "leads": 24,
+          "spent": 625000,
           "cpl": 26042,
-          "deals": 1,
-          "revenue": 46358173
+          "deals": 0.1,
+          "revenue": 4635817
         },
         {
           "month": "2027-03",
-          "leads": 341,
-          "spent": 6250000,
-          "cpl": 18328,
-          "deals": 1.4,
-          "revenue": 41478365
+          "leads": 34,
+          "spent": 625000,
+          "cpl": 18382,
+          "deals": 0.1,
+          "revenue": 4147837
         },
         {
           "month": "2027-04",
-          "leads": 361,
-          "spent": 6250000,
-          "cpl": 17313,
-          "deals": 1.5,
-          "revenue": 31718750
+          "leads": 36,
+          "spent": 625000,
+          "cpl": 17361,
+          "deals": 0.2,
+          "revenue": 3171875
         },
         {
           "month": "2027-05",
-          "leads": 461,
-          "spent": 6250000,
-          "cpl": 13557,
-          "deals": 1.9,
-          "revenue": 26838942
+          "leads": 46,
+          "spent": 625000,
+          "cpl": 13587,
+          "deals": 0.2,
+          "revenue": 2683894
         },
         {
           "month": "2027-06",
-          "leads": 481,
-          "spent": 6250000,
-          "cpl": 12994,
-          "deals": 2,
-          "revenue": 29278846
+          "leads": 48,
+          "spent": 625000,
+          "cpl": 13021,
+          "deals": 0.2,
+          "revenue": 2927885
         },
         {
           "month": "2027-07",
-          "leads": 461,
-          "spent": 6250000,
-          "cpl": 13557,
-          "deals": 1.9,
-          "revenue": 41478365
+          "leads": 46,
+          "spent": 625000,
+          "cpl": 13587,
+          "deals": 0.2,
+          "revenue": 4147837
         },
         {
           "month": "2027-08",
-          "leads": 441,
-          "spent": 6250000,
-          "cpl": 14172,
-          "deals": 1.9,
-          "revenue": 43918269
+          "leads": 44,
+          "spent": 625000,
+          "cpl": 14205,
+          "deals": 0.2,
+          "revenue": 4391827
         },
         {
           "month": "2027-09",
-          "leads": 401,
-          "spent": 6250000,
-          "cpl": 15586,
-          "deals": 1.7,
-          "revenue": 56117788
+          "leads": 40,
+          "spent": 625000,
+          "cpl": 15625,
+          "deals": 0.2,
+          "revenue": 5611779
         },
         {
           "month": "2027-10",
-          "leads": 381,
-          "spent": 6250000,
-          "cpl": 16404,
-          "deals": 1.6,
-          "revenue": 58557692
+          "leads": 38,
+          "spent": 625000,
+          "cpl": 16447,
+          "deals": 0.2,
+          "revenue": 5855769
         },
         {
           "month": "2027-11",
-          "leads": 341,
-          "spent": 6250000,
-          "cpl": 18328,
-          "deals": 1.4,
-          "revenue": 56117788
+          "leads": 34,
+          "spent": 625000,
+          "cpl": 18382,
+          "deals": 0.1,
+          "revenue": 5611779
         },
         {
           "month": "2027-12",
-          "leads": 260,
-          "spent": 6250000,
+          "leads": 26,
+          "spent": 625000,
           "cpl": 24038,
-          "deals": 1.1,
-          "revenue": 53677885
+          "deals": 0.1,
+          "revenue": 5367788
         },
         {
           "month": "2028-01",
-          "leads": 220,
-          "spent": 6250000,
+          "leads": 22,
+          "spent": 625000,
           "cpl": 28409,
-          "deals": 0.9,
-          "revenue": 48798077
+          "deals": 0.1,
+          "revenue": 4879808
         },
         {
           "month": "2028-02",
-          "leads": 240,
-          "spent": 6250000,
+          "leads": 24,
+          "spent": 625000,
           "cpl": 26042,
-          "deals": 1,
-          "revenue": 46358173
+          "deals": 0.1,
+          "revenue": 4635817
         },
         {
           "month": "2028-03",
-          "leads": 341,
-          "spent": 6250000,
-          "cpl": 18328,
-          "deals": 1.4,
-          "revenue": 41478365
+          "leads": 34,
+          "spent": 625000,
+          "cpl": 18382,
+          "deals": 0.1,
+          "revenue": 4147837
         },
         {
           "month": "2028-04",
-          "leads": 361,
-          "spent": 6250000,
-          "cpl": 17313,
-          "deals": 1.5,
-          "revenue": 31718750
+          "leads": 36,
+          "spent": 625000,
+          "cpl": 17361,
+          "deals": 0.2,
+          "revenue": 3171875
         }
       ],
       "realistic": [
         {
           "month": "2026-05",
-          "leads": 677,
-          "spent": 6250000,
-          "cpl": 9232,
-          "deals": 14.2,
-          "revenue": 222031250
+          "leads": 68,
+          "spent": 625000,
+          "cpl": 9191,
+          "deals": 1.4,
+          "revenue": 22203125
         },
         {
           "month": "2026-06",
-          "leads": 677,
-          "spent": 6250000,
-          "cpl": 9232,
-          "deals": 14.2,
-          "revenue": 237890625
+          "leads": 68,
+          "spent": 625000,
+          "cpl": 9191,
+          "deals": 1.4,
+          "revenue": 23789063
         },
         {
           "month": "2026-07",
-          "leads": 651,
-          "spent": 6250000,
-          "cpl": 9601,
-          "deals": 13.7,
-          "revenue": 317187500
+          "leads": 65,
+          "spent": 625000,
+          "cpl": 9615,
+          "deals": 1.4,
+          "revenue": 31718750
         },
         {
           "month": "2026-08",
-          "leads": 625,
-          "spent": 6250000,
-          "cpl": 10000,
-          "deals": 13.1,
-          "revenue": 317187500
+          "leads": 63,
+          "spent": 625000,
+          "cpl": 9921,
+          "deals": 1.3,
+          "revenue": 31718750
         },
         {
           "month": "2026-09",
-          "leads": 573,
-          "spent": 6250000,
-          "cpl": 10908,
-          "deals": 12,
-          "revenue": 412343750
+          "leads": 57,
+          "spent": 625000,
+          "cpl": 10965,
+          "deals": 1.2,
+          "revenue": 41234375
         },
         {
           "month": "2026-10",
-          "leads": 547,
-          "spent": 6250000,
-          "cpl": 11426,
-          "deals": 11.5,
-          "revenue": 412343750
+          "leads": 55,
+          "spent": 625000,
+          "cpl": 11364,
+          "deals": 1.1,
+          "revenue": 41234375
         },
         {
           "month": "2026-11",
-          "leads": 495,
-          "spent": 6250000,
-          "cpl": 12626,
-          "deals": 10.4,
-          "revenue": 396484375
+          "leads": 49,
+          "spent": 625000,
+          "cpl": 12755,
+          "deals": 1,
+          "revenue": 39648438
         },
         {
           "month": "2026-12",
-          "leads": 417,
-          "spent": 6250000,
-          "cpl": 14988,
-          "deals": 8.8,
-          "revenue": 380625000
+          "leads": 42,
+          "spent": 625000,
+          "cpl": 14881,
+          "deals": 0.9,
+          "revenue": 38062500
         },
         {
           "month": "2027-01",
-          "leads": 365,
-          "spent": 6250000,
-          "cpl": 17123,
-          "deals": 7.7,
-          "revenue": 348906250
+          "leads": 36,
+          "spent": 625000,
+          "cpl": 17361,
+          "deals": 0.8,
+          "revenue": 34890625
         },
         {
           "month": "2027-02",
-          "leads": 391,
-          "spent": 6250000,
-          "cpl": 15985,
-          "deals": 8.2,
-          "revenue": 333046875
+          "leads": 39,
+          "spent": 625000,
+          "cpl": 16026,
+          "deals": 0.8,
+          "revenue": 33304688
         },
         {
           "month": "2027-03",
-          "leads": 521,
-          "spent": 6250000,
-          "cpl": 11996,
-          "deals": 10.9,
-          "revenue": 301328125
+          "leads": 52,
+          "spent": 625000,
+          "cpl": 12019,
+          "deals": 1.1,
+          "revenue": 30132813
         },
         {
           "month": "2027-04",
-          "leads": 521,
-          "spent": 6250000,
-          "cpl": 11996,
-          "deals": 10.9,
-          "revenue": 253750000
+          "leads": 52,
+          "spent": 625000,
+          "cpl": 12019,
+          "deals": 1.1,
+          "revenue": 25375000
         },
         {
           "month": "2027-05",
-          "leads": 677,
-          "spent": 6250000,
-          "cpl": 9232,
-          "deals": 14.2,
-          "revenue": 222031250
+          "leads": 68,
+          "spent": 625000,
+          "cpl": 9191,
+          "deals": 1.4,
+          "revenue": 22203125
         },
         {
           "month": "2027-06",
-          "leads": 677,
-          "spent": 6250000,
-          "cpl": 9232,
-          "deals": 14.2,
-          "revenue": 237890625
+          "leads": 68,
+          "spent": 625000,
+          "cpl": 9191,
+          "deals": 1.4,
+          "revenue": 23789063
         },
         {
           "month": "2027-07",
-          "leads": 651,
-          "spent": 6250000,
-          "cpl": 9601,
-          "deals": 13.7,
-          "revenue": 317187500
+          "leads": 65,
+          "spent": 625000,
+          "cpl": 9615,
+          "deals": 1.4,
+          "revenue": 31718750
         },
         {
           "month": "2027-08",
-          "leads": 625,
-          "spent": 6250000,
-          "cpl": 10000,
-          "deals": 13.1,
-          "revenue": 317187500
+          "leads": 63,
+          "spent": 625000,
+          "cpl": 9921,
+          "deals": 1.3,
+          "revenue": 31718750
         },
         {
           "month": "2027-09",
-          "leads": 573,
-          "spent": 6250000,
-          "cpl": 10908,
-          "deals": 12,
-          "revenue": 412343750
+          "leads": 57,
+          "spent": 625000,
+          "cpl": 10965,
+          "deals": 1.2,
+          "revenue": 41234375
         },
         {
           "month": "2027-10",
-          "leads": 547,
-          "spent": 6250000,
-          "cpl": 11426,
-          "deals": 11.5,
-          "revenue": 412343750
+          "leads": 55,
+          "spent": 625000,
+          "cpl": 11364,
+          "deals": 1.1,
+          "revenue": 41234375
         },
         {
           "month": "2027-11",
-          "leads": 495,
-          "spent": 6250000,
-          "cpl": 12626,
-          "deals": 10.4,
-          "revenue": 396484375
+          "leads": 49,
+          "spent": 625000,
+          "cpl": 12755,
+          "deals": 1,
+          "revenue": 39648438
         },
         {
           "month": "2027-12",
-          "leads": 417,
-          "spent": 6250000,
-          "cpl": 14988,
-          "deals": 8.8,
-          "revenue": 380625000
+          "leads": 42,
+          "spent": 625000,
+          "cpl": 14881,
+          "deals": 0.9,
+          "revenue": 38062500
         },
         {
           "month": "2028-01",
-          "leads": 365,
-          "spent": 6250000,
-          "cpl": 17123,
-          "deals": 7.7,
-          "revenue": 348906250
+          "leads": 36,
+          "spent": 625000,
+          "cpl": 17361,
+          "deals": 0.8,
+          "revenue": 34890625
         },
         {
           "month": "2028-02",
-          "leads": 391,
-          "spent": 6250000,
-          "cpl": 15985,
-          "deals": 8.2,
-          "revenue": 333046875
+          "leads": 39,
+          "spent": 625000,
+          "cpl": 16026,
+          "deals": 0.8,
+          "revenue": 33304688
         },
         {
           "month": "2028-03",
-          "leads": 521,
-          "spent": 6250000,
-          "cpl": 11996,
-          "deals": 10.9,
-          "revenue": 301328125
+          "leads": 52,
+          "spent": 625000,
+          "cpl": 12019,
+          "deals": 1.1,
+          "revenue": 30132813
         },
         {
           "month": "2028-04",
-          "leads": 521,
-          "spent": 6250000,
-          "cpl": 11996,
-          "deals": 10.9,
-          "revenue": 253750000
+          "leads": 52,
+          "spent": 625000,
+          "cpl": 12019,
+          "deals": 1.1,
+          "revenue": 25375000
         }
       ],
       "optimistic": [
         {
           "month": "2026-05",
-          "leads": 911,
-          "spent": 6250000,
-          "cpl": 6861,
-          "deals": 94.7,
-          "revenue": 1570078125
+          "leads": 91,
+          "spent": 625000,
+          "cpl": 6868,
+          "deals": 9.5,
+          "revenue": 157007813
         },
         {
           "month": "2026-06",
-          "leads": 879,
-          "spent": 6250000,
-          "cpl": 7110,
-          "deals": 91.4,
-          "revenue": 1668208008
+          "leads": 88,
+          "spent": 625000,
+          "cpl": 7102,
+          "deals": 9.1,
+          "revenue": 166820801
         },
         {
           "month": "2026-07",
-          "leads": 879,
-          "spent": 6250000,
-          "cpl": 7110,
-          "deals": 91.4,
-          "revenue": 2060727539
+          "leads": 88,
+          "spent": 625000,
+          "cpl": 7102,
+          "deals": 9.1,
+          "revenue": 206072754
         },
         {
           "month": "2026-08",
-          "leads": 846,
-          "spent": 6250000,
-          "cpl": 7388,
-          "deals": 88,
-          "revenue": 2158857422
+          "leads": 85,
+          "spent": 625000,
+          "cpl": 7353,
+          "deals": 8.8,
+          "revenue": 215885742
         },
         {
           "month": "2026-09",
-          "leads": 749,
-          "spent": 6250000,
-          "cpl": 8344,
-          "deals": 77.8,
-          "revenue": 2747636719
+          "leads": 75,
+          "spent": 625000,
+          "cpl": 8333,
+          "deals": 7.8,
+          "revenue": 274763672
         },
         {
           "month": "2026-10",
-          "leads": 716,
-          "spent": 6250000,
-          "cpl": 8729,
-          "deals": 74.4,
-          "revenue": 2649506836
+          "leads": 72,
+          "spent": 625000,
+          "cpl": 8681,
+          "deals": 7.4,
+          "revenue": 264950684
         },
         {
           "month": "2026-11",
-          "leads": 684,
-          "spent": 6250000,
-          "cpl": 9137,
-          "deals": 71.1,
-          "revenue": 2649506836
+          "leads": 68,
+          "spent": 625000,
+          "cpl": 9191,
+          "deals": 7.1,
+          "revenue": 264950684
         },
         {
           "month": "2026-12",
-          "leads": 586,
-          "spent": 6250000,
-          "cpl": 10666,
-          "deals": 60.9,
-          "revenue": 2551376953
+          "leads": 59,
+          "spent": 625000,
+          "cpl": 10593,
+          "deals": 6.1,
+          "revenue": 255137695
         },
         {
           "month": "2027-01",
-          "leads": 521,
-          "spent": 6250000,
-          "cpl": 11996,
-          "deals": 54.1,
-          "revenue": 2256987305
+          "leads": 52,
+          "spent": 625000,
+          "cpl": 12019,
+          "deals": 5.4,
+          "revenue": 225698730
         },
         {
           "month": "2027-02",
-          "leads": 553,
-          "spent": 6250000,
-          "cpl": 11302,
-          "deals": 57.5,
-          "revenue": 2158857422
+          "leads": 55,
+          "spent": 625000,
+          "cpl": 11364,
+          "deals": 5.8,
+          "revenue": 215885742
         },
         {
           "month": "2027-03",
-          "leads": 684,
-          "spent": 6250000,
-          "cpl": 9137,
-          "deals": 71.1,
-          "revenue": 2060727539
+          "leads": 68,
+          "spent": 625000,
+          "cpl": 9191,
+          "deals": 7.1,
+          "revenue": 206072754
         },
         {
           "month": "2027-04",
-          "leads": 716,
-          "spent": 6250000,
-          "cpl": 8729,
-          "deals": 74.4,
-          "revenue": 1766337891
+          "leads": 72,
+          "spent": 625000,
+          "cpl": 8681,
+          "deals": 7.4,
+          "revenue": 176633789
         },
         {
           "month": "2027-05",
-          "leads": 911,
-          "spent": 6250000,
-          "cpl": 6861,
-          "deals": 94.7,
-          "revenue": 1570078125
+          "leads": 91,
+          "spent": 625000,
+          "cpl": 6868,
+          "deals": 9.5,
+          "revenue": 157007813
         },
         {
           "month": "2027-06",
-          "leads": 879,
-          "spent": 6250000,
-          "cpl": 7110,
-          "deals": 91.4,
-          "revenue": 1668208008
+          "leads": 88,
+          "spent": 625000,
+          "cpl": 7102,
+          "deals": 9.1,
+          "revenue": 166820801
         },
         {
           "month": "2027-07",
-          "leads": 879,
-          "spent": 6250000,
-          "cpl": 7110,
-          "deals": 91.4,
-          "revenue": 2060727539
+          "leads": 88,
+          "spent": 625000,
+          "cpl": 7102,
+          "deals": 9.1,
+          "revenue": 206072754
         },
         {
           "month": "2027-08",
-          "leads": 846,
-          "spent": 6250000,
-          "cpl": 7388,
-          "deals": 88,
-          "revenue": 2158857422
+          "leads": 85,
+          "spent": 625000,
+          "cpl": 7353,
+          "deals": 8.8,
+          "revenue": 215885742
         },
         {
           "month": "2027-09",
-          "leads": 749,
-          "spent": 6250000,
-          "cpl": 8344,
-          "deals": 77.8,
-          "revenue": 2747636719
+          "leads": 75,
+          "spent": 625000,
+          "cpl": 8333,
+          "deals": 7.8,
+          "revenue": 274763672
         },
         {
           "month": "2027-10",
-          "leads": 716,
-          "spent": 6250000,
-          "cpl": 8729,
-          "deals": 74.4,
-          "revenue": 2649506836
+          "leads": 72,
+          "spent": 625000,
+          "cpl": 8681,
+          "deals": 7.4,
+          "revenue": 264950684
         },
         {
           "month": "2027-11",
-          "leads": 684,
-          "spent": 6250000,
-          "cpl": 9137,
-          "deals": 71.1,
-          "revenue": 2649506836
+          "leads": 68,
+          "spent": 625000,
+          "cpl": 9191,
+          "deals": 7.1,
+          "revenue": 264950684
         },
         {
           "month": "2027-12",
-          "leads": 586,
-          "spent": 6250000,
-          "cpl": 10666,
-          "deals": 60.9,
-          "revenue": 2551376953
+          "leads": 59,
+          "spent": 625000,
+          "cpl": 10593,
+          "deals": 6.1,
+          "revenue": 255137695
         },
         {
           "month": "2028-01",
-          "leads": 521,
-          "spent": 6250000,
-          "cpl": 11996,
-          "deals": 54.1,
-          "revenue": 2256987305
+          "leads": 52,
+          "spent": 625000,
+          "cpl": 12019,
+          "deals": 5.4,
+          "revenue": 225698730
         },
         {
           "month": "2028-02",
-          "leads": 553,
-          "spent": 6250000,
-          "cpl": 11302,
-          "deals": 57.5,
-          "revenue": 2158857422
+          "leads": 55,
+          "spent": 625000,
+          "cpl": 11364,
+          "deals": 5.8,
+          "revenue": 215885742
         },
         {
           "month": "2028-03",
-          "leads": 684,
-          "spent": 6250000,
-          "cpl": 9137,
-          "deals": 71.1,
-          "revenue": 2060727539
+          "leads": 68,
+          "spent": 625000,
+          "cpl": 9191,
+          "deals": 7.1,
+          "revenue": 206072754
         },
         {
           "month": "2028-04",
-          "leads": 716,
-          "spent": 6250000,
-          "cpl": 8729,
-          "deals": 74.4,
-          "revenue": 1766337891
+          "leads": 72,
+          "spent": 625000,
+          "cpl": 8681,
+          "deals": 7.4,
+          "revenue": 176633789
         }
       ]
     }
