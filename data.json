@@ -1,5 +1,5 @@
 {
-  "_ts": 1780911253843,
+  "_ts": 1780911269737,
   "data": [
     {
       "id": "w1",
@@ -1005,7 +1005,7 @@
         },
         {
           "name": "CMM (VK, Instagram, Telegram, MAX и др.)",
-          "monthlyBudget": 70,
+          "monthlyBudget": 70000,
           "leads": 0,
           "impressions": 0
         }
