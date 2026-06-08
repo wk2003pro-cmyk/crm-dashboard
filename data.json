@@ -1,5 +1,5 @@
 {
-  "_ts": 1780903911683,
+  "_ts": 1780904367361,
   "data": [
     {
       "id": "w1",
@@ -983,13 +983,13 @@
           "name": "Яндекс",
           "monthlyBudget": 0,
           "leads": 0,
-          "impressions": 168
+          "impressions": 0
         },
         {
           "name": "Джейкет (Авито, ЦИАН, ДОМ.КЛИК и пр.)",
           "monthlyBudget": 162602,
           "leads": 0,
-          "impressions": 0
+          "impressions": 168
         },
         {
           "name": "Програматик (Таргетная реклама)",
@@ -1007,7 +1007,7 @@
       "funnel": [
         {
           "stage": "Заявка",
-          "count": 11,
+          "count": 9,
           "days": 0
         },
         {
