@@ -7,7 +7,7 @@
       "period": "4–10 мая",
       "sources": [
         {
-          "name": "Сайт",
+          "name": "Сайт / Прямые (без UTM)",
           "leads": 1,
           "quality": 0,
           "qualified": 0
@@ -124,7 +124,7 @@
         "pessimistic": {
           "sources": [
             {
-              "name": "Сайт",
+              "name": "Сайт / Прямые (без UTM)",
               "leads": 1,
               "quality": 0,
               "qualified": 0
@@ -237,7 +237,7 @@
         "realistic": {
           "sources": [
             {
-              "name": "Сайт",
+              "name": "Сайт / Прямые (без UTM)",
               "leads": 1,
               "quality": 0,
               "qualified": 0
@@ -350,7 +350,7 @@
         "optimistic": {
           "sources": [
             {
-              "name": "Сайт",
+              "name": "Сайт / Прямые (без UTM)",
               "leads": 1,
               "quality": 0,
               "qualified": 0
@@ -474,7 +474,7 @@
       "period": "11–17 мая",
       "sources": [
         {
-          "name": "Сайт",
+          "name": "Сайт / Прямые (без UTM)",
           "leads": 2,
           "quality": 100,
           "qualified": 2
@@ -600,7 +600,7 @@
       "period": "18–24 мая",
       "sources": [
         {
-          "name": "Сайт",
+          "name": "Сайт / Прямые (без UTM)",
           "leads": 6,
           "quality": 17,
           "qualified": 1
