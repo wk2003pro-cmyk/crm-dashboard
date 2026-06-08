@@ -1,5 +1,5 @@
 {
-  "_ts": 1780899987026,
+  "_ts": 1780900166227,
   "data": [
     {
       "id": "w1",
@@ -945,8 +945,8 @@
         {
           "name": "Сайт",
           "leads": 9,
-          "qualified": 0,
-          "quality": 0,
+          "qualified": 2,
+          "quality": 22,
           "organic": true
         },
         {
@@ -966,8 +966,8 @@
         {
           "name": "Програматик (Таргетная реклама)",
           "leads": 2,
-          "qualified": 0,
-          "quality": 0,
+          "qualified": 2,
+          "quality": 100,
           "campaignName": "Програматик (Таргетная реклама)"
         },
         {
