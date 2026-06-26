@@ -1,5 +1,5 @@
 {
-  "_ts": 1782478507430,
+  "_ts": 1782478613639,
   "data": [
     {
       "id": "w1",
@@ -1251,31 +1251,36 @@
           "name": "Сайт",
           "leads": 0,
           "qualified": 0,
-          "quality": 0
+          "quality": 0,
+          "organic": true
         },
         {
           "name": "Проезжали мимо",
           "leads": 0,
           "qualified": 0,
-          "quality": 0
+          "quality": 0,
+          "organic": true
         },
         {
           "name": "Джейкет (Авито, ЦИАН, ДОМ.КЛИК и пр.)",
           "leads": 0,
           "qualified": 0,
-          "quality": 0
+          "quality": 0,
+          "campaignName": "Джейкет (Авито, ЦИАН, ДОМ.КЛИК и пр.)"
         },
         {
           "name": "Програматик (Таргетная реклама)",
-          "leads": 0,
+          "leads": 10,
           "qualified": 0,
-          "quality": 0
+          "quality": 0,
+          "campaignName": "Програматик (Таргетная реклама)"
         },
         {
           "name": "Наружная реклама",
           "leads": 0,
           "qualified": 0,
-          "quality": 0
+          "quality": 0,
+          "organic": true
         }
       ],
       "campaigns": [
@@ -1289,19 +1294,19 @@
           "name": "Джейкет (Авито, ЦИАН, ДОМ.КЛИК и пр.)",
           "monthlyBudget": 0,
           "leads": 0,
-          "impressions": 0
+          "impressions": 124
         },
         {
           "name": "Програматик (Таргетная реклама)",
           "monthlyBudget": 0,
-          "leads": 0,
+          "leads": 10,
           "impressions": 0
         }
       ],
       "funnel": [
         {
           "stage": "Заявка",
-          "count": 0,
+          "count": 10,
           "days": 0
         },
         {
