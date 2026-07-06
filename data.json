@@ -1,5 +1,5 @@
 {
-  "_ts": 1783317821854,
+  "_ts": 1783317905252,
   "data": [
     {
       "id": "w1",
@@ -1393,7 +1393,7 @@
       "sources": [
         {
           "name": "Яндекс",
-          "leads": 0,
+          "leads": 3,
           "qualified": 0,
           "quality": 0,
           "campaignName": "Яндекс"
@@ -1436,7 +1436,7 @@
         {
           "name": "Яндекс",
           "monthlyBudget": 0,
-          "leads": 0,
+          "leads": 3,
           "impressions": 0
         },
         {
@@ -1461,7 +1461,7 @@
       "funnel": [
         {
           "stage": "Заявка",
-          "count": 5,
+          "count": 8,
           "days": 0
         },
         {
@@ -1486,7 +1486,7 @@
         },
         {
           "stage": "Закрыто не реализовано",
-          "count": 0,
+          "count": 3,
           "days": 0
         }
       ],
