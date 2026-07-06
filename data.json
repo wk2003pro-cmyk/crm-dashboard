@@ -1,5 +1,5 @@
 {
-  "_ts": 1783317905252,
+  "_ts": 1783318031663,
   "data": [
     {
       "id": "w1",
@@ -1393,14 +1393,14 @@
       "sources": [
         {
           "name": "Яндекс",
-          "leads": 3,
+          "leads": 0,
           "qualified": 0,
           "quality": 0,
           "campaignName": "Яндекс"
         },
         {
           "name": "Сайт",
-          "leads": 0,
+          "leads": 3,
           "qualified": 0,
           "quality": 0
         },
@@ -1436,7 +1436,7 @@
         {
           "name": "Яндекс",
           "monthlyBudget": 0,
-          "leads": 3,
+          "leads": 0,
           "impressions": 0
         },
         {
