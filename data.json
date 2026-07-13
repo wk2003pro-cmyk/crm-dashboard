@@ -1,5 +1,5 @@
 {
-  "_ts": 1783930214058,
+  "_ts": 1783930348623,
   "data": [
     {
       "id": "w1",
@@ -1683,19 +1683,19 @@
         },
         {
           "name": "Джейкет (Авито, ЦИАН, ДОМ.КЛИК и пр.)",
-          "monthlyBudget": 0,
+          "monthlyBudget": 162602,
           "leads": 0,
           "impressions": 143
         },
         {
           "name": "Програматик (Таргетная реклама)",
-          "monthlyBudget": 0,
+          "monthlyBudget": 219000,
           "leads": 0,
           "impressions": 216833
         },
         {
           "name": "Наружная реклама ",
-          "monthlyBudget": 0,
+          "monthlyBudget": 193000,
           "leads": 0,
           "impressions": 0
         }
