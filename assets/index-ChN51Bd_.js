@@ -303,9 +303,9 @@ window.addEventListener('beforeprint',run);
             <td style="${v}font-weight:700;">${e.reaches}</td>
             <td style="${v}color:${t};font-weight:600;">${e.convRate}%</td>
           </tr>`}).join(``)+`</tbody></table></div>`:``,M=t?(()=>{let e=t.split(`
-`).filter(e=>e.trim()),n=Math.ceil(e.length/2),r=e=>{let t=e.indexOf(`:`);return t>0&&t<50?`<div style="margin-bottom:3px;"><span style="font-weight:700;font-style:normal;color:${yV};">${e.slice(0,t)}:</span>${e.slice(t+1)}</div>`:`<div style="margin-bottom:3px;">${e}</div>`};return`<div style="${p}border-left:3px solid ${xV};">
+`).filter(e=>e.trim()).slice(0,16),n=Math.ceil(e.length/2),r=e=>{let t=e.indexOf(`:`);return t>0&&t<50?`<div style="margin-bottom:2px;"><span style="font-weight:700;font-style:normal;color:${yV};">${e.slice(0,t)}:</span>${e.slice(t+1)}</div>`:`<div style="margin-bottom:2px;">${e}</div>`};return`<div style="${p}border-left:3px solid ${xV};">
           <div style="${m}">Управленческий анализ</div>
-          <div style="padding:4px 8px;display:grid;grid-template-columns:1fr 1fr;gap:0 20px;font-size:8.5px;color:${yV};line-height:1.45;font-family:'Instrument Serif',Georgia,serif;font-style:italic;">
+          <div style="padding:3px 8px;display:grid;grid-template-columns:1fr 1fr;gap:0 16px;font-size:8px;color:${yV};line-height:1.35;font-family:'Instrument Serif',Georgia,serif;font-style:italic;">
             <div>${e.slice(0,n).map(r).join(``)}</div>
             <div>${e.slice(n).map(r).join(``)}</div>
           </div>
@@ -315,23 +315,23 @@ window.addEventListener('beforeprint',run);
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:Inter,system-ui,sans-serif;font-size:9px;color:${vV};background:${hV};-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   table{border-collapse:collapse;width:100%;}
-  @page{size:A4 landscape;margin:6mm;}
+  @page{size:A4 landscape;margin:5mm;}
 </style>
 <script>
 function scaleToFit(){
-  var printW=1086,printH=756;
   var el=document.getElementById('root');
-  el.style.transform='scale(1)';el.style.transformOrigin='top left';
+  document.body.style.zoom='1';
   var h=el.scrollHeight,w=el.scrollWidth;
-  var scaleH=printH/h,scaleW=printW/w,s=Math.min(scaleH,scaleW,1);
-  if(s<1){el.style.transform='scale('+s.toFixed(4)+')';el.style.width=(printW/s)+'px';}
+  var printW=1096,printH=748;
+  var s=Math.min(printH/h,printW/w,1);
+  if(s<1){document.body.style.zoom=s.toFixed(4);}
 }
-if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){setTimeout(scaleToFit,100)});}
-else{window.addEventListener('load',function(){setTimeout(scaleToFit,100);});}
+if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){setTimeout(scaleToFit,150)});}
+else{window.addEventListener('load',function(){setTimeout(scaleToFit,150);});}
 window.addEventListener('beforeprint',scaleToFit);
 <\/script>
 </head><body style="margin:0;padding:0;">
-<div id="root" style="display:flex;flex-direction:column;gap:4px;width:1086px;padding:0;">
+<div id="root" style="display:flex;flex-direction:column;gap:4px;width:1096px;padding:0;">
 
   <div style="border-bottom:2px solid ${xV};padding-bottom:3px;">
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
