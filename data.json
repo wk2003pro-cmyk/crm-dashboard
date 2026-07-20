@@ -1,5 +1,5 @@
 {
-  "_ts": 1784535098426,
+  "_ts": 1784535195084,
   "data": [
     {
       "id": "w1",
@@ -1839,7 +1839,13 @@
         },
         {
           "name": "Наружная реклама ",
-          "monthlyBudget": 0,
+          "monthlyBudget": 259000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "СММ",
+          "monthlyBudget": 70000,
           "leads": 0,
           "impressions": 0
         }
