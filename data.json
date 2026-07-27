@@ -1,5 +1,5 @@
 {
-  "_ts": 1785138933621,
+  "_ts": 1785139017516,
   "data": [
     {
       "id": "w1",
@@ -1948,25 +1948,28 @@
           "leads": 6,
           "qualified": 5,
           "quality": 83,
-          "organic": true
+          "campaignName": "Програматик (Таргетная реклама)"
         },
         {
           "name": "Наружная реклама",
           "leads": 0,
           "qualified": 0,
-          "quality": 0
+          "quality": 0,
+          "campaignName": "Наружная реклама"
         },
         {
           "name": "ЦИАН",
           "leads": 0,
           "qualified": 0,
-          "quality": 0
+          "quality": 0,
+          "campaignName": "ЦИАН"
         },
         {
           "name": "Авито ",
           "leads": 0,
           "qualified": 0,
-          "quality": 0
+          "quality": 0,
+          "campaignName": "Авито "
         }
       ],
       "campaigns": [
@@ -1979,8 +1982,8 @@
         {
           "name": "Програматик (Таргетная реклама)",
           "monthlyBudget": 219000,
-          "leads": 0,
-          "impressions": 206362
+          "leads": 6,
+          "impressions": 206381
         },
         {
           "name": "Авито ",
