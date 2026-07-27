@@ -1,5 +1,5 @@
 {
-  "_ts": 1784558806449,
+  "_ts": 1785138557849,
   "data": [
     {
       "id": "w1",
@@ -1915,6 +1915,138 @@
       ],
       "insights": [],
       "forecast": {}
+    },
+    {
+      "id": "wms2x1dc3",
+      "date": "2026-07-20",
+      "period": "20–26 июл",
+      "avgDeal": 28,
+      "sources": [
+        {
+          "name": "Яндекс",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "Яндекс"
+        },
+        {
+          "name": "Сайт",
+          "leads": 6,
+          "qualified": 0,
+          "quality": 0,
+          "organic": true
+        },
+        {
+          "name": "Проезжали мимо",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "organic": true
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "leads": 6,
+          "qualified": 5,
+          "quality": 83,
+          "organic": true
+        },
+        {
+          "name": "Наружная реклама",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0
+        },
+        {
+          "name": "ЦИАН",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0
+        },
+        {
+          "name": "Авито ",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0
+        }
+      ],
+      "campaigns": [
+        {
+          "name": "Яндекс",
+          "monthlyBudget": 0,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "monthlyBudget": 219000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Авито ",
+          "monthlyBudget": 14000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "ЦИАН",
+          "monthlyBudget": 0,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Наружная реклама",
+          "monthlyBudget": 259000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "СММ",
+          "monthlyBudget": 70000,
+          "leads": 0,
+          "impressions": 0
+        }
+      ],
+      "funnel": [
+        {
+          "stage": "Заявка",
+          "count": 12,
+          "days": 0
+        },
+        {
+          "stage": "Квалификация",
+          "count": 5,
+          "days": 0
+        },
+        {
+          "stage": "Показ проведен",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Бронь/Резерв",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Успешно реализованы",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Закрыто/не реализовано ",
+          "count": 6,
+          "days": 0
+        }
+      ],
+      "commentary": {
+        "marketSources": []
+      },
+      "kpiTargets": {},
+      "problems": [],
+      "priorities": [],
+      "insights": [],
+      "forecast": {}
     }
   ],
   "campaignBudget": {
@@ -1922,6 +2054,7 @@
     "start": "2026-04-01",
     "end": "2028-12-31"
   },
+  "funnelBaselines": {},
   "bizPlan": {
     "savedAt": "2026-05-28T15:39:30.830Z",
     "startMonth": "2026-05",
