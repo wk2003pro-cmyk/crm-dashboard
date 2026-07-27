@@ -575,7 +575,7 @@ window.addEventListener('beforeprint',run);
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:63% 37%;gap:5px;align-items:start;">
+  <div style="display:grid;grid-template-columns:63% 37%;gap:5px;align-items:stretch;">
     <div style="${c}">
       <div style="${l}">1. Сводка по источникам</div>
       <table>
@@ -598,9 +598,9 @@ window.addEventListener('beforeprint',run);
         </tbody>
       </table>
     </div>
-    <div style="${c}">
+    <div style="${c}display:flex;flex-direction:column;">
       <div style="${l}">2. Воронка продаж</div>
-      <div style="${u}">${k}</div>
+      <div style="${u}flex:1;display:flex;flex-direction:column;justify-content:center;">${k}</div>
     </div>
   </div>
 
