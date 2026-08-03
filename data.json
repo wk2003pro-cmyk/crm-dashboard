@@ -1,5 +1,5 @@
 {
-  "_ts": 1785744079616,
+  "_ts": 1785744908371,
   "data": [
     {
       "id": "w1",
@@ -2086,7 +2086,7 @@
         },
         {
           "name": "Сайт",
-          "leads": 0,
+          "leads": 7,
           "qualified": 0,
           "quality": 0,
           "organic": true
@@ -2100,7 +2100,7 @@
         },
         {
           "name": "Програматик (Таргетная реклама)",
-          "leads": 0,
+          "leads": 2,
           "qualified": 0,
           "quality": 0
         },
@@ -2134,7 +2134,7 @@
           "name": "Програматик (Таргетная реклама)",
           "monthlyBudget": 219000,
           "leads": 0,
-          "impressions": 0
+          "impressions": 115412
         },
         {
           "name": "Авито ",
@@ -2164,7 +2164,7 @@
       "funnel": [
         {
           "stage": "Заявка",
-          "count": 0,
+          "count": 9,
           "days": 0
         },
         {
