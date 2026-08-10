@@ -1,5 +1,5 @@
 {
-  "_ts": 1786347756165,
+  "_ts": 1786348636911,
   "data": [
     {
       "id": "w1",
@@ -2280,19 +2280,19 @@
           "name": "Програматик (Таргетная реклама)",
           "monthlyBudget": 219000,
           "leads": 0,
-          "impressions": 0
+          "impressions": 125415
         },
         {
           "name": "Авито",
           "monthlyBudget": 14000,
           "leads": 0,
-          "impressions": 0
+          "impressions": 52
         },
         {
           "name": "ЦИАН",
           "monthlyBudget": 0,
           "leads": 0,
-          "impressions": 0
+          "impressions": 37
         },
         {
           "name": "Наружная реклама ",
