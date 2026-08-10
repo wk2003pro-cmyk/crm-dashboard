@@ -1,5 +1,5 @@
 {
-  "_ts": 1786348636911,
+  "_ts": 1786349158056,
   "data": [
     {
       "id": "w1",
@@ -2221,7 +2221,7 @@
       "id": "wmsmv5s7w",
       "date": "2026-08-03",
       "period": "3–9 авг",
-      "avgDeal": 8,
+      "avgDeal": 28,
       "sources": [
         {
           "name": "Яндекс",
@@ -2239,16 +2239,16 @@
         },
         {
           "name": "Проезжали мимо",
-          "leads": 0,
-          "qualified": 0,
-          "quality": 0,
+          "leads": 1,
+          "qualified": 1,
+          "quality": 100,
           "organic": true
         },
         {
           "name": "Програматик (Таргетная реклама)",
-          "leads": 0,
-          "qualified": 0,
-          "quality": 0
+          "leads": 3,
+          "qualified": 1,
+          "quality": 33
         },
         {
           "name": "Наружная реклама",
@@ -2310,12 +2310,12 @@
       "funnel": [
         {
           "stage": "Заявка",
-          "count": 0,
+          "count": 4,
           "days": 0
         },
         {
           "stage": "Квалификация",
-          "count": 0,
+          "count": 2,
           "days": 0
         },
         {
