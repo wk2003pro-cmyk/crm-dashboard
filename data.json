@@ -1,5 +1,5 @@
 {
-  "_ts": 1786955797386,
+  "_ts": 1787559581815,
   "data": [
     {
       "id": "w1",
@@ -2514,6 +2514,136 @@
             "url": "https://xn--d1aqf.xn--p1ai/mortgage/semeinaya-ipoteka/"
           }
         ]
+      },
+      "kpiTargets": {},
+      "problems": [],
+      "priorities": [],
+      "insights": [],
+      "forecast": {}
+    },
+    {
+      "id": "wmt6voqgv",
+      "date": "2026-08-17",
+      "period": "17–23 авг",
+      "avgDeal": 28,
+      "sources": [
+        {
+          "name": "Яндекс",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "Яндекс"
+        },
+        {
+          "name": "Сайт",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "organic": true
+        },
+        {
+          "name": "Проезжали мимо",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "organic": true
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "leads": 4,
+          "qualified": 3,
+          "quality": 75,
+          "campaignName": "Програматик (Таргетная реклама)"
+        },
+        {
+          "name": "Наружная реклама",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "Наружная реклама "
+        },
+        {
+          "name": "ЦИАН ",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "ЦИАН"
+        },
+        {
+          "name": "Авито ",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "Авито "
+        }
+      ],
+      "campaigns": [
+        {
+          "name": "Яндекс",
+          "monthlyBudget": 0,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "monthlyBudget": 219000,
+          "leads": 4,
+          "impressions": 0
+        },
+        {
+          "name": "Авито ",
+          "monthlyBudget": 14000,
+          "leads": 0,
+          "impressions": 54
+        },
+        {
+          "name": "ЦИАН",
+          "monthlyBudget": 14000,
+          "leads": 0,
+          "impressions": 77
+        },
+        {
+          "name": "Наружная реклама ",
+          "monthlyBudget": 259000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "СММ ",
+          "monthlyBudget": 40000,
+          "leads": 0,
+          "impressions": 0
+        }
+      ],
+      "funnel": [
+        {
+          "stage": "Заявка",
+          "count": 4,
+          "days": 0
+        },
+        {
+          "stage": "Квалификация",
+          "count": 3,
+          "days": 0
+        },
+        {
+          "stage": "Показ проведен",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Бронь/Резерв",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Успешно реализованы",
+          "count": 0,
+          "days": 0
+        }
+      ],
+      "commentary": {
+        "marketSources": []
       },
       "kpiTargets": {},
       "problems": [],
