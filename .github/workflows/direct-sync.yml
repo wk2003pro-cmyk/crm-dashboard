@@ -1,0 +1,128 @@
+name: Sync Yandex Direct
+
+on:
+  schedule:
+    - cron: '30 5 * * *'   # каждый день в 8:30 МСК
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch Direct data
+        env:
+          DIRECT_TOKEN: ${{ secrets.DIRECT_TOKEN }}
+        run: |
+          python3 << 'EOF'
+          import os, json, urllib.request, datetime, sys
+
+          token = os.environ.get('DIRECT_TOKEN', '')
+          if not token:
+              print('DIRECT_TOKEN not set', file=sys.stderr)
+              sys.exit(1)
+
+          BASE = 'https://api.direct.yandex.com/json/v5'
+
+          def api(service, method, params):
+              body = json.dumps({'method': method, 'params': params}).encode()
+              req = urllib.request.Request(
+                  f'{BASE}/{service}',
+                  data=body,
+                  headers={
+                      'Authorization': f'Bearer {token}',
+                      'Content-Type': 'application/json; charset=utf-8',
+                      'Accept-Language': 'ru',
+                  }
+              )
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  return json.loads(r.read())
+
+          today = datetime.date.today()
+          date_to   = today.isoformat()
+          date_from = (today - datetime.timedelta(days=29)).isoformat()
+
+          # Список кампаний
+          camps_resp = api('campaigns', 'get', {
+              'SelectionCriteria': {},
+              'FieldNames': ['Id', 'Name', 'State', 'Status', 'DailyBudget', 'Type'],
+              'Page': {'Limit': 100}
+          })
+          campaigns = camps_resp.get('result', {}).get('Campaigns', [])
+          camp_ids = [c['Id'] for c in campaigns]
+          print(f'Campaigns: {len(campaigns)}')
+
+          stats = []
+          if camp_ids:
+              stats_resp = api('reports', 'get', {
+                  'SelectionCriteria': {
+                      'DateFrom': date_from,
+                      'DateTo': date_to,
+                      'Filter': [{'Field': 'CampaignId', 'Operator': 'IN', 'Values': [str(i) for i in camp_ids[:50]]}]
+                  },
+                  'FieldNames': ['CampaignId', 'CampaignName', 'Impressions', 'Clicks', 'Cost', 'Ctr', 'AvgCpc'],
+                  'ReportName': 'campaign_stats',
+                  'ReportType': 'CAMPAIGN_PERFORMANCE_REPORT',
+                  'DateRangeType': 'CUSTOM_DATE',
+                  'Format': 'TSV',
+                  'IncludeVAT': 'YES',
+                  'IncludeDiscount': 'NO'
+              })
+              # TSV parsing
+              lines = stats_resp.strip().split('\n') if isinstance(stats_resp, str) else []
+              if len(lines) > 2:
+                  headers = lines[1].split('\t')
+                  for line in lines[2:-1]:
+                      vals = line.split('\t')
+                      if len(vals) == len(headers):
+                          row = dict(zip(headers, vals))
+                          stats.append({
+                              'id':         row.get('CampaignId', ''),
+                              'name':       row.get('CampaignName', ''),
+                              'shows':      int(row.get('Impressions', 0) or 0),
+                              'clicks':     int(row.get('Clicks', 0) or 0),
+                              'cost':       round(float(row.get('Cost', 0) or 0) / 1_000_000, 2),
+                              'ctr':        round(float(row.get('Ctr', 0) or 0), 2),
+                              'avgCpc':     round(float(row.get('AvgCpc', 0) or 0) / 1_000_000, 2),
+                          })
+
+          # Балансы
+          balances = []
+          try:
+              bal_resp = api('clients', 'get', {
+                  'FieldNames': ['Login', 'AccountQuality', 'Funds']
+              })
+              cl = bal_resp.get('result', {}).get('Clients', [{}])[0]
+              funds = cl.get('Funds', {})
+              balances = [{
+                  'balance': round(funds.get('Amount', 0) / 1_000_000, 2),
+                  'shared':  round(funds.get('SharedAccountAmount', 0) / 1_000_000, 2),
+              }]
+          except Exception as e:
+              print(f'Balance error (non-fatal): {e}')
+
+          result = {
+              'updated':   date_to,
+              'from':      date_from,
+              'to':        date_to,
+              'campaigns': stats if stats else [{'id': str(c['Id']), 'name': c['Name'], 'state': c.get('State',''), 'shows': 0, 'clicks': 0, 'cost': 0, 'ctr': 0, 'avgCpc': 0} for c in campaigns],
+              'balance':   balances[0] if balances else {'balance': 0, 'shared': 0},
+          }
+
+          with open('direct-data.json', 'w', encoding='utf-8') as f:
+              json.dump(result, f, ensure_ascii=False, indent=2)
+
+          total_cost = sum(c.get('cost', 0) for c in result['campaigns'])
+          print(f'Done: {len(result["campaigns"])} campaigns, {total_cost:.0f}₽ spend')
+          EOF
+
+      - name: Commit data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add direct-data.json
+          git diff --staged --quiet && echo "No changes" || \
+            git commit -m "chore: update direct data $(date -u +%Y-%m-%d)" && git push

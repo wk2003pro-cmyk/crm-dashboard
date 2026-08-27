@@ -1,0 +1,110 @@
+name: Sync Yandex Wordstat
+
+on:
+  schedule:
+    - cron: '0 4 * * 2'   # вторник 7:00 МСК
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch Wordstat data
+        env:
+          DIRECT_TOKEN: ${{ secrets.DIRECT_TOKEN }}
+        run: |
+          python3 << 'EOF'
+          import os, json, urllib.request, urllib.parse, datetime, sys, time
+
+          token = os.environ.get('DIRECT_TOKEN', '')
+          if not token:
+              print('DIRECT_TOKEN not set', file=sys.stderr)
+              sys.exit(1)
+
+          BASE = 'https://api.direct.yandex.com/live/v4/json/'
+
+          def api(method, params):
+              body = json.dumps({'method': method, 'token': token, 'locale': 'ru', 'param': params}).encode()
+              req = urllib.request.Request(BASE, data=body, headers={'Content-Type': 'application/json'})
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  return json.loads(r.read())
+
+          # Читаем tracked keywords из webmaster-data.json как seed
+          keywords = []
+          try:
+              with open('webmaster-data.json', 'r') as f:
+                  wm = json.load(f)
+              keywords = [q['text'] for q in wm.get('queries', [])[:50]]
+          except Exception:
+              pass
+
+          # Дополняем базовыми запросами для недвижимости ИЖС
+          base_kws = [
+              'купить дом ижс', 'дом ижс краснодар', 'дом с участком краснодар',
+              'загородный дом краснодар', 'участок ижс краснодар', 'дом 100 кв краснодар',
+          ]
+          all_kws = list(dict.fromkeys(base_kws + keywords))[:50]
+
+          if not all_kws:
+              print('No keywords to check')
+              sys.exit(0)
+
+          # Создаём задачу на получение статистики
+          report_id = None
+          try:
+              resp = api('CreateNewWordstatReport', [all_kws])
+              report_id = resp.get('data')
+              print(f'Report ID: {report_id}')
+          except Exception as e:
+              print(f'CreateReport error: {e}', file=sys.stderr)
+              sys.exit(1)
+
+          # Ждём готовности (Wordstat генерирует отчёт асинхронно)
+          result_data = None
+          for attempt in range(6):
+              time.sleep(10)
+              try:
+                  status_resp = api('GetWordstatReport', report_id)
+                  data = status_resp.get('data', [])
+                  if data:
+                      result_data = data
+                      break
+              except Exception as e:
+                  print(f'Attempt {attempt+1} error: {e}')
+
+          # Удаляем задачу
+          try:
+              api('DeleteWordstatReport', report_id)
+          except Exception:
+              pass
+
+          volumes = []
+          if result_data:
+              for item in result_data:
+                  phrase = item.get('Phrase', '')
+                  shows = item.get('Shows', 0)  # среднемесячные показы
+                  volumes.append({'phrase': phrase, 'shows': shows})
+              volumes.sort(key=lambda x: -x['shows'])
+
+          result = {
+              'updated': datetime.date.today().isoformat(),
+              'volumes': volumes,
+          }
+
+          with open('wordstat-data.json', 'w', encoding='utf-8') as f:
+              json.dump(result, f, ensure_ascii=False, indent=2)
+
+          print(f'Done: {len(volumes)} phrases with search volume data')
+          EOF
+
+      - name: Commit data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add wordstat-data.json
+          git diff --staged --quiet && echo "No changes" || \
+            git commit -m "chore: update wordstat data $(date -u +%Y-%m-%d)" && git push
