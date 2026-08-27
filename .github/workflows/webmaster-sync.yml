@@ -34,8 +34,13 @@ jobs:
               if body:
                   req.add_header('Content-Type', 'application/json')
                   req.data = json.dumps(body).encode()
-              with urllib.request.urlopen(req, timeout=30) as r:
-                  return json.loads(r.read())
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      return json.loads(r.read())
+              except urllib.error.HTTPError as e:
+                  body_text = e.read().decode('utf-8', errors='replace')
+                  print(f'HTTP {e.code} {path}: {body_text}', file=sys.stderr)
+                  raise
 
           # User ID
           user_id = api('/user/')['user_id']
