@@ -62,13 +62,13 @@ jobs:
           date_to   = today.isoformat()
           date_from = (today - datetime.timedelta(days=27)).isoformat()
 
-          # Query analytics
+          # Query analytics — text_indicator='QUERY' возвращает поисковые запросы
           body = {
-              'date_from': date_from,
-              'date_to':   date_to,
-              'limit':     200,
-              'offset':    0,
-              'text_indicator':        'TOTAL_SHOWS',
+              'date_from':             date_from,
+              'date_to':               date_to,
+              'limit':                 200,
+              'offset':                0,
+              'text_indicator':        'QUERY',
               'device_type_indicator': 'ALL',
           }
           raw = api(f'/user/{user_id}/hosts/{encoded}/query-analytics/list', 'POST', body)
