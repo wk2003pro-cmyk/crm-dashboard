@@ -75,17 +75,24 @@ jobs:
 
           queries = []
           items = raw.get('text_indicator_to_statistics', [])
-          if items:
-              print(f'First item keys: {list(items[0].keys())}')
           for item in items:
-              text = item.get('text') or item.get('query') or item.get('url') or ''
-              s = item.get('statistics', {})
+              text = item.get('text_indicator', '')
+              # statistics — список [{field: TOTAL_SHOWS, value: N}, ...]
+              stats_raw = item.get('statistics', [])
+              s = {}
+              if isinstance(stats_raw, list):
+                  for stat in stats_raw:
+                      key = stat.get('field', '')
+                      s[key] = stat.get('value', 0)
+              elif isinstance(stats_raw, dict):
+                  for k, v in stats_raw.items():
+                      s[k] = v.get('value', v) if isinstance(v, dict) else v
               queries.append({
                   'text':     text,
-                  'shows':    round(s.get('TOTAL_SHOWS',       {}).get('value', 0)),
-                  'clicks':   round(s.get('TOTAL_CLICKS',      {}).get('value', 0)),
-                  'position': round(s.get('AVG_SHOW_POSITION', {}).get('value', 0) * 10) / 10,
-                  'ctr':      round(s.get('CTR',               {}).get('value', 0) * 1000) / 10,
+                  'shows':    round(s.get('TOTAL_SHOWS',       0)),
+                  'clicks':   round(s.get('TOTAL_CLICKS',      0)),
+                  'position': round(s.get('AVG_SHOW_POSITION', 0) * 10) / 10,
+                  'ctr':      round(s.get('CTR',               0) * 1000) / 10,
               })
           print(f'Queries: {len(queries)}')
 
