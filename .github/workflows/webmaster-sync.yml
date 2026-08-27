@@ -74,10 +74,14 @@ jobs:
           raw = api(f'/user/{user_id}/hosts/{encoded}/query-analytics/list', 'POST', body)
 
           queries = []
-          for item in raw.get('text_indicator_to_statistics', []):
+          items = raw.get('text_indicator_to_statistics', [])
+          if items:
+              print(f'First item keys: {list(items[0].keys())}')
+          for item in items:
+              text = item.get('text') or item.get('query') or item.get('url') or ''
               s = item.get('statistics', {})
               queries.append({
-                  'text':     item['text'],
+                  'text':     text,
                   'shows':    round(s.get('TOTAL_SHOWS',       {}).get('value', 0)),
                   'clicks':   round(s.get('TOTAL_CLICKS',      {}).get('value', 0)),
                   'position': round(s.get('AVG_SHOW_POSITION', {}).get('value', 0) * 10) / 10,
