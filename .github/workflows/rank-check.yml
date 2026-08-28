@@ -54,7 +54,7 @@ jobs:
                       'docsInGroup':  1,
                   },
                   'maxPassagesCount': 1,
-                  'region': 213,
+                  'region': '213',
                   'l10n':   'LOCALIZATION_RU',
                   'folderId': folder_id,
               }).encode()
