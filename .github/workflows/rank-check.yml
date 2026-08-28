@@ -1,0 +1,81 @@
+name: Check Keyword Rankings
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Каждый понедельник в 09:00 МСК
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check rankings via SerpApi
+        env:
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+        run: |
+          python3 << 'EOF'
+          import os, json, urllib.request, urllib.parse, datetime, sys, time
+
+          key = os.environ.get('SERPAPI_KEY', '')
+          if not key:
+              print('SERPAPI_KEY not set — skipping rank check', file=sys.stderr)
+              sys.exit(0)
+
+          with open('tracked-keywords.json', encoding='utf-8') as f:
+              data = json.load(f)
+
+          site    = data.get('site', '')
+          today   = datetime.date.today().isoformat()
+          checked = 0
+
+          for kw in data['keywords']:
+              text = kw['text']
+              params = urllib.parse.urlencode({
+                  'engine':         'yandex',
+                  'text':           text,
+                  'api_key':        key,
+                  'hl':             'ru',
+                  'gl':             'ru',
+                  'yandex_domain':  'yandex.ru',
+                  'num':            100,
+              })
+              url = f'https://serpapi.com/search.json?{params}'
+              try:
+                  with urllib.request.urlopen(url, timeout=30) as r:
+                      results = json.loads(r.read())
+
+                  pos = 0
+                  for i, result in enumerate(results.get('organic_results', []), 1):
+                      link = result.get('link', '') or result.get('displayed_link', '')
+                      if site in link:
+                          pos = i
+                          break
+
+                  positions = [p for p in kw.get('positions', []) if p['date'] != today]
+                  positions.insert(0, {'date': today, 'pos': pos})
+                  kw['positions'] = positions[:52]
+                  checked += 1
+                  print(f'[{checked}] {text}: #{pos if pos else "не найден"}')
+                  time.sleep(1)  # не спамим API
+              except Exception as e:
+                  print(f'ERROR {text}: {e}', file=sys.stderr)
+
+          data['updated'] = today
+          with open('tracked-keywords.json', 'w', encoding='utf-8') as f:
+              json.dump(data, f, ensure_ascii=False, indent=2)
+
+          print(f'\nДone: {checked}/{len(data["keywords"])} keywords checked')
+          EOF
+
+      - name: Commit results
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add tracked-keywords.json
+          git diff --staged --quiet && echo "No changes" || \
+            git commit -m "chore: update keyword rankings $(date -u +%Y-%m-%d)" && \
+            git pull --rebase && git push
