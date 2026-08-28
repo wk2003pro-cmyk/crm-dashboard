@@ -19,7 +19,7 @@ jobs:
           YANDEX_FOLDER_ID:  ${{ secrets.YANDEX_FOLDER_ID }}
         run: |
           python3 << 'EOF'
-          import os, json, base64, urllib.request, datetime, sys, time
+          import os, json, base64, urllib.request, urllib.error, datetime, sys, time
           import xml.etree.ElementTree as ET
 
           api_key   = os.environ.get('YANDEX_SEARCH_KEY', '')
@@ -87,6 +87,9 @@ jobs:
                   checked += 1
                   print(f'[{checked}] {text}: #{pos if pos else "не в топ-100"}')
                   time.sleep(2)
+              except urllib.error.HTTPError as e:
+                  body = e.read().decode('utf-8', errors='replace')
+                  print(f'ERROR {text}: HTTP {e.code} {e.reason}: {body}', file=sys.stderr)
               except Exception as e:
                   print(f'ERROR {text}: {e}', file=sys.stderr)
 
