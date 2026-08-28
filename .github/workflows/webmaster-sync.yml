@@ -76,7 +76,8 @@ jobs:
           queries = []
           items = raw.get('text_indicator_to_statistics', [])
           for item in items:
-              text = item.get('text_indicator', '')
+              text_indicator = item.get('text_indicator', '')
+              text = text_indicator.get('value', '') if isinstance(text_indicator, dict) else text_indicator
               # statistics — список [{field: TOTAL_SHOWS, value: N}, ...]
               stats_raw = item.get('statistics', [])
               s = {}
