@@ -118,12 +118,37 @@ jobs:
               json.dump(result, f, ensure_ascii=False, indent=2)
 
           print(f'Done: {len(queries)} queries, {indexed} indexed pages')
+
+          # Append weekly snapshot to metrics-history.json
+          try:
+              with open('metrics-history.json', encoding='utf-8') as f:
+                  history = json.load(f)
+          except (FileNotFoundError, ValueError):
+              history = {'updated': date_to, 'weeks': []}
+
+          qs_with_pos = [q for q in queries if q.get('position', 0) > 0]
+          avg_pos = round(sum(q['position'] for q in qs_with_pos) / len(qs_with_pos), 1) if qs_with_pos else 0
+
+          history['weeks'] = [w for w in history.get('weeks', []) if w.get('date') != date_to]
+          history['weeks'].insert(0, {
+              'date':         date_to,
+              'indexedPages': indexed,
+              'avgPosition':  avg_pos,
+              'queryCount':   len(queries),
+          })
+          history['weeks'] = history['weeks'][:52]
+          history['updated'] = date_to
+
+          with open('metrics-history.json', 'w', encoding='utf-8') as f:
+              json.dump(history, f, ensure_ascii=False, indent=2)
+
+          print(f'History: {len(history["weeks"])} weeks recorded')
           EOF
 
       - name: Commit data
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add webmaster-data.json
+          git add webmaster-data.json metrics-history.json
           git diff --staged --quiet && echo "No changes" || \
             git commit -m "chore: update webmaster data $(date -u +%Y-%m-%d)" && git pull --rebase && git push
