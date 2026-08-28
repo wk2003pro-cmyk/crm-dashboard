@@ -1,12 +1,42 @@
 {
   "site": "silva-kp.ru",
-  "updated": "",
+  "updated": "2026-08-28",
   "keywords": [
-    { "text": "кп силва", "target": 5, "addedAt": "2026-08-28", "positions": [] },
-    { "text": "силва коттеджный поселок", "target": 5, "addedAt": "2026-08-28", "positions": [] },
-    { "text": "силва коттеджный поселок воря богородское", "target": 5, "addedAt": "2026-08-28", "positions": [] },
-    { "text": "коттеджный поселок силва", "target": 10, "addedAt": "2026-08-28", "positions": [] },
-    { "text": "кп силва воря-богородское", "target": 5, "addedAt": "2026-08-28", "positions": [] },
-    { "text": "купить дом коттеджный поселок силва", "target": 10, "addedAt": "2026-08-28", "positions": [] }
+    {
+      "text": "кп силва",
+      "target": 5,
+      "addedAt": "2026-08-28",
+      "positions": []
+    },
+    {
+      "text": "силва коттеджный поселок",
+      "target": 5,
+      "addedAt": "2026-08-28",
+      "positions": []
+    },
+    {
+      "text": "силва коттеджный поселок воря богородское",
+      "target": 5,
+      "addedAt": "2026-08-28",
+      "positions": []
+    },
+    {
+      "text": "коттеджный поселок силва",
+      "target": 10,
+      "addedAt": "2026-08-28",
+      "positions": []
+    },
+    {
+      "text": "кп силва воря-богородское",
+      "target": 5,
+      "addedAt": "2026-08-28",
+      "positions": []
+    },
+    {
+      "text": "купить дом коттеджный поселок силва",
+      "target": 10,
+      "addedAt": "2026-08-28",
+      "positions": []
+    }
   ]
 }
