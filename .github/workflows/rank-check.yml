@@ -13,16 +13,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check rankings via SerpApi
+      - name: Check rankings via Yandex XML
         env:
-          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+          YANDEX_XML_USER: ${{ secrets.YANDEX_XML_USER }}
+          YANDEX_XML_KEY:  ${{ secrets.YANDEX_XML_KEY }}
         run: |
           python3 << 'EOF'
           import os, json, urllib.request, urllib.parse, datetime, sys, time
+          import xml.etree.ElementTree as ET
 
-          key = os.environ.get('SERPAPI_KEY', '')
-          if not key:
-              print('SERPAPI_KEY not set — skipping rank check', file=sys.stderr)
+          xml_user = os.environ.get('YANDEX_XML_USER', '')
+          xml_key  = os.environ.get('YANDEX_XML_KEY',  '')
+          if not xml_user or not xml_key:
+              print('YANDEX_XML_USER / YANDEX_XML_KEY not set — skipping', file=sys.stderr)
               sys.exit(0)
 
           with open('tracked-keywords.json', encoding='utf-8') as f:
@@ -35,23 +38,27 @@ jobs:
           for kw in data['keywords']:
               text = kw['text']
               params = urllib.parse.urlencode({
-                  'engine':         'yandex',
-                  'text':           text,
-                  'api_key':        key,
-                  'hl':             'ru',
-                  'gl':             'ru',
-                  'yandex_domain':  'yandex.ru',
-                  'num':            100,
+                  'user':    xml_user,
+                  'key':     xml_key,
+                  'query':   text,
+                  'lr':      213,       # Москва (показывает общую выдачу)
+                  'l10n':    'ru',
+                  'sortby':  'rlv',
+                  'filter':  'none',
+                  'maxpassages': 1,
+                  'groupby': 'attr=.mode=flat.groups-on-page=100.docs-in-group=1',
               })
-              url = f'https://serpapi.com/search.json?{params}'
+              url = f'https://yandex.ru/search/xml?{params}'
               try:
-                  with urllib.request.urlopen(url, timeout=30) as r:
-                      results = json.loads(r.read())
+                  req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      content = r.read()
 
-                  pos = 0
-                  for i, result in enumerate(results.get('organic_results', []), 1):
-                      link = result.get('link', '') or result.get('displayed_link', '')
-                      if site in link:
+                  root = ET.fromstring(content)
+                  pos  = 0
+                  for i, doc in enumerate(root.iter('doc'), 1):
+                      url_el = doc.find('url')
+                      if url_el is not None and site in (url_el.text or ''):
                           pos = i
                           break
 
@@ -59,8 +66,8 @@ jobs:
                   positions.insert(0, {'date': today, 'pos': pos})
                   kw['positions'] = positions[:52]
                   checked += 1
-                  print(f'[{checked}] {text}: #{pos if pos else "не найден"}')
-                  time.sleep(1)  # не спамим API
+                  print(f'[{checked}] {text}: #{pos if pos else "не в топ-100"}')
+                  time.sleep(2)  # пауза между запросами
               except Exception as e:
                   print(f'ERROR {text}: {e}', file=sys.stderr)
 
@@ -68,7 +75,7 @@ jobs:
           with open('tracked-keywords.json', 'w', encoding='utf-8') as f:
               json.dump(data, f, ensure_ascii=False, indent=2)
 
-          print(f'\nДone: {checked}/{len(data["keywords"])} keywords checked')
+          print(f'\nDone: {checked}/{len(data["keywords"])} keywords checked')
           EOF
 
       - name: Commit results
