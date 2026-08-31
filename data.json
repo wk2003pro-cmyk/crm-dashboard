@@ -1,5 +1,5 @@
 {
-  "_ts": 1787842362199,
+  "_ts": 1788163625305,
   "data": [
     {
       "id": "w1",
@@ -2664,6 +2664,143 @@
             "url": "https://novostroikino.ru/news/semeynaya-ipoteka-reforma-otlozhena-riski-2026/"
           }
         ]
+      },
+      "kpiTargets": {},
+      "problems": [],
+      "priorities": [],
+      "insights": [],
+      "forecast": {}
+    },
+    {
+      "id": "wmtgy5q06",
+      "date": "2026-08-24",
+      "period": "24–30 авг",
+      "avgDeal": 28,
+      "sources": [
+        {
+          "name": "Яндекс",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "Яндекс"
+        },
+        {
+          "name": "Сайт",
+          "leads": 1,
+          "qualified": 1,
+          "quality": 100,
+          "organic": true
+        },
+        {
+          "name": "Проезжали мимо",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "organic": true
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "leads": 5,
+          "qualified": 1,
+          "quality": 20,
+          "campaignName": "Програматик (Таргетная реклама)"
+        },
+        {
+          "name": "Наружная реклама",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "Наружная реклама "
+        },
+        {
+          "name": "ЦИАН ",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "ЦИАН"
+        },
+        {
+          "name": "Авито ",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "Авито "
+        },
+        {
+          "name": "Програматик (Оптимизация SEO)",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "Програматик (Оптимизация SEO)"
+        }
+      ],
+      "campaigns": [
+        {
+          "name": "Програматик (Оптимизация SEO)",
+          "monthlyBudget": 204000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "monthlyBudget": 219000,
+          "leads": 5,
+          "impressions": 0
+        },
+        {
+          "name": "Авито ",
+          "monthlyBudget": 14000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "ЦИАН",
+          "monthlyBudget": 14000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Наружная реклама ",
+          "monthlyBudget": 259000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "СММ",
+          "monthlyBudget": 40000,
+          "leads": 0,
+          "impressions": 0
+        }
+      ],
+      "funnel": [
+        {
+          "stage": "Заявка",
+          "count": 6,
+          "days": 0
+        },
+        {
+          "stage": "Квалификация",
+          "count": 2,
+          "days": 0
+        },
+        {
+          "stage": "Показ проведен",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Бронь/Резерв",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Успешно реализованы",
+          "count": 0,
+          "days": 0
+        }
+      ],
+      "commentary": {
+        "marketSources": []
       },
       "kpiTargets": {},
       "problems": [],
