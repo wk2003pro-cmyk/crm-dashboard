@@ -1,5 +1,5 @@
 {
-  "_ts": 1788165467459,
+  "_ts": 1788768493417,
   "data": [
     {
       "id": "w1",
@@ -2825,6 +2825,136 @@
             "url": "https://anfilanta.ru/guide-semeynaya-ipoteka-2026-usloviya/"
           }
         ]
+      },
+      "kpiTargets": {},
+      "problems": [],
+      "priorities": [],
+      "insights": [],
+      "forecast": {}
+    },
+    {
+      "id": "wmtqxknz7",
+      "date": "2026-08-31",
+      "period": "31 авг – 6 сен",
+      "avgDeal": 28,
+      "sources": [
+        {
+          "name": "Сайт",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "organic": true
+        },
+        {
+          "name": "Проезжали мимо",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "organic": true
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "leads": 2,
+          "qualified": 1,
+          "quality": 50,
+          "campaignName": "Програматик (Таргетная реклама)"
+        },
+        {
+          "name": "Наружная реклама",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "Наружная реклама "
+        },
+        {
+          "name": "ЦИАН",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "ЦИАН"
+        },
+        {
+          "name": "Авито",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "Авито"
+        },
+        {
+          "name": "Програматик (Оптимизация SEO)",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "Програматик (Оптимизация SEO)"
+        }
+      ],
+      "campaigns": [
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "monthlyBudget": 204000,
+          "leads": 2,
+          "impressions": 222601
+        },
+        {
+          "name": "Програматик (Оптимизация SEO)",
+          "monthlyBudget": 219000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Авито",
+          "monthlyBudget": 14000,
+          "leads": 0,
+          "impressions": 22
+        },
+        {
+          "name": "ЦИАН",
+          "monthlyBudget": 14000,
+          "leads": 0,
+          "impressions": 23
+        },
+        {
+          "name": "Наружная реклама ",
+          "monthlyBudget": 70000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "СММ",
+          "monthlyBudget": 40000,
+          "leads": 0,
+          "impressions": 0
+        }
+      ],
+      "funnel": [
+        {
+          "stage": "Заявка",
+          "count": 2,
+          "days": 0
+        },
+        {
+          "stage": "Квалификация",
+          "count": 1,
+          "days": 0
+        },
+        {
+          "stage": "Показ проведен",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Бронь/Резерв",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Успешно реализованы",
+          "count": 0,
+          "days": 0
+        }
+      ],
+      "commentary": {
+        "marketSources": []
       },
       "kpiTargets": {},
       "problems": [],
