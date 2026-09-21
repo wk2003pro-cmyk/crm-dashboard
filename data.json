@@ -1,5 +1,5 @@
 {
-  "_ts": 1789373366484,
+  "_ts": 1789977824858,
   "data": [
     {
       "id": "w1",
@@ -3129,6 +3129,130 @@
             "url": "https://xn--h1alcedd.xn--d1aqf.xn--p1ai/news/semeynaya-ipoteka-aktualnye-usloviya-na-sentyabr-2026/"
           }
         ]
+      },
+      "kpiTargets": {},
+      "problems": [],
+      "priorities": [],
+      "insights": [],
+      "forecast": {}
+    },
+    {
+      "id": "wmuaxoqdy",
+      "date": "2026-09-14",
+      "period": "14–20 сен",
+      "avgDeal": 28,
+      "sources": [
+        {
+          "name": "Проезжали мимо",
+          "leads": 1,
+          "qualified": 0,
+          "quality": 0,
+          "organic": true
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "leads": 2,
+          "qualified": 0,
+          "quality": 0
+        },
+        {
+          "name": "Програматик (Оптимизация SEO)",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0
+        },
+        {
+          "name": "ЦИАН",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0
+        },
+        {
+          "name": "Авито ",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0
+        },
+        {
+          "name": "Наружная реклама ",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0
+        },
+        {
+          "name": "Сайт ",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0
+        }
+      ],
+      "campaigns": [
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "monthlyBudget": 219000,
+          "leads": 2,
+          "impressions": 21452
+        },
+        {
+          "name": "Програматик (Оптимизация SEO)",
+          "monthlyBudget": 204000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Авито ",
+          "monthlyBudget": 14000,
+          "leads": 0,
+          "impressions": 27
+        },
+        {
+          "name": "ЦИАН ",
+          "monthlyBudget": 14000,
+          "leads": 0,
+          "impressions": 93
+        },
+        {
+          "name": "Наружная реклама ",
+          "monthlyBudget": 73200,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "СММ",
+          "monthlyBudget": 70001,
+          "leads": 0,
+          "impressions": 0
+        }
+      ],
+      "funnel": [
+        {
+          "stage": "Заявка",
+          "count": 3,
+          "days": 0
+        },
+        {
+          "stage": "Квалификация",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Показ проведен",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Бронь/Резерв",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Успешно реализованы",
+          "count": 0,
+          "days": 0
+        }
+      ],
+      "commentary": {
+        "marketSources": []
       },
       "kpiTargets": {},
       "problems": [],
