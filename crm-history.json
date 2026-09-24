@@ -1,21 +1,22 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-24T08:09:56.141Z",
+  "updatedAt": "2026-09-24T08:42:09.115Z",
   "snapshots": [
     {
       "date": "2026-09-24",
-      "capturedAt": "2026-09-24T08:09:56.141Z",
+      "capturedAt": "2026-09-24T08:42:09.115Z",
       "pipeline": {
         "id": 10737402,
         "name": "Продажа"
       },
       "availability": {
         "portfolio": true,
-        "users": true,
+        "users": false,
         "tasks": true,
         "communications": false
       },
       "warnings": [
+        "Раздел «менеджеры» временно недоступен и не учтён в операционных метриках.",
         "Раздел «коммуникации» временно недоступен и не учтён в операционных метриках."
       ],
       "flow": {
@@ -63,7 +64,7 @@
       "managers": [
         {
           "id": 13648734,
-          "name": "Печурина Эльвира Сергеевна",
+          "name": "Менеджер #13648734",
           "activeDeals": 26,
           "openTasks": 2,
           "overdueTasks": 0,
@@ -77,7 +78,7 @@
         },
         {
           "id": 13695474,
-          "name": "Брюсова Олеся Александровна",
+          "name": "Менеджер #13695474",
           "activeDeals": 25,
           "openTasks": 0,
           "overdueTasks": 0,
