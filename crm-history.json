@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-24T20:55:09.834Z",
+  "updatedAt": "2026-09-25T20:55:55.853Z",
   "snapshots": [
     {
       "date": "2026-09-24",
@@ -100,6 +100,107 @@
           "calls": 3,
           "chatMessages": 0,
           "completedTasks": 0
+        },
+        {
+          "id": 0,
+          "name": "Менеджер #0",
+          "activeDeals": 0,
+          "openTasks": 0,
+          "overdueTasks": 0,
+          "incomingCalls": 1,
+          "outgoingCalls": 0,
+          "incomingChats": 0,
+          "outgoingChats": 0,
+          "calls": 1,
+          "chatMessages": 0,
+          "completedTasks": 0
+        }
+      ]
+    },
+    {
+      "date": "2026-09-25",
+      "capturedAt": "2026-09-25T20:55:55.853Z",
+      "pipeline": {
+        "id": 10737402,
+        "name": "Продажа"
+      },
+      "availability": {
+        "portfolio": true,
+        "users": true,
+        "tasks": true,
+        "communications": true
+      },
+      "warnings": [],
+      "flow": {
+        "newDeals": 1,
+        "qualifiedActive": 30
+      },
+      "portfolio": {
+        "activeDeals": 50,
+        "totalValue": 0,
+        "openTasks": 1,
+        "overdueTasks": 0,
+        "withoutNextTask": 49,
+        "taskCoveragePct": 2,
+        "priceFilledPct": 0
+      },
+      "communications": {
+        "incomingCalls": 3,
+        "outgoingCalls": 0,
+        "incomingChats": 0,
+        "outgoingChats": 0,
+        "completedTasks": 1
+      },
+      "stages": [
+        {
+          "id": 84635682,
+          "name": "КВАЛИФИКАЦИЯ",
+          "count": 25
+        },
+        {
+          "id": 84898166,
+          "name": "ЗАЯВКА",
+          "count": 19
+        },
+        {
+          "id": 84575650,
+          "name": "ПОКАЗ ПРОВЕДЕН",
+          "count": 5
+        },
+        {
+          "id": 84575646,
+          "name": "ПОКАЗ НАЗНАЧЕН",
+          "count": 1
+        }
+      ],
+      "managers": [
+        {
+          "id": 13695474,
+          "name": "Брюсова Олеся Александровна",
+          "activeDeals": 25,
+          "openTasks": 0,
+          "overdueTasks": 0,
+          "incomingCalls": 1,
+          "outgoingCalls": 0,
+          "incomingChats": 0,
+          "outgoingChats": 0,
+          "calls": 1,
+          "chatMessages": 0,
+          "completedTasks": 0
+        },
+        {
+          "id": 13648734,
+          "name": "Печурина Эльвира Сергеевна",
+          "activeDeals": 25,
+          "openTasks": 1,
+          "overdueTasks": 0,
+          "incomingCalls": 1,
+          "outgoingCalls": 0,
+          "incomingChats": 0,
+          "outgoingChats": 0,
+          "calls": 1,
+          "chatMessages": 0,
+          "completedTasks": 1
         },
         {
           "id": 0,
