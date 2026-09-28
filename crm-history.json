@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-26T20:55:39.129Z",
+  "updatedAt": "2026-09-28T10:09:18.025Z",
   "snapshots": [
     {
       "date": "2026-09-24",
@@ -302,6 +302,83 @@
           "calls": 0,
           "chatMessages": 0,
           "completedTasks": 1
+        }
+      ]
+    },
+    {
+      "date": "2026-09-28",
+      "capturedAt": "2026-09-28T10:09:18.025Z",
+      "pipeline": {
+        "id": 10737402,
+        "name": "Продажа"
+      },
+      "availability": {
+        "portfolio": true,
+        "users": true,
+        "tasks": true,
+        "communications": true
+      },
+      "warnings": [],
+      "flow": {
+        "newDeals": 0,
+        "qualifiedActive": 11
+      },
+      "portfolio": {
+        "activeDeals": 11,
+        "totalValue": 0,
+        "openTasks": 3,
+        "overdueTasks": 0,
+        "withoutNextTask": 9,
+        "taskCoveragePct": 18,
+        "priceFilledPct": 0
+      },
+      "communications": {
+        "incomingCalls": 0,
+        "outgoingCalls": 0,
+        "incomingChats": 0,
+        "outgoingChats": 0,
+        "completedTasks": 4
+      },
+      "stages": [
+        {
+          "id": 84575650,
+          "name": "ПОКАЗ ПРОВЕДЕН",
+          "count": 7
+        },
+        {
+          "id": 84635682,
+          "name": "КВАЛИФИКАЦИЯ",
+          "count": 4
+        }
+      ],
+      "managers": [
+        {
+          "id": 13648734,
+          "name": "Печурина Эльвира Сергеевна",
+          "activeDeals": 6,
+          "openTasks": 0,
+          "overdueTasks": 0,
+          "incomingCalls": 0,
+          "outgoingCalls": 0,
+          "incomingChats": 0,
+          "outgoingChats": 0,
+          "calls": 0,
+          "chatMessages": 0,
+          "completedTasks": 4
+        },
+        {
+          "id": 13695474,
+          "name": "Брюсова Олеся Александровна",
+          "activeDeals": 5,
+          "openTasks": 3,
+          "overdueTasks": 0,
+          "incomingCalls": 0,
+          "outgoingCalls": 0,
+          "incomingChats": 0,
+          "outgoingChats": 0,
+          "calls": 0,
+          "chatMessages": 0,
+          "completedTasks": 0
         }
       ]
     }
