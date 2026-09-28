@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_ts": 1790584241102,
+  "_ts": 1790584340933,
   "data": [
     {
       "id": "w1",
@@ -3363,7 +3363,7 @@
         },
         {
           "name": "Наружная реклама",
-          "monthlyBudget": 732000,
+          "monthlyBudget": 73200,
           "leads": 0,
           "impressions": 0
         },
