@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_ts": 1790076205107,
+  "_ts": 1790584153114,
   "data": [
     {
       "id": "w1",
@@ -3274,6 +3274,141 @@
             "url": "https://77.rosstat.gov.ru/folder/70759/document/278165"
           }
         ]
+      },
+      "kpiTargets": {},
+      "problems": [],
+      "priorities": [],
+      "insights": [],
+      "forecast": {}
+    },
+    {
+      "id": "wmuh5c9cd",
+      "date": "2026-09-21",
+      "period": "21–27 сен",
+      "avgDeal": 28,
+      "sources": [
+        {
+          "name": "Сайт",
+          "leads": 4,
+          "qualified": 1,
+          "quality": 25,
+          "organic": true
+        },
+        {
+          "name": "Проезжали мимо",
+          "leads": 1,
+          "qualified": 0,
+          "quality": 0,
+          "organic": true
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "leads": 6,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "Програматик (Таргетная реклама)"
+        },
+        {
+          "name": "Наружная реклама",
+          "leads": 0,
+          "quality": 0,
+          "campaignName": "Наружная реклама"
+        },
+        {
+          "name": "Яндекс (портал)",
+          "leads": 1,
+          "qualified": 1,
+          "quality": 100,
+          "campaignName": "Яндекс (портал)"
+        },
+        {
+          "name": "Циан",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "Циан"
+        },
+        {
+          "name": "Авито",
+          "leads": 0,
+          "qualified": 0,
+          "quality": 0,
+          "campaignName": "Авито"
+        }
+      ],
+      "campaigns": [
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "monthlyBudget": 219000,
+          "leads": 6,
+          "impressions": 0
+        },
+        {
+          "name": "Сайт",
+          "monthlyBudget": 0,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Авито",
+          "monthlyBudget": 14000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Циан",
+          "monthlyBudget": 14000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Наружная реклама",
+          "monthlyBudget": 732000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "SMM",
+          "monthlyBudget": 70000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Яндекс (портал)",
+          "monthlyBudget": 0,
+          "leads": 1,
+          "impressions": 1
+        }
+      ],
+      "funnel": [
+        {
+          "stage": "Заявка",
+          "count": 12,
+          "days": 0
+        },
+        {
+          "stage": "Квалификация",
+          "count": 2,
+          "days": 0
+        },
+        {
+          "stage": "Показ проведен",
+          "count": 1,
+          "days": 0
+        },
+        {
+          "stage": "Бронь/Резерв",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Успешно реализованы",
+          "count": 0,
+          "days": 0
+        }
+      ],
+      "commentary": {
+        "marketSources": []
       },
       "kpiTargets": {},
       "problems": [],
