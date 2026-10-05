@@ -1,6 +1,12 @@
 {
-  "updated": "2026-09-28",
+  "updated": "2026-10-05",
   "weeks": [
+    {
+      "date": "2026-10-05",
+      "indexedPages": 0,
+      "avgPosition": 0,
+      "queryCount": 17
+    },
     {
       "date": "2026-09-28",
       "indexedPages": 0,
