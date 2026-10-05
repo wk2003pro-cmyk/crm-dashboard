@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_ts": 1791186659128,
+  "_ts": 1791187813225,
   "data": [
     {
       "id": "w1",
@@ -3443,34 +3443,46 @@
       "avgDeal": 8,
       "sources": [
         {
-          "name": "Яндекс",
+          "name": "ППрограмматик (Таргетная реклама)Яндекс",
           "leads": 0,
+          "qualified": 0,
           "quality": 0
         },
         {
-          "name": "Сайт",
+          "name": "СайтСайт",
           "leads": 0,
+          "qualified": 0,
           "quality": 0
         },
         {
-          "name": "Проезжали мимо",
+          "name": "Проезжали мимо Проезжали мимо",
           "leads": 0,
+          "qualified": 0,
           "quality": 0
         },
         {
-          "name": "Джейкет (Авито, ЦИАН, ДОМ.КЛИК и пр.)",
+          "name": "Яндекс (портал)Джейкет (Авито, ЦИАН, ДОМ.КЛИК и пр.)",
           "leads": 0,
+          "qualified": 0,
           "quality": 0
         },
         {
-          "name": "Програматик (Таргетная реклама)",
+          "name": "НаНаружная реклама Програматик (Таргетная реклама)",
           "leads": 0,
+          "qualified": 0,
           "quality": 0
         },
         {
-          "name": "Наружная реклама",
+          "name": "ЦИАННаружная реклама",
           "leads": 0,
+          "qualified": 0,
           "quality": 0
+        },
+        {
+          "name": "АвитоИсточник не указан",
+          "leads": 1,
+          "qualified": 1,
+          "quality": 100
         }
       ],
       "campaigns": [
@@ -3496,12 +3508,12 @@
       "funnel": [
         {
           "stage": "Заявка",
-          "count": 0,
+          "count": 1,
           "days": 0
         },
         {
           "stage": "Квалификация",
-          "count": 0,
+          "count": 1,
           "days": 0
         },
         {
@@ -3520,11 +3532,14 @@
           "days": 0
         }
       ],
-      "commentary": {},
+      "commentary": {
+        "marketSources": []
+      },
       "kpiTargets": {},
       "problems": [],
       "priorities": [],
-      "insights": []
+      "insights": [],
+      "forecast": {}
     }
   ],
   "campaignBudget": {
