@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-06T20:55:32.766Z",
+  "updatedAt": "2026-10-07T20:55:27.409Z",
   "snapshots": [
     {
       "date": "2026-09-24",
@@ -924,6 +924,83 @@
     {
       "date": "2026-10-06",
       "capturedAt": "2026-10-06T20:55:32.766Z",
+      "pipeline": {
+        "id": 10737402,
+        "name": "Продажа"
+      },
+      "availability": {
+        "portfolio": true,
+        "users": true,
+        "tasks": true,
+        "communications": true
+      },
+      "warnings": [],
+      "flow": {
+        "newDeals": 0,
+        "qualifiedActive": 10
+      },
+      "portfolio": {
+        "activeDeals": 10,
+        "totalValue": 0,
+        "openTasks": 1,
+        "overdueTasks": 1,
+        "withoutNextTask": 9,
+        "taskCoveragePct": 10,
+        "priceFilledPct": 0
+      },
+      "communications": {
+        "incomingCalls": 0,
+        "outgoingCalls": 0,
+        "incomingChats": 0,
+        "outgoingChats": 0,
+        "completedTasks": 0
+      },
+      "stages": [
+        {
+          "id": 84575650,
+          "name": "ПОКАЗ ПРОВЕДЕН",
+          "count": 6
+        },
+        {
+          "id": 84635682,
+          "name": "КВАЛИФИКАЦИЯ",
+          "count": 4
+        }
+      ],
+      "managers": [
+        {
+          "id": 13648734,
+          "name": "Печурина Эльвира Сергеевна",
+          "activeDeals": 6,
+          "openTasks": 1,
+          "overdueTasks": 1,
+          "incomingCalls": 0,
+          "outgoingCalls": 0,
+          "incomingChats": 0,
+          "outgoingChats": 0,
+          "calls": 0,
+          "chatMessages": 0,
+          "completedTasks": 0
+        },
+        {
+          "id": 13695474,
+          "name": "Брюсова Олеся Александровна",
+          "activeDeals": 4,
+          "openTasks": 0,
+          "overdueTasks": 0,
+          "incomingCalls": 0,
+          "outgoingCalls": 0,
+          "incomingChats": 0,
+          "outgoingChats": 0,
+          "calls": 0,
+          "chatMessages": 0,
+          "completedTasks": 0
+        }
+      ]
+    },
+    {
+      "date": "2026-10-07",
+      "capturedAt": "2026-10-07T20:55:27.409Z",
       "pipeline": {
         "id": 10737402,
         "name": "Продажа"
