@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_ts": 1792398704679,
+  "_ts": 1792999572266,
   "data": [
     {
       "id": "w1",
@@ -3901,6 +3901,96 @@
       "priorities": [],
       "insights": [],
       "forecast": {}
+    },
+    {
+      "id": "wmvoxnfku",
+      "date": "2026-10-19",
+      "period": "19–25 окт",
+      "avgDeal": 8,
+      "sources": [
+        {
+          "name": "Яндекс",
+          "leads": 0,
+          "quality": 0
+        },
+        {
+          "name": "Сайт",
+          "leads": 0,
+          "quality": 0
+        },
+        {
+          "name": "Проезжали мимо",
+          "leads": 0,
+          "quality": 0
+        },
+        {
+          "name": "Джейкет (Авито, ЦИАН, ДОМ.КЛИК и пр.)",
+          "leads": 0,
+          "quality": 0
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "leads": 0,
+          "quality": 0
+        },
+        {
+          "name": "Наружная реклама",
+          "leads": 0,
+          "quality": 0
+        }
+      ],
+      "campaigns": [
+        {
+          "name": "Яндекс",
+          "monthlyBudget": 0,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Джейкет (Авито, ЦИАН, ДОМ.КЛИК и пр.)",
+          "monthlyBudget": 0,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "monthlyBudget": 0,
+          "leads": 0,
+          "impressions": 0
+        }
+      ],
+      "funnel": [
+        {
+          "stage": "Заявка",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Квалификация",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Показ проведен",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Бронь/Резерв",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Успешно реализованы",
+          "count": 0,
+          "days": 0
+        }
+      ],
+      "commentary": {},
+      "kpiTargets": {},
+      "problems": [],
+      "priorities": [],
+      "insights": []
     }
   ],
   "campaignBudget": {
