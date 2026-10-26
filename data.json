@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_ts": 1793001420642,
+  "_ts": 1793001665492,
   "data": [
     {
       "id": "w1",
@@ -3916,38 +3916,45 @@
         },
         {
           "name": "Сайт",
-          "leads": 0,
-          "quality": 0
+          "leads": 2,
+          "quality": 0,
+          "organic": true
         },
         {
           "name": "Проезжали мимо",
           "leads": 0,
-          "quality": 0
+          "quality": 0,
+          "organic": true
         },
         {
           "name": "Програматик (Таргетная реклама)",
-          "leads": 0,
-          "quality": 0
+          "leads": 1,
+          "quality": 0,
+          "campaignName": "Програматик (Таргетная реклама)"
         },
         {
           "name": "Наружная реклама",
           "leads": 0,
-          "quality": 0
+          "quality": 0,
+          "organic": true
         },
         {
           "name": "Авито ",
           "leads": 0,
-          "quality": 0
+          "quality": 0,
+          "campaignName": "Авито "
         },
         {
           "name": "ЦИАН",
           "leads": 0,
-          "quality": 0
+          "quality": 0,
+          "campaignName": "ЦИАН"
         },
         {
           "name": "СММ",
           "leads": 0,
-          "quality": 0
+          "quality": 0,
+          "campaignName": "СММ"
         }
       ],
       "campaigns": [
@@ -3956,12 +3963,42 @@
           "monthlyBudget": 0,
           "leads": 0,
           "impressions": 0
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "monthlyBudget": 0,
+          "leads": 1,
+          "impressions": 0
+        },
+        {
+          "name": "Програматик (SEO)",
+          "monthlyBudget": 0,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Авито ",
+          "monthlyBudget": 0,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "ЦИАН",
+          "monthlyBudget": 0,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "СММ",
+          "monthlyBudget": 0,
+          "leads": 0,
+          "impressions": 0
         }
       ],
       "funnel": [
         {
           "stage": "Заявка",
-          "count": 0,
+          "count": 3,
           "days": 0
         },
         {
