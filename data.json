@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_ts": 1793609546073,
+  "_ts": 1794209455235,
   "data": [
     {
       "id": "w1",
@@ -4205,6 +4205,141 @@
             "url": "https://www.kommersant.ru/doc/8990619"
           }
         ]
+      },
+      "kpiTargets": {},
+      "problems": [],
+      "priorities": [],
+      "insights": [],
+      "forecast": {}
+    },
+    {
+      "id": "wmw8xqm1i",
+      "date": "2026-11-02",
+      "period": "2–8 ноя",
+      "avgDeal": 8,
+      "sources": [
+        {
+          "name": "Яндекс",
+          "leads": 0,
+          "quality": 0,
+          "campaignName": "Яндекс"
+        },
+        {
+          "name": "Сайт",
+          "leads": 0,
+          "quality": 0,
+          "organic": true
+        },
+        {
+          "name": "Проезжали мимо",
+          "leads": 0,
+          "quality": 0
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "leads": 3,
+          "qualified": 1,
+          "quality": 33,
+          "campaignName": "Програматик (Таргетная реклама)"
+        },
+        {
+          "name": "Наружная реклама",
+          "leads": 0,
+          "quality": 0,
+          "campaignName": "Наружная реклама "
+        },
+        {
+          "name": "Авито ",
+          "leads": 0,
+          "quality": 0,
+          "campaignName": "Авито "
+        },
+        {
+          "name": "ЦИАН",
+          "leads": 0,
+          "quality": 0,
+          "campaignName": "ЦИАН"
+        },
+        {
+          "name": "СММ",
+          "leads": 0,
+          "quality": 0,
+          "campaignName": "СММ"
+        }
+      ],
+      "campaigns": [
+        {
+          "name": "Яндекс",
+          "monthlyBudget": 0,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Програматик (Таргетная реклама)",
+          "monthlyBudget": 0,
+          "leads": 3,
+          "impressions": 0
+        },
+        {
+          "name": "Програматик (SEO)",
+          "monthlyBudget": 185000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Авито ",
+          "monthlyBudget": 14000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "ЦИАН",
+          "monthlyBudget": 14000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "СММ",
+          "monthlyBudget": 70000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Наружная реклама ",
+          "monthlyBudget": 73000,
+          "leads": 0,
+          "impressions": 0
+        }
+      ],
+      "funnel": [
+        {
+          "stage": "Заявка",
+          "count": 3,
+          "days": 0
+        },
+        {
+          "stage": "Квалификация",
+          "count": 1,
+          "days": 0
+        },
+        {
+          "stage": "Показ проведен",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Бронь/Резерв",
+          "count": 0,
+          "days": 0
+        },
+        {
+          "stage": "Успешно реализованы",
+          "count": 0,
+          "days": 0
+        }
+      ],
+      "commentary": {
+        "marketSources": []
       },
       "kpiTargets": {},
       "problems": [],
