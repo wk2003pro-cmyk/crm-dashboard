@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_ts": 1794817494576,
+  "_ts": 1794817557806,
   "data": [
     {
       "id": "w1",
@@ -4374,12 +4374,6 @@
       "avgDeal": 26,
       "sources": [
         {
-          "name": "Яндекс",
-          "leads": 1,
-          "quality": 0,
-          "campaignName": "Яндекс"
-        },
-        {
           "name": "Сайт",
           "leads": 1,
           "quality": 0,
@@ -4463,7 +4457,7 @@
       "funnel": [
         {
           "stage": "Заявка",
-          "count": 4,
+          "count": 3,
           "days": 0
         },
         {
