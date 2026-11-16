@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_ts": 1794814717984,
+  "_ts": 1794817154779,
   "data": [
     {
       "id": "w1",
@@ -4371,55 +4371,97 @@
       "id": "wmwiycbbt",
       "date": "2026-11-09",
       "period": "9–15 ноя",
-      "avgDeal": 8,
+      "avgDeal": 26,
       "sources": [
         {
           "name": "Яндекс",
-          "leads": 0,
-          "quality": 0
+          "leads": 1,
+          "quality": 0,
+          "campaignName": "Яндекс"
         },
         {
           "name": "Сайт",
-          "leads": 0,
-          "quality": 0
+          "leads": 1,
+          "quality": 0,
+          "organic": true
         },
         {
-          "name": "Проезжали мимо",
+          "name": "Проезжали мимо ",
           "leads": 0,
-          "quality": 0
-        },
-        {
-          "name": "Джейкет (Авито, ЦИАН, ДОМ.КЛИК и пр.)",
-          "leads": 0,
-          "quality": 0
+          "quality": 0,
+          "organic": true
         },
         {
           "name": "Програматик (Таргетная реклама)",
-          "leads": 0,
-          "quality": 0
+          "leads": 2,
+          "quality": 0,
+          "campaignName": "Програматик (Таргетная реклама)"
         },
         {
-          "name": "Наружная реклама",
+          "name": "Наружная реклама ",
           "leads": 0,
-          "quality": 0
+          "quality": 0,
+          "campaignName": "Наружная реклама "
+        },
+        {
+          "name": "Авито ",
+          "leads": 0,
+          "quality": 0,
+          "campaignName": "Авито"
+        },
+        {
+          "name": "ЦИАН",
+          "leads": 0,
+          "quality": 0,
+          "campaignName": "ЦИАН"
+        },
+        {
+          "name": "СММ",
+          "leads": 0,
+          "quality": 0,
+          "campaignName": "СММ"
         }
       ],
       "campaigns": [
         {
           "name": "Яндекс",
           "monthlyBudget": 0,
-          "leads": 0,
-          "impressions": 0
-        },
-        {
-          "name": "Джейкет (Авито, ЦИАН, ДОМ.КЛИК и пр.)",
-          "monthlyBudget": 0,
-          "leads": 0,
+          "leads": 1,
           "impressions": 0
         },
         {
           "name": "Програматик (Таргетная реклама)",
           "monthlyBudget": 0,
+          "leads": 2,
+          "impressions": 24702
+        },
+        {
+          "name": "Програматик (SEO)",
+          "monthlyBudget": 185000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Авито",
+          "monthlyBudget": 15000,
+          "leads": 0,
+          "impressions": 38
+        },
+        {
+          "name": "ЦИАН",
+          "monthlyBudget": 15000,
+          "leads": 0,
+          "impressions": 46
+        },
+        {
+          "name": "СММ",
+          "monthlyBudget": 70000,
+          "leads": 0,
+          "impressions": 0
+        },
+        {
+          "name": "Наружная реклама ",
+          "monthlyBudget": 73000,
           "leads": 0,
           "impressions": 0
         }
@@ -4427,7 +4469,7 @@
       "funnel": [
         {
           "stage": "Заявка",
-          "count": 0,
+          "count": 4,
           "days": 0
         },
         {
@@ -4437,7 +4479,7 @@
         },
         {
           "stage": "Показ проведен",
-          "count": 0,
+          "count": 1,
           "days": 0
         },
         {
@@ -4451,11 +4493,14 @@
           "days": 0
         }
       ],
-      "commentary": {},
+      "commentary": {
+        "marketSources": []
+      },
       "kpiTargets": {},
       "problems": [],
       "priorities": [],
-      "insights": []
+      "insights": [],
+      "forecast": {}
     }
   ],
   "campaignBudget": {
