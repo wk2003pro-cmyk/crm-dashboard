@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18T20:55:11.896Z",
+  "updatedAt": "2026-11-19T20:55:11.693Z",
   "snapshots": [
     {
       "date": "2026-09-24",
@@ -4257,6 +4257,102 @@
           "activeDeals": 0,
           "openTasks": 1,
           "overdueTasks": 1,
+          "incomingCalls": 0,
+          "outgoingCalls": 0,
+          "incomingChats": 0,
+          "outgoingChats": 0,
+          "calls": 0,
+          "chatMessages": 0,
+          "completedTasks": 0
+        }
+      ]
+    },
+    {
+      "date": "2026-11-19",
+      "capturedAt": "2026-11-19T20:55:11.693Z",
+      "pipeline": {
+        "id": 10737402,
+        "name": "Продажа"
+      },
+      "availability": {
+        "portfolio": true,
+        "users": true,
+        "tasks": true,
+        "communications": true
+      },
+      "warnings": [],
+      "flow": {
+        "newDeals": 7,
+        "qualifiedActive": 10
+      },
+      "portfolio": {
+        "activeDeals": 21,
+        "totalValue": 0,
+        "openTasks": 9,
+        "overdueTasks": 9,
+        "withoutNextTask": 12,
+        "taskCoveragePct": 43,
+        "priceFilledPct": 0
+      },
+      "communications": {
+        "incomingCalls": 0,
+        "outgoingCalls": 0,
+        "incomingChats": 0,
+        "outgoingChats": 0,
+        "completedTasks": 0
+      },
+      "stages": [
+        {
+          "id": 84898166,
+          "name": "ЗАЯВКА",
+          "count": 11
+        },
+        {
+          "id": 84575650,
+          "name": "ПОКАЗ ПРОВЕДЕН",
+          "count": 5
+        },
+        {
+          "id": 84635682,
+          "name": "КВАЛИФИКАЦИЯ",
+          "count": 5
+        }
+      ],
+      "managers": [
+        {
+          "id": 13648734,
+          "name": "Печурина Эльвира Сергеевна",
+          "activeDeals": 15,
+          "openTasks": 4,
+          "overdueTasks": 4,
+          "incomingCalls": 0,
+          "outgoingCalls": 0,
+          "incomingChats": 0,
+          "outgoingChats": 0,
+          "calls": 0,
+          "chatMessages": 0,
+          "completedTasks": 0
+        },
+        {
+          "id": 13695462,
+          "name": "Зотова Елизавета Сергеевна",
+          "activeDeals": 4,
+          "openTasks": 5,
+          "overdueTasks": 5,
+          "incomingCalls": 0,
+          "outgoingCalls": 0,
+          "incomingChats": 0,
+          "outgoingChats": 0,
+          "calls": 0,
+          "chatMessages": 0,
+          "completedTasks": 0
+        },
+        {
+          "id": 13695474,
+          "name": "Брюсова Олеся Александровна",
+          "activeDeals": 2,
+          "openTasks": 0,
+          "overdueTasks": 0,
           "incomingCalls": 0,
           "outgoingCalls": 0,
           "incomingChats": 0,
