@@ -1,37 +1,8 @@
 {
-  "updated": "2026-11-16",
-  "from": "2026-10-20",
-  "to": "2026-11-16",
+  "updated": "2026-11-23",
+  "from": "2026-10-27",
+  "to": "2026-11-23",
   "hostUrl": "http://silva-kp.ru/",
   "indexedPages": 0,
-  "queries": [
-    {
-      "text": "ерра сильва",
-      "shows": 0,
-      "clicks": 0,
-      "position": 0.0,
-      "ctr": 0.0
-    },
-    {
-      "text": "коттеджный посёлок сильва",
-      "shows": 0,
-      "clicks": 0,
-      "position": 0.0,
-      "ctr": 0.0
-    },
-    {
-      "text": "кп силва воря-богородское",
-      "shows": 0,
-      "clicks": 0,
-      "position": 0.0,
-      "ctr": 0.0
-    },
-    {
-      "text": "сильва рус",
-      "shows": 0,
-      "clicks": 0,
-      "position": 0.0,
-      "ctr": 0.0
-    }
-  ]
+  "queries": []
 }
